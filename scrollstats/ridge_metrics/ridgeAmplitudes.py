@@ -70,7 +70,13 @@ def s11_amps(maxes, mins):
     
     # Calcualte diffs between ridge maxes and following swale mins
     d2 = maxes[:-1] - mins
+
+    # Insert the first value from d2 because d1 is missing a measurement for the first ridge max
+    d1 = np.insert(d1, 0, d2[0])    
     
+    # Append the last value from d1 because d2 is missing a measurement for the last ridge max
+    d2 = np.append(d2, d1[-1] )
+
     # Return the average of the differences
     return np.vstack([d1, d2]).mean(axis=0)
 
