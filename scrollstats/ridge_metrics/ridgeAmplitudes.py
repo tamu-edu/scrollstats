@@ -165,7 +165,7 @@ def calc_ridge_amps(dem_sig, bin_sig):
         else:
             raise Exception("Equal ridge and swale count, but in an unexpected pattern.")
     
-    elif mins.size - maxes.size == 1:
+    elif np.abs(mins.size - maxes.size) == 1:
         
         # Starts and ends with ridge
         if mask[0] and mask[-1]:
