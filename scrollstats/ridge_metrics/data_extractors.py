@@ -137,6 +137,7 @@ class RidgeDataExtractor:
         self.ridge_width_px = self.calc_ridge_width_px()
         self.ridge_amp_series = self.calc_every_ridge_amp()
         self.ridge_amp = self.ridge_amp_series[self.single_ridge_num]
+        self.ridge_migration = self.calc_migration()
         
         pass
 
@@ -202,7 +203,12 @@ class RidgeDataExtractor:
         Calculates the average amplitude of each observed ridges in the units of the DEM.
         """
         return calc_ridge_amps(self.dem_signal, self.bin_signal)
+    
+    def calc_migration(self) -> float:
+        """Calculates the distance between the current ridge and the ridge deposited before it."""
 
+        _p1, p2, p3 = (Point(i) for i in self.geometry.coords)
+        return p2.distance(p3)
 
 class TransectDataExtractor:
     """Responsible for extracting ridge metrics along a transect"""
@@ -284,11 +290,12 @@ class TransectDataExtractor:
             t_id = self.transect_id
             width = rde.ridge_width_px
             amp = rde.ridge_amp
+            mig = rde.ridge_migration
             point = rde.itx_point
 
-            gdf_list.append((t_id, width, amp, point))
+            gdf_list.append((t_id, width, amp, mig, point))
 
-        itx_columns = ["transect_id","width", "amp", "geometry"]
+        itx_columns = ["transect_id","width", "amplitude", "migration","geometry"]
         ridge_metrics = gpd.GeoDataFrame(columns=itx_columns, data=gdf_list, geometry="geometry", crs=self.crs)
 
         # Apply buffer for spatial join
@@ -299,7 +306,7 @@ class TransectDataExtractor:
         ridge_metrics.geometry = ridge_metrics.centroid
 
         # Cast dtypes
-        dtypes = {"width":float, "amp":float}
+        dtypes = {"width":float, "amplitude":float, "migration":float}
         ridge_metrics = ridge_metrics.astype(dtypes)
 
         return ridge_metrics
