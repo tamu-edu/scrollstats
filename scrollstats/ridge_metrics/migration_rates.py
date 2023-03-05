@@ -1,13 +1,6 @@
-import sys
-import pathlib
 import geopandas as gpd
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-plt.rcParams['figure.facecolor'] = 'white'
-plt.rcParams['axes.facecolor'] = 'white'
-from matplotlib_scalebar.scalebar import ScaleBar
-
 from shapely.geometry import *
 from shapely.ops import split
 
@@ -125,27 +118,3 @@ def norm_rel_mig_rate(transects, ridge_id):
     norm_rate.name = f"{ridge_id}_norm"
     
     return norm_rate
-
-
-if __name__ == "__main__":
-
-    # Get input datasets: transects, ridges, and ridge_id (optional)
-    transect_path = sys.argv[1]
-    ridge_path = sys.argv[2]
-
-    if len(sys.argv) > 3:
-        chosen_ridge_id = sys.argv[3]
-    
-    # Read in datasets
-    transects = gpd.read_file(transect_path).set_index('transect_id')
-    ridges = gpd.read_file(ridge_path).set_index('ridge_id')
-    
-    # Calculate relative migration rates
-    transects = calc_rel_mig_rates(transects, ridges)
-
-    # Write transects with migration info to disk
-    fn, ext = pathlib.Path(transect_path).name.split(".", maxsplit=1)
-
-    out_name = f"{fn}_RelMigRate.{ext}"
-
-    transects.to_file(out_name, driver="GeoJSON", crs=transects.crs, index=True)
