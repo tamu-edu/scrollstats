@@ -9,7 +9,7 @@ from rasterio.io import DatasetReader
 from shapely.geometry import *
 from scipy import ndimage
 
-from .RelativeMigrationRates import calc_rel_mig_rates
+from .migration_rates import calc_rel_mig_rates
 from .ridgeAmplitudes import calc_ridge_amps, map_amp_values
 
 
