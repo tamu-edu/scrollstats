@@ -486,7 +486,7 @@ class BendDataExtractor:
         rich_transects["amp_signal"] =rich_transects[["clean_bin_signal", "dem_signal"]].apply(lambda x: self.create_amp_signal(*x), axis=1)
         rich_transects["fft_amps"] =rich_transects[["ridge_count_raster", "amp_signal"]].apply(lambda x: self.dominant_wavelength(*x), axis=1)
             
-        return rich_transects
+        return rich_transects.sort_index()
     
     def calc_itx_metrics(self):
         """For each transect found in transects, calculate the itx metrics."""
@@ -496,4 +496,4 @@ class BendDataExtractor:
                 for i, row in self.rich_transects[["transect_id", "geometry", "dem_signal", "clean_bin_signal"]].iterrows()]
         ).set_index(["bend_id", "transect_id", "ridge_id"])
 
-        return itx
+        return itx.sort_index()
