@@ -73,3 +73,77 @@ def transform_coords(coord_array, bin_raster):
     t_coords = [~transform * coord for coord in coord_array]
     
     return np.round(t_coords).astype(int)  # round coords for indexing
+
+
+def meanfilt(line: LineString, w:int) -> LineString:
+    '''
+    Mean filter to smooth the xy points of the line with a window size of w.
+
+    Appends the first and last coord to the new line to account for erosion via convolution
+    '''
+
+    mode = 'valid'
+    x, y= line.xy
+
+    xm = np.convolve(x, np.ones(w)*1/w, mode=mode)
+    xm = np.insert(xm, 0, x[0])
+    xm = np.append(xm, x[-1])
+
+    ym = np.convolve(y, np.ones(w)*1/w, mode=mode)
+    ym = np.insert(ym, 0, y[0])
+    ym = np.append(ym, y[-1])
+
+    return LineString([(x, y) for x, y in zip(xm, ym)])
+
+
+def GetS(x,y):
+    """ Calc distance along the line """
+
+    xdiff = np.ediff1d(x)
+    ydiff = np.ediff1d(y)
+
+    return \
+        np.cumsum(
+            np.insert(
+                np.sqrt(
+                    np.add(
+                        np.power(xdiff,2),
+                        np.power(ydiff,2)
+                        )
+                    ),
+                    0,
+                    0
+                )
+            ).tolist()
+
+
+def calc_cubic_spline(line, spacing):
+    """
+    Fits a function to explain the change in distance over x and y independently.
+
+    Spacing determines the distance between points
+    """
+    # Get x,y values from LineString
+    x, y = line.xy
+
+    # Calc distance along the line
+    s = GetS(x,y)
+
+    # Get the total length of the line
+    l = s[-1]
+
+    # Total number of output points
+    n = int(l//spacing)
+
+    # Interpolated distances for each output point
+    interp_dist = np.linspace(0, l, n+1, endpoint=True)
+
+    # Create spline function of x and y
+    cx_func = CubicSpline(s, x)
+    cy_func = CubicSpline(s, y)
+
+    # Apply Spline
+    cx = cx_func(interp_dist)
+    cy = cy_func(interp_dist)
+
+    return LineString(zip(cx, cy))
