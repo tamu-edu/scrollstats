@@ -7,6 +7,7 @@ Geometries can either be numpy arrays of coordinates or Shapely objects such as 
 
 import numpy as np
 from shapely.geometry import LineString
+from scipy.interpolate import CubicSpline
 
 
 
