@@ -544,7 +544,7 @@ class h74_transect_constructor():
         return self.transect
 
 
-class multi_transect():
+class MultiTransect():
 
     def __init__(self, coord_list, centerline, ridges, shoot_distance, search_distance, dev_from_90, user_direction=None, feedback='t'):
         self.coord_list = coord_list
@@ -663,3 +663,24 @@ class multi_transect():
 
     def return_all_geometries(self):
         return self.transect_df, self.point_df, self.search_area_df, self.ridge_clip_df
+
+
+def create_transects(centerline, ridges, step, shoot_distance, search_distance, dev_from_90):
+    """
+    Master function to create a series of transects from a given centerline, set of ridges, and the necessarry parameters. 
+
+    Transects are created at the `step` provided by the user (ex. every nth vertex along the centerline).
+    Centerline is assumed to have a vertex spacing of ~1m.
+    """
+
+    # Establish starting points for each transect
+    starts = np.asarray(centerline.geometry[0].xy).T[::step]
+
+    transects = MultiTransect(starts, centerline, ridges, shoot_distance, search_distance, dev_from_90)
+
+    # Create all output geometries created during transect creation
+    transect_df, point_df, search_area_df, ridge_clip_df = transects.return_all_geometries()
+
+    # Return just the transects
+    return transect_df
+
