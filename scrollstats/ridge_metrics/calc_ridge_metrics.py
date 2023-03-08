@@ -4,7 +4,7 @@ from .migration_rates import calc_rel_mig_rates
 from .data_extractors import BendDataExtractor
 
 
-def calculate_ridge_metrics(in_transects, in_bin_raster, in_dem, in_ridges=None, in_packets=None):
+def calculate_ridge_metrics(in_transects, in_bin_raster=None, in_dem=None, in_ridges=None, in_packets=None):
     """
     Master funtion to calculate scroll metrics.
 
@@ -21,12 +21,12 @@ def calculate_ridge_metrics(in_transects, in_bin_raster, in_dem, in_ridges=None,
     else:
         transects = gpd.read_file(in_transects)
     
-    if isinstance(in_bin_raster, rasterio.io.DatasetReader):
+    if isinstance(in_bin_raster, rasterio.io.DatasetReader) or in_bin_raster is None:
         bin_raster = in_bin_raster
     else:
         bin_raster = rasterio.open(in_bin_raster)
     
-    if isinstance(in_dem, rasterio.io.DatasetReader):
+    if isinstance(in_dem, rasterio.io.DatasetReader) or in_dem is None:
         dem = in_dem
     else:
         dem = rasterio.open(in_dem)
