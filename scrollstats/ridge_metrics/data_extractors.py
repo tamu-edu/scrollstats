@@ -295,18 +295,18 @@ class TransectDataExtractor:
 
             gdf_list.append((t_id, width, amp, mig, point))
 
-        itx_columns = ["transect_id","width", "amplitude", "migration","geometry"]
+        itx_columns = ["transect_id", "width", "amplitude", "migration", "geometry"]
         ridge_metrics = gpd.GeoDataFrame(columns=itx_columns, data=gdf_list, geometry="geometry", crs=self.crs)
 
         # Apply buffer for spatial join
         ridge_metrics.geometry = ridge_metrics.buffer(1e-5)
 
-        ridge_columns = ["ridge_id", "bend_id"]
+        ridge_columns = ["ridge_id", "bend_id", "deposit_year"]
         ridge_metrics = ridge_metrics.sjoin(self.ridges, how="left")[itx_columns + ridge_columns]
         ridge_metrics.geometry = ridge_metrics.centroid
 
         # Cast dtypes
-        dtypes = {"width":float, "amplitude":float, "migration":float}
+        dtypes = {"width":float, "amplitude":float, "migration":float, "deposit_year":float}
         ridge_metrics = ridge_metrics.astype(dtypes)
 
         return ridge_metrics
