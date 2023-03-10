@@ -114,19 +114,22 @@ class RidgeDataExtractor:
     The geometry for this class is a 3-vertex LineString
     """
 
-    def __init__(self, geometry, dem_signal=None, bin_signal=None) -> None:
+    def __init__(self, geometry, ridges, dem_signal=None, bin_signal=None) -> None:
         # Inputs
         self.id = None
         self.geometry = geometry
+        self.ridges = ridges
         self.dem_signal = dem_signal
         self.bin_signal = bin_signal
+        self.signal_length = self.determine_signal_length()
 
         # Assess Geometry
-        self.itx_point = Point(self.geometry.coords[1])
-        self.itx_idx = None  # Set by `self.find_closest_ridge()`
-        self.relative_vertex_distances = self.calc_relative_vertex_distance()
-        self.vertex_indices = np.round(self.relative_vertex_distances * self.bin_signal.size).astype(int)
-
+        self.gdf = self.create_point_gdf(self.geometry)
+        self.gdf = self.join_ridge_info(self.gdf, self.ridges)
+        self.gdf = self.calc_values_from_ridge_info(self.gdf)
+        self.gdf["relative_distance"] = self.calc_relative_vertex_distance()
+        self.gdf["vertex_indices"] = self.calc_vertex_indices()
+        
         # Process Binary Signal 
         self.ridge_com = self.calc_ridge_coms()
         self.single_ridge_num = None  # Set by self.find_closest_ridge()
@@ -135,23 +138,82 @@ class RidgeDataExtractor:
         # Ridge Metrics
         self.ridge_width_px = self.calc_ridge_width_px()
         self.ridge_amp_series = self.calc_every_ridge_amp()
-        self.ridge_amp = self.ridge_amp_series[self.single_ridge_num]
-        self.ridge_migration = self.calc_migration()
-        
+        self.ridge_amp = self.determine_ridge_amp()
         pass
 
+    def determine_signal_length(self):
+        """Return length of dem/bin signal if provided"""
+        if isinstance(self.bin_signal, np.ndarray):
+            return self.dem_signal.size
+        else:
+            return np.nan
+
+    def create_point_gdf(self, line):
+        """Create a 3 point GeoDataFrame to contain all relevant info for other methods."""
+        gdf = gpd.GeoDataFrame(data = [(f"p{i}", Point(p)) for i, p in enumerate(line.coords)], 
+                               columns = ["id", "geometry"],
+                               geometry = "geometry",
+                               crs = self.ridges.crs)
+
+        gdf = gdf.set_index("id")
+
+        return gdf
+
+    def join_ridge_info(self, gdf, ridges):
+        """Get ridge ids, time, distance, and migration rates via spatial join from the ridge features"""
+
+        # Use slight buffer to ensure intersection on spatial join
+        gdf["geometry_buff"] = gdf.buffer(1e-5)
+        gdf.set_geometry("geometry_buff", inplace=True)
+        gdf = gdf.sjoin(ridges)
+
+        # Reset geometry to points
+        gdf.set_geometry("geometry", inplace=True)
+
+        return gdf
+
+    def calc_values_from_ridge_info(self, gdf):
+        """
+        Calculates the migration time, distance, and rate both before and after the center ridge.
+        If the ridge does not have values for the deposit year, then mig_rate will be NaN.
+        """
+
+        # Calculate values from joined info
+        gdf["mig_time"] = gdf["deposit_year"].diff().abs()
+        gdf["mig_dist"] = gdf.distance(gdf.loc[["p0", "p0", "p1"]], align=False)
+        gdf["mig_rate"] = gdf["mig_dist"] / gdf["mig_time"]
+
+        return gdf
+    
     def calc_relative_vertex_distance(self):
         """Calculate the relative distance of each vertex along the transect."""
 
-        coords = np.asarray(self.geometry.coords)
-        dists = np.insert(calc_dist(coords[:-1], coords[1:]), 0, 0)
+        # coords = np.asarray(self.geometry.coords)
+        # dists = np.insert(calc_dist(coords[:-1], coords[1:]), 0, 0)
 
-        return np.cumsum(dists) / self.geometry.length
+        return np.cumsum(self.gdf["mig_dist"]) / self.geometry.length
     
+    def calc_vertex_indices(self):
+        """
+        Calcualte the array index of all vertices.
+        If `self.signal_length` is nan, then return array of nans
+        """
+
+        idx = (self.gdf["relative_distance"] * self.signal_length).round()
+
+        # If any are nans, then you cannot cast to int
+        if not idx.isna().any():
+            idx = idx.astype(int)
+
+        return idx
 
     def calc_ridge_coms(self):
         """Find the center of mass for each ridge in the input binary signal."""
 
+        if self.bin_signal is None:
+            return None
+
+        # Create a copy to not modify the original
         sig = self.bin_signal.copy()
         sig[np.isnan(sig)] = 0
 
@@ -168,14 +230,16 @@ class RidgeDataExtractor:
 
         return coms_signal
 
-    
     def find_closest_ridge(self):
-        """The bin_signal may have more than two ridges present. 
-        This method identifies which ridge is closest to the transect-ridge intersection point. """
-    
-        # Find relative distance of the center vertex
-        poi_idx = self.vertex_indices[1]
-        self.itx_idx = poi_idx
+        """
+        The bin_signal may have more than two ridges present. 
+        This method identifies which ridge is closest to the transect-ridge intersection point.
+        """
+        if self.bin_signal is None:
+            return None
+
+        # Get index of center vertex
+        poi_idx = self.gdf.loc["p1", "vertex_indices"]
 
         # Find indices of ridge centers of mass
         bin = self.bin_signal
@@ -194,20 +258,43 @@ class RidgeDataExtractor:
         return single_ridge
     
     def calc_ridge_width_px(self)->int:
-        """Calculate the width of the single ridge in pixels"""
+        """
+        Calculate the width of the single ridge in pixels
+        """
+        if self.bin_signal is None:
+            return None
         return np.nansum(self.single_ridge_bin_signal)
     
     def calc_every_ridge_amp(self)->int:
         """
         Calculates the average amplitude of each observed ridges in the units of the DEM.
         """
+        if self.bin_signal is None:
+            return None
         return calc_ridge_amps(self.dem_signal, self.bin_signal)
-    
-    def calc_migration(self) -> float:
-        """Calculates the distance between the current ridge and the ridge deposited before it."""
 
-        _p1, p2, p3 = (Point(i) for i in self.geometry.coords)
-        return p2.distance(p3)
+    def determine_ridge_amp(self):
+        if self.bin_signal is None:
+            return None
+        return self.ridge_amp_series[self.single_ridge_num]
+
+    def dump_data(self):
+        """Dump all the relevant info for the middle point."""
+        d = {}
+
+        d["ridge_id"] = self.gdf.loc["p1", "ridge_id"]
+        d["pre_mig_dist"] = self.gdf.loc["p2", "mig_dist"]
+        d["post_mig_dist"] = self.gdf.loc["p1", "mig_dist"]
+        d["pre_mig_time"] = self.gdf.loc["p2", "mig_time"]
+        d["post_mig_time"] = self.gdf.loc["p1", "mig_time"]
+        d["pre_mig_rate"] = self.gdf.loc["p2", "mig_rate"]
+        d["post_mig_rate"] = self.gdf.loc["p1", "mig_rate"]
+        d["geometry"] = self.gdf.loc["p1", "geometry"]
+
+        d["ridge_width"] = self.ridge_width_px
+        d["ridge_amp"] = self.ridge_amp
+
+        return d
 
 
 class EmptyRidgeDataExtractor:
