@@ -349,16 +349,6 @@ class TransectDataExtractor:
     TransectDataExtractor will ultimately return a GeoDataFrame where each row is an eligible intersection between the transect and the ridge
     An eligible intersection is one that has a vertex before and after it so that the raster underneath can be sampled along the full width of the ridge.
     If a transect contains no eligible intersections, the gdf will be empty.
-
-    The gdf will have the following columns:
-
-    ["ridge_id", "transect_id", "bend_id", 
-        "pre_mig_dist", "post_mig_dist", 
-        "pre_mig_time", "post_mig_time", 
-        "pre_mig_rate", "post_mig_rate", 
-        "ridge_width", "ridge_amp", 
-        "substring_geometry", "geometry]
-
     """
 
     def __init__(self, transect_id, geometry, dem_signal=None, bin_signal=None, ridges=None) -> None:
@@ -382,7 +372,7 @@ class TransectDataExtractor:
         
         # Add Geometries
         self.itx_gdf = self.create_itx_gdf()
-        self.itx_gdf["substring_geometry"] = self.create_substrings(self.geometry)
+        self.itx_gdf = self.add_substring_geometry(self.itx_gdf)
         self.itx_gdf["geometry"] = self.itx_gdf["substring_geometry"].apply(lambda x: Point(x.coords[1]))
         
         # Add transect_id
@@ -400,11 +390,12 @@ class TransectDataExtractor:
             self.vertex_indices = np.round(self.relative_vertex_distances * self.raw_bin_signal.size).astype(int)
             self.substring_indices = self.get_substring_indices(3)
         
+    def create_itx_gdf(self):
+        """Create the gdf that will contain all the ridge data for each intersection."""
+        gdf = gpd.GeoDataFrame(columns=self.data_columns, geometry="geometry").set_crs(self.ridges.crs)
+
+        return gdf
     
-        print(f"Transect {self.transect_id} completed")
-
-
-
     def create_substrings(self, ls:LineString)-> List[LineString]:
         """
         Break up a LineString into many overlaping 'substrings' 
@@ -412,15 +403,16 @@ class TransectDataExtractor:
         """
         
         # Create a list of lists where each sublist corresponds to a vertex position
-        # eg. for n=3, verts = [[back_verts], [center_verts], [forward_verts]]
+        # eg. verts = [[back_verts], [center_verts], [forward_verts]]
         verts = [ls.coords[i:len(ls.coords)-(3-(i+1))] for i in range(3)]
         
         # Return a list of LineStrings
         return list(map(LineString, zip(*verts)))
     
-    def create_itx_gdf(self):
-        """Create the gdf that will contain all the ridge data for each intersection."""
-        gdf = gpd.GeoDataFrame(columns=self.data_columns, geometry="geometry").set_crs(self.ridges.crs)
+    def add_substring_geometry(self, gdf):
+        """Adds the 3 vertex substring that corresponds to each itx."""
+
+        gdf["substring_geometry"] = self.create_substrings(self.geometry)
 
         return gdf
 
