@@ -373,10 +373,12 @@ class TransectDataExtractor:
         # Add Geometries
         self.itx_gdf = self.create_itx_gdf()
         self.itx_gdf = self.add_substring_geometry(self.itx_gdf)
-        self.itx_gdf["geometry"] = self.itx_gdf["substring_geometry"].apply(lambda x: Point(x.coords[1]))
+        self.itx_gdf = self.add_point_geometry(self.itx_gdf)
         
         # Add transect_id
         self.itx_gdf["transect_id"] = self.transect_id
+
+
         self.itx_gdf["relative_vertex_distances"] = self.itx_gdf["substring_geometry"].apply(lambda x: self.calc_relative_vertex_distance(x))
         
 
@@ -416,7 +418,13 @@ class TransectDataExtractor:
 
         return gdf
 
+    def add_point_geometry(self, gdf):
+        """Add the intersection (middle) point of the 3 vertex substring as its own point"""
 
+        gdf["geometry"] = gdf["substring_geometry"].apply(lambda x: Point(x.coords[1]))
+
+        return gdf
+    
     def calc_relative_vertex_distance(self, ls):
         """Calculate the relative distance of each vertex along the transect."""
 
