@@ -362,6 +362,7 @@ class TransectDataExtractor:
 
         # Create GeoDataFrame
         self.data_columns = ["ridge_id", "transect_id", "bend_id",
+                             "relative_vertex_distances", "vertex_indices",
                              "dem_signal", "bin_signal", 
                              "deposit_year",
                              "pre_mig_dist", "post_mig_dist", 
@@ -376,21 +377,15 @@ class TransectDataExtractor:
         self.itx_gdf = self.add_point_geometry(self.itx_gdf)
         
         # Add transect_id
-        self.itx_gdf["transect_id"] = self.transect_id
+        self.itx_gdf = self.add_transect_id(self.itx_gdf)
 
+        # Process binary and DEM signals
+        self.clean_bin_signal = self.scrub_bin_signal()
+        self.itx_gdf = self.add_relative_vertex_distances(self.itx_gdf)
+        self.itx_gdf = self.calc_vertex_indices(self.itx_gdf)
+        self.itx_gdf = self.slice_bin_signal(self.itx_gdf)
+        self.itx_gdf = self.slice_dem_signal(self.itx_gdf)
 
-        self.itx_gdf["relative_vertex_distances"] = self.itx_gdf["substring_geometry"].apply(lambda x: self.calc_relative_vertex_distance(x))
-        
-
-        # Add ridge metrics from RidgeDataExtractor
-
-        # Assess binary signal
-        if self.raw_bin_signal is not None:
-            self.clean_bin_signal = SignalScrubber(self.raw_bin_signal).scrubbed_signal
-            self.nan_mask = np.isnan(self.clean_bin_signal)
-            self.has_observations = not(all(self.nan_mask))
-            self.vertex_indices = np.round(self.relative_vertex_distances * self.raw_bin_signal.size).astype(int)
-            self.substring_indices = self.get_substring_indices(3)
         
     def create_itx_gdf(self):
         """Create the gdf that will contain all the ridge data for each intersection."""
@@ -425,7 +420,26 @@ class TransectDataExtractor:
 
         return gdf
     
-    def calc_relative_vertex_distance(self, ls):
+    def add_transect_id(self, gdf):
+        """Add the transect id as a column"""
+
+        gdf["transect_id"] = self.transect_id
+
+        return gdf
+    
+    def scrub_bin_signal(self):
+        """
+        Clean errant noise extracted along the binary signal. 
+        Examples of noise removed:
+            - positive areas smaller than a given threshold
+            - incomplete ridges (signal starts or ends with ones)
+        """
+
+        if self.raw_bin_signal is not None:
+            return SignalScrubber(self.raw_bin_signal).scrubbed_signal
+
+
+    def calc_relative_vertex_distances(self, ls):
         """Calculate the relative distance of each vertex along the transect."""
 
         coords = np.asarray(ls.coords)
@@ -433,36 +447,35 @@ class TransectDataExtractor:
 
         return np.cumsum(dists) / ls.length
     
-    def get_substring_indices(self, n:int):
-        """Get the array indices that correspond to the start and end vertices of each transect."""
-        starts = self.vertex_indices[:-(n-1)]
-        ends = self.vertex_indices[n-1:]
+    def add_relative_vertex_distances(self, gdf):
+        """Calculate the distance between the substring coordinates relative to the length of the whole line."""
 
-        return list(zip(starts, ends))
+        gdf["relative_vertex_distances"] = gdf["substring_geometry"].apply(self.calc_relative_vertex_distances)
 
-    def generate_rde(self, i:int):
-        """Generate a RidgeDataExtractor at a given vertex index"""
+        return gdf
     
-        geom = self.substrings[i]
-        idx = None
-        dem = None
-        bin = None
+    def calc_vertex_indices(self, gdf):
+        """Calculates the corresponding signal index of each of the substring vertices"""
 
-        if not self.raw_dem_signal is None:
-            idx = self.substring_indices[i]
-            dem = self.raw_dem_signal[idx[0]:idx[1]]
-        if not self.raw_bin_signal is None:
-            bin = self.clean_bin_signal[idx[0]:idx[1]]
+        if self.raw_bin_signal is not None:
+            gdf["vertex_indices"] = gdf["relative_vertex_distances"].apply(lambda x: x / self.raw_bin_signal.size).astype(int)
 
-        rde = RidgeDataExtractor(geom, self.ridges, dem, bin)
+        return gdf
 
-        return rde
+    def slice_dem_signal(self, gdf):
+        """Slice the DEM between the two end vertices of the substrings"""
+        if self.raw_bin_signal is not None:
+            gdf["dem_signal"] = gdf["vertex_indices"].apply(lambda x: self.raw_dem_signal[x[0], x[2]])
         
-    def generate_rde_list(self):
-        """Generate a list of RidgeDataExtractors for each available vertex in the transect"""
-        rde_list = [self.generate_rde(i) for i, sub in enumerate(self.substrings)]
-        return rde_list
+        return gdf
     
+    def slice_bin_signal(self, gdf):
+        """Slice the binary signal between the two end vertices of the substrings"""
+        if self.raw_bin_signal is not None:
+            gdf["bin_signal"] = gdf["vertex_indices"].apply(lambda x: self.clean_bin_signal[x[0], x[2]])
+
+        return gdf
+       
     def calc_ridge_metrics(self):
         """
         Calculate ridge width and amplitude at every transect-ridge intersection.
@@ -490,6 +503,7 @@ class TransectDataExtractor:
                     "pre_mig_rate":float,"post_mig_rate":float,
                     "ridge_width":float,"ridge_amp":float,
                     "deposit_year":float}
+        
         gdf = gdf.astype(dtypes)
         return gdf
 
