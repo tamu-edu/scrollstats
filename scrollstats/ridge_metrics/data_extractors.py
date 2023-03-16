@@ -196,7 +196,8 @@ class RidgeDataExtractor:
         
         gdf["ridge_id"] = join_gdf["ridge_id_right"]
         gdf["bend_id"] = join_gdf["bend_id_right"]
-        gdf["deposit_year"] = join_gdf["deposit_year_right"]
+        gdf["deposit_year"] = join_gdf["deposit_year_right"].astype(float)
+        
 
         # Reset geometry to points
         gdf.set_geometry("geometry", inplace=True)
