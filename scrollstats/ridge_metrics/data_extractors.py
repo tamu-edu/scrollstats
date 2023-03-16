@@ -212,7 +212,6 @@ class RidgeDataExtractor:
         """
 
         # Calculate values from joined info
-        print(gdf["deposit_year"])
         gdf["mig_time"] = gdf["deposit_year"].diff().abs()
         gdf["mig_dist"] = gdf.distance(gdf.loc[["p0", "p0", "p1"]], align=False)
         gdf["mig_rate"] = gdf["mig_dist"] / gdf["mig_time"]
@@ -380,25 +379,18 @@ class TransectDataExtractor:
         self.itx_gdf = self.create_itx_gdf()
         self.itx_gdf = self.add_substring_geometry(self.itx_gdf)
         self.itx_gdf = self.add_point_geometry(self.itx_gdf)
-        print("Added geometries")
         
         # Add transect_id
         self.itx_gdf = self.add_transect_id(self.itx_gdf)
-        print("Added transect_id")
+
 
         # Process binary and DEM signals
         self.clean_bin_signal = self.scrub_bin_signal()
-        print(self.raw_bin_signal)
-        print(self.clean_bin_signal)
-        print(self.raw_dem_signal)
-        self.itx_gdf = self.add_relative_vertex_distances(self.itx_gdf)
-        print("Added relative vertex distances")
+        self.itx_gdf = self.add_relative_vertex_distances(self.itx_gdf)    
         self.itx_gdf = self.calc_vertex_indices(self.itx_gdf)
-        print("Added relative vertex indices")
         self.itx_gdf = self.slice_bin_signal(self.itx_gdf)
-        print("Sliced bin signal")
         self.itx_gdf = self.slice_dem_signal(self.itx_gdf)
-        print("Made it through __init__")
+        
 
         
     def create_itx_gdf(self):
@@ -472,10 +464,7 @@ class TransectDataExtractor:
         """Calculates the corresponding signal index of each of the substring vertices"""
 
         if self.raw_bin_signal is not None:
-            print(f"In CVI(): {self.raw_bin_signal=}")
-            print(f"In CVI(): {gdf['relative_vertex_distances']=}")
             gdf["vertex_indices"] = gdf["relative_vertex_distances"].apply(lambda x: np.round(x / self.raw_bin_signal.size).astype(int))
-            print(f"In CVI(): after .apply()")
         return gdf
 
     def slice_dem_signal(self, gdf):
