@@ -122,6 +122,7 @@ class RidgeDataExtractor:
         self.dem_signal = dem_signal
         self.bin_signal = bin_signal
         self.signal_length = self.determine_signal_length()
+        print("Started RDE")
 
         # Create GeoDataFrame
         self.data_columns = ["p_id", "ridge_id", "bend_id", 
@@ -190,6 +191,7 @@ class RidgeDataExtractor:
         gdf["geometry_buff"] = gdf.buffer(1e-5)
         gdf.set_geometry("geometry_buff", inplace=True)
         join_gdf = gdf.sjoin(ridges, how="left")
+        
 
         
         gdf["ridge_id"] = join_gdf["ridge_id_right"]
@@ -209,6 +211,7 @@ class RidgeDataExtractor:
         """
 
         # Calculate values from joined info
+        print(gdf["deposit_year"])
         gdf["mig_time"] = gdf["deposit_year"].diff().abs()
         gdf["mig_dist"] = gdf.distance(gdf.loc[["p0", "p0", "p1"]], align=False)
         gdf["mig_rate"] = gdf["mig_dist"] / gdf["mig_time"]
@@ -359,6 +362,7 @@ class TransectDataExtractor:
         self.raw_dem_signal = dem_signal
         self.raw_bin_signal = bin_signal
         self.ridges = ridges
+        print(f"Started TDE for {self.transect_id}")
 
         # Create GeoDataFrame
         self.data_columns = ["ridge_id", "transect_id", "bend_id",
@@ -375,16 +379,25 @@ class TransectDataExtractor:
         self.itx_gdf = self.create_itx_gdf()
         self.itx_gdf = self.add_substring_geometry(self.itx_gdf)
         self.itx_gdf = self.add_point_geometry(self.itx_gdf)
+        print("Added geometries")
         
         # Add transect_id
         self.itx_gdf = self.add_transect_id(self.itx_gdf)
+        print("Added transect_id")
 
         # Process binary and DEM signals
         self.clean_bin_signal = self.scrub_bin_signal()
+        print(self.raw_bin_signal)
+        print(self.clean_bin_signal)
+        print(self.raw_dem_signal)
         self.itx_gdf = self.add_relative_vertex_distances(self.itx_gdf)
+        print("Added relative vertex distances")
         self.itx_gdf = self.calc_vertex_indices(self.itx_gdf)
+        print("Added relative vertex indices")
         self.itx_gdf = self.slice_bin_signal(self.itx_gdf)
+        print("Sliced bin signal")
         self.itx_gdf = self.slice_dem_signal(self.itx_gdf)
+        print("Made it through __init__")
 
         
     def create_itx_gdf(self):
@@ -458,21 +471,23 @@ class TransectDataExtractor:
         """Calculates the corresponding signal index of each of the substring vertices"""
 
         if self.raw_bin_signal is not None:
-            gdf["vertex_indices"] = gdf["relative_vertex_distances"].apply(lambda x: x / self.raw_bin_signal.size).astype(int)
-
+            print(f"In CVI(): {self.raw_bin_signal=}")
+            print(f"In CVI(): {gdf['relative_vertex_distances']=}")
+            gdf["vertex_indices"] = gdf["relative_vertex_distances"].apply(lambda x: np.round(x / self.raw_bin_signal.size).astype(int))
+            print(f"In CVI(): after .apply()")
         return gdf
 
     def slice_dem_signal(self, gdf):
         """Slice the DEM between the two end vertices of the substrings"""
         if self.raw_bin_signal is not None:
-            gdf["dem_signal"] = gdf["vertex_indices"].apply(lambda x: self.raw_dem_signal[x[0], x[2]])
+            gdf["dem_signal"] = gdf["vertex_indices"].apply(lambda x: self.raw_dem_signal[x[0]:x[2]])
         
         return gdf
     
     def slice_bin_signal(self, gdf):
         """Slice the binary signal between the two end vertices of the substrings"""
         if self.raw_bin_signal is not None:
-            gdf["bin_signal"] = gdf["vertex_indices"].apply(lambda x: self.clean_bin_signal[x[0], x[2]])
+            gdf["bin_signal"] = gdf["vertex_indices"].apply(lambda x: self.clean_bin_signal[x[0]:x[2]])
 
         return gdf
        
@@ -515,6 +530,7 @@ class BendDataExtractor:
         self.dem = dem
         self.ridges = ridges
         self.packets = packets
+        print("Started BDE")
 
         # Calculate Metrics at the smaller scales
         self.rich_transects = self.calc_transect_metrics()
