@@ -440,31 +440,27 @@ class TransectDataExtractor:
             - positive areas smaller than a given threshold
             - incomplete ridges (signal starts or ends with ones)
         """
-
         if self.raw_bin_signal is not None:
             return SignalScrubber(self.raw_bin_signal).scrubbed_signal
-
 
     def calc_relative_vertex_distances(self, ls):
         """Calculate the relative distance of each vertex along the transect."""
 
         coords = np.asarray(ls.coords)
         dists = np.insert(calc_dist(coords[:-1], coords[1:]), 0, 0)
-
         return np.cumsum(dists) / ls.length
     
     def add_relative_vertex_distances(self, gdf):
         """Calculate the distance between the substring coordinates relative to the length of the whole line."""
 
         gdf["relative_vertex_distances"] = gdf["substring_geometry"].apply(self.calc_relative_vertex_distances)
-
         return gdf
     
     def calc_vertex_indices(self, gdf):
         """Calculates the corresponding signal index of each of the substring vertices"""
 
         if self.raw_bin_signal is not None:
-            gdf["vertex_indices"] = gdf["relative_vertex_distances"].apply(lambda x: np.round(x / self.raw_bin_signal.size).astype(int))
+            gdf["vertex_indices"] = gdf["relative_vertex_distances"].apply(lambda x: np.round(x * self.raw_bin_signal.size).astype(int))
         return gdf
 
     def slice_dem_signal(self, gdf):
