@@ -114,7 +114,7 @@ class SignalScrubber:
 
 class RidgeDataExtractor:
     """
-    Responsible for calcualting ridge metrics at each intersection of a ridge and transect.
+    Responsible for calculating ridge metrics at each intersection of a ridge and transect.
     The geometry for this class is a 3-vertex LineString
     """
 
@@ -196,8 +196,6 @@ class RidgeDataExtractor:
         gdf.set_geometry("geometry_buff", inplace=True)
         join_gdf = gdf.sjoin(ridges, how="left")
         
-
-        
         gdf["ridge_id"] = join_gdf["ridge_id_right"]
         gdf["bend_id"] = join_gdf["bend_id_right"]
         gdf["deposit_year"] = join_gdf["deposit_year_right"].astype(float)
@@ -234,7 +232,7 @@ class RidgeDataExtractor:
     
     def calc_vertex_indices(self, gdf, signal_length):
         """
-        Calcualte the array index of all vertices.
+        Calculate the array index of all vertices.
         If `self.signal_length` is nan, then return array of nans
         """
 
@@ -320,10 +318,6 @@ class RidgeDataExtractor:
     def coerce_dtypes(self, gdf):
         """Coerce the the 'object' dtypes into their proper numeric types"""
 
-        # dtypes = {"p_id":str, "ridge_id":str, "bend_id":str, 
-        #             "mig_dist":float, "mig_time":float, "mig_rate":float, "deposit_year":float, 
-        #             "ridge_width":float, "ridge_amp":float}
-
         gdf = gdf.reset_index().astype(self.data_columns)
         gdf = gdf.set_index("p_id")
         return gdf
@@ -371,7 +365,7 @@ class TransectDataExtractor:
         # Create GeoDataFrame
         
         self.data_columns = {"ridge_id":str,"transect_id":str,"bend_id":str,
-                             "relative_vertex_distances":None, "vertex_indices":None,
+                             "start_distances":float, "relative_vertex_distances":None, "vertex_indices":None,
                              "dem_signal":None, "bin_signal":None, 
                              "pre_mig_dist":float,"post_mig_dist":float,
                              "pre_mig_time":float,"post_mig_time":float,
@@ -392,6 +386,7 @@ class TransectDataExtractor:
 
         # Process binary and DEM signals
         self.clean_bin_signal = self.scrub_bin_signal()
+        self.itx_gdf = self.determine_substring_starts(self.itx_gdf)
         self.itx_gdf = self.add_relative_vertex_distances(self.itx_gdf)    
         self.itx_gdf = self.calc_vertex_indices(self.itx_gdf)
         self.itx_gdf = self.slice_bin_signal(self.itx_gdf)
@@ -404,19 +399,24 @@ class TransectDataExtractor:
         gdf = gpd.GeoDataFrame(columns=self.data_columns, geometry="geometry").set_crs(self.ridges.crs)
 
         return gdf
-    
-    def create_substrings(self, ls:LineString)-> List[LineString]:
+
+    def determine_eligible_coords(self, ls):
         """
-        Break up a LineString into many overlaping 'substrings' 
-        Each substring constructed from three consecutive vertices of the input LineString.
+        Determine coordinates in the transect linestring that are eligible to be a start of a substring.
+        Because the substrings are all 3 vertices long, the last two are not eligible.
+        These eligible coords are defined because multiple functions need to use these coordinates.
         """
-        
-        # Create a list of lists where each sublist corresponds to a vertex position
-        # eg. verts = [[back_verts], [center_verts], [forward_verts]]
-        verts = [ls.coords[i:len(ls.coords)-(3-(i+1))] for i in range(3)]
-        
-        # Return a list of LineStrings
-        return list(map(LineString, zip(*verts)))
+
+        return ls.coords[:-2]
+
+    def create_substrings(self, ls):
+        """Create substrings starting from the eligible coordinates of the given linestring"""
+
+        eligible_coords = self.determine_eligible_coords(ls)
+        substrings = [LineString(ls.coords[i:i+3]) for i, v in enumerate(eligible_coords)]
+
+        return substrings
+
     
     def add_substring_geometry(self, gdf):
         """Adds the 3 vertex substring that corresponds to each itx."""
@@ -439,6 +439,29 @@ class TransectDataExtractor:
 
         return gdf
     
+    def calc_cumulative_dist(self, coords):
+        """Calculate the cumulative distances along a coordinate series"""
+        
+        coords = np.asarray(coords)
+        dists = np.insert(calc_dist(coords[:-1], coords[1:]), 0, 0)
+        cumdists = np.cumsum(dists)
+
+        return cumdists
+    
+    def determine_substring_starts(self, gdf):
+        """Determine the along-transect distance of the points of each substring"""
+
+        eligible_coords = self.determine_eligible_coords(self.geometry)
+
+        if eligible_coords:
+            start_dists = self.calc_cumulative_dist(eligible_coords)
+        else:
+            start_dists = eligible_coords
+
+        gdf["start_distances"] = start_dists
+
+        return gdf
+    
     def scrub_bin_signal(self):
         """
         Clean errant noise extracted along the binary signal. 
@@ -449,17 +472,25 @@ class TransectDataExtractor:
         if self.raw_bin_signal is not None:
             return SignalScrubber(self.raw_bin_signal).scrubbed_signal
 
-    def calc_relative_vertex_distances(self, ls):
+    def calc_relative_vertex_distances(self, ls, start_dist):
         """Calculate the relative distance of each vertex along the transect."""
 
-        coords = np.asarray(ls.coords)
-        dists = np.insert(calc_dist(coords[:-1], coords[1:]), 0, 0)
-        return np.cumsum(dists) / ls.length
+        sub_dists = self.calc_cumulative_dist(ls.coords)
+        dists_from_start = sub_dists + start_dist
+        rel_dists = dists_from_start / self.geometry.length
+
+        return rel_dists
     
     def add_relative_vertex_distances(self, gdf):
         """Calculate the distance between the substring coordinates relative to the length of the whole line."""
+        bucket = []
 
-        gdf["relative_vertex_distances"] = gdf["substring_geometry"].apply(self.calc_relative_vertex_distances)
+        for i, row in gdf[["substring_geometry", "start_distances"]].iterrows():
+            geom, dist = row
+            relative_distances = self.calc_relative_vertex_distances(geom, dist)
+            bucket.append(relative_distances)
+
+        gdf["relative_vertex_distances"] = bucket
         return gdf
     
     def calc_vertex_indices(self, gdf):
