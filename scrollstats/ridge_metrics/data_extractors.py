@@ -3,6 +3,10 @@ This module contains the classes and functions used to extract data along the tr
 
 Data is extracted at three scales bend, transect, and ridge.
 Packet-scale metrics are just the ridge scale metrics aggregated within the packet boundaries. No unique extraction is done for the packet-scale.
+
+Rules:
+- null attributes are None, df values are NaN
+
 """
 
 from typing import List
@@ -125,10 +129,10 @@ class RidgeDataExtractor:
         print("Started RDE")
 
         # Create GeoDataFrame
-        self.data_columns = ["p_id", "ridge_id", "bend_id", 
-                             "mig_dist", "mig_time", "mig_rate", "deposit_year", 
-                             "ridge_width", "ridge_amp",
-                             "geometry"]
+        self.data_columns = {"p_id":str, "ridge_id":str, "bend_id":str, 
+                             "mig_dist":float, "mig_time":float, "mig_rate":float, "deposit_year":float, 
+                             "ridge_width":float, "ridge_amp":float,
+                             "geometry":gpd.array.GeometryDtype()}
         
         # Assess Geometry
         self.gdf = self.create_point_gdf()
@@ -316,11 +320,11 @@ class RidgeDataExtractor:
     def coerce_dtypes(self, gdf):
         """Coerce the the 'object' dtypes into their proper numeric types"""
 
-        dtypes = {"p_id":str, "ridge_id":str, "bend_id":str, 
-                    "mig_dist":float, "mig_time":float, "mig_rate":float, "deposit_year":float, 
-                    "ridge_width":float, "ridge_amp":float}
+        # dtypes = {"p_id":str, "ridge_id":str, "bend_id":str, 
+        #             "mig_dist":float, "mig_time":float, "mig_rate":float, "deposit_year":float, 
+        #             "ridge_width":float, "ridge_amp":float}
 
-        gdf = gdf.reset_index().astype(dtypes)
+        gdf = gdf.reset_index().astype(self.data_columns)
         gdf = gdf.set_index("p_id")
         return gdf
     
@@ -365,16 +369,18 @@ class TransectDataExtractor:
         print(f"Started TDE for {self.transect_id}")
 
         # Create GeoDataFrame
-        self.data_columns = ["ridge_id", "transect_id", "bend_id",
-                             "relative_vertex_distances", "vertex_indices",
-                             "dem_signal", "bin_signal", 
-                             "deposit_year",
-                             "pre_mig_dist", "post_mig_dist", 
-                             "pre_mig_time", "post_mig_time", 
-                             "pre_mig_rate", "post_mig_rate", 
-                             "ridge_width", "ridge_amp", 
-                             "substring_geometry", "geometry"]
         
+        self.data_columns = {"ridge_id":str,"transect_id":str,"bend_id":str,
+                             "relative_vertex_distances":None, "vertex_indices":None,
+                             "dem_signal":None, "bin_signal":None, 
+                             "pre_mig_dist":float,"post_mig_dist":float,
+                             "pre_mig_time":float,"post_mig_time":float,
+                             "pre_mig_rate":float,"post_mig_rate":float,
+                             "ridge_width":float,"ridge_amp":float,
+                             "deposit_year":float,
+                             "substring_geometry":gpd.array.GeometryDtype(), 
+                             "geometry":gpd.array.GeometryDtype()}
+    
         # Add Geometries
         self.itx_gdf = self.create_itx_gdf()
         self.itx_gdf = self.add_substring_geometry(self.itx_gdf)
@@ -491,22 +497,10 @@ class TransectDataExtractor:
 
             self.itx_gdf.loc[i, list(ridge_metrics.keys())] = ridge_metrics
 
-        self.itx_gdf = self.coerce_dtypes(self.itx_gdf)
+        self.itx_gdf = self.itx_gdf.astype(self.data_columns)
 
         return self.itx_gdf
 
-    def coerce_dtypes(self, gdf):
-        """Coerce the the 'object' dtypes into their proper numeric types"""
-
-        dtypes = {"ridge_id":str,"transect_id":str,"bend_id":str,
-                    "pre_mig_dist":float,"post_mig_dist":float,
-                    "pre_mig_time":float,"post_mig_time":float,
-                    "pre_mig_rate":float,"post_mig_rate":float,
-                    "ridge_width":float,"ridge_amp":float,
-                    "deposit_year":float}
-        
-        gdf = gdf.astype(dtypes)
-        return gdf
 
 class BendDataExtractor:
     """Responsible for extraction of ridge metrics across an entire bend."""
