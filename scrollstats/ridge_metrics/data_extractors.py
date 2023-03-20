@@ -126,12 +126,18 @@ class RidgeDataExtractor:
         self.dem_signal = dem_signal
         self.bin_signal = bin_signal
         self.signal_length = self.determine_signal_length()
-        print("Started RDE")
+        # print("Started RDE")
 
         # Create GeoDataFrame
-        self.data_columns = {"p_id":str, "ridge_id":str, "bend_id":str, 
-                             "mig_dist":float, "mig_time":float, "mig_rate":float, "deposit_year":float, 
-                             "ridge_width":float, "ridge_amp":float,
+        self.data_columns = {"p_id":str, 
+                             "ridge_id":str, 
+                             "bend_id":str, 
+                             "mig_dist":float, 
+                             "mig_time":float, 
+                             "mig_rate":float, 
+                             "deposit_year":float, 
+                             "ridge_width":float, 
+                             "ridge_amp":float,
                              "geometry":gpd.array.GeometryDtype()}
         
         # Assess Geometry
@@ -236,7 +242,7 @@ class RidgeDataExtractor:
         If `self.signal_length` is nan, then return array of nans
         """
 
-        gdf["vertex_indices"] = (gdf["relative_distance"] * signal_length).round()
+        gdf["vertex_indices"] = np.round(gdf["relative_distance"] * signal_length)
 
         # If any are nans, then you cannot cast to int
         if not gdf["vertex_indices"].isna().any():
@@ -275,13 +281,16 @@ class RidgeDataExtractor:
         if self.bin_signal is None:
             return None
 
+        if not self.ridge_com.any():
+            return np.zeros(self.bin_signal.shape)
+        
         # Get index of center vertex
         poi_idx = self.gdf.loc["p1", "vertex_indices"]
 
         # Find indices of ridge centers of mass
         bin = self.bin_signal
         ridge_midpoints = np.flatnonzero(self.ridge_com)
-        
+
         # Find the closest ridge
         dist_from_poi = np.absolute(ridge_midpoints - poi_idx)
         closest_ridge_num = np.flatnonzero(dist_from_poi == dist_from_poi.min())[0]
@@ -291,7 +300,7 @@ class RidgeDataExtractor:
         label, num_feats = ndimage.label(bin==1)
         single_ridge = (label == closest_ridge_num+1).astype(float)
         single_ridge[np.isnan(bin)] = np.nan
-        
+
         return single_ridge
     
     def calc_ridge_width_px(self)->int:
@@ -313,6 +322,11 @@ class RidgeDataExtractor:
     def determine_ridge_amp(self):
         if self.bin_signal is None:
             return None
+        
+        # If no ridge is in substring binary signal, return NaN
+        if self.single_ridge_num is None:
+            return np.nan
+        
         return self.ridge_amp_series[self.single_ridge_num]
     
     def coerce_dtypes(self, gdf):
@@ -364,13 +378,22 @@ class TransectDataExtractor:
 
         # Create GeoDataFrame
         
-        self.data_columns = {"ridge_id":str,"transect_id":str,"bend_id":str,
-                             "start_distances":float, "relative_vertex_distances":None, "vertex_indices":None,
-                             "dem_signal":None, "bin_signal":None, 
-                             "pre_mig_dist":float,"post_mig_dist":float,
-                             "pre_mig_time":float,"post_mig_time":float,
-                             "pre_mig_rate":float,"post_mig_rate":float,
-                             "ridge_width":float,"ridge_amp":float,
+        self.data_columns = {"ridge_id":str,
+                             "transect_id":str,
+                             "bend_id":str,
+                             "start_distances":float, 
+                             "relative_vertex_distances":None, 
+                             "vertex_indices":None,
+                             "dem_signal":None, 
+                             "bin_signal":None, 
+                             "pre_mig_dist":float,
+                             "post_mig_dist":float,
+                             "pre_mig_time":float,
+                             "post_mig_time":float,
+                             "pre_mig_rate":float,
+                             "post_mig_rate":float,
+                             "ridge_width":float,
+                             "ridge_amp":float,
                              "deposit_year":float,
                              "substring_geometry":gpd.array.GeometryDtype(), 
                              "geometry":gpd.array.GeometryDtype()}
@@ -521,12 +544,18 @@ class TransectDataExtractor:
         """
 
         for i, row in self.itx_gdf.iterrows():
+            
             row[row.isna()] = None
+            
             rde = RidgeDataExtractor(row["substring_geometry"], self.ridges, row["dem_signal"], row["bin_signal"])
 
             ridge_metrics = rde.dump_data()
 
+            # Uncomment for debug
+            # print(f"Created RDE for {row['transect_id']}@{ridge_metrics['ridge_id']} (row {i})")
+
             self.itx_gdf.loc[i, list(ridge_metrics.keys())] = ridge_metrics
+
 
         self.itx_gdf = self.itx_gdf.astype(self.data_columns)
 
@@ -725,9 +754,8 @@ class BendDataExtractor:
             for i, row in self.rich_transects[["transect_id", "geometry", "dem_signal", "clean_bin_signal"]].iterrows():
                 tde = TransectDataExtractor(*row, ridges = self.ridges).calc_ridge_metrics()
                 tde_list.append(tde)
-
+                print("Appended TDE within the BDE")
             itx = pd.concat(tde_list).set_index(["bend_id", "transect_id", "ridge_id"])    
-
 
         else:
             tde_list = []
