@@ -270,7 +270,7 @@ class RidgeDataExtractor:
         # Create boolean array where True indicates com of a ridge
         coms_signal = np.zeros(sig.shape).astype(bool)
         coms_signal[coms] = True
-
+        
         return coms_signal
 
     def find_closest_ridge(self):
@@ -309,14 +309,20 @@ class RidgeDataExtractor:
         """
         if self.bin_signal is None:
             return None
+        
+        # If all values in bin_signal are the same, return NaN
+        if np.all(self.bin_signal == self.bin_signal[0]):
+            return np.nan
+        
         return np.nansum(self.single_ridge_bin_signal)
     
-    def calc_every_ridge_amp(self)->int:
+    def calc_every_ridge_amp(self):
         """
         Calculates the average amplitude of each observed ridges in the units of the DEM.
         """
         if self.bin_signal is None:
             return None
+        
         return calc_ridge_amps(self.dem_signal, self.bin_signal)
 
     def determine_ridge_amp(self):
@@ -325,6 +331,10 @@ class RidgeDataExtractor:
         
         # If no ridge is in substring binary signal, return NaN
         if self.single_ridge_num is None:
+            return np.nan
+        
+        # # If all values in bin_signal are the same, return NaN
+        if np.all(self.bin_signal == self.bin_signal[0]):
             return np.nan
         
         return self.ridge_amp_series[self.single_ridge_num]
