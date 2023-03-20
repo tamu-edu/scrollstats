@@ -126,7 +126,7 @@ class RidgeDataExtractor:
         self.dem_signal = dem_signal
         self.bin_signal = bin_signal
         self.signal_length = self.determine_signal_length()
-        # print("Started RDE")
+        print("Started RDE")
 
         # Create GeoDataFrame
         self.data_columns = {"p_id":str, 
@@ -754,7 +754,7 @@ class BendDataExtractor:
             for i, row in self.rich_transects[["transect_id", "geometry", "dem_signal", "clean_bin_signal"]].iterrows():
                 tde = TransectDataExtractor(*row, ridges = self.ridges).calc_ridge_metrics()
                 tde_list.append(tde)
-                print("Appended TDE within the BDE")
+
             itx = pd.concat(tde_list).set_index(["bend_id", "transect_id", "ridge_id"])    
 
         else:
