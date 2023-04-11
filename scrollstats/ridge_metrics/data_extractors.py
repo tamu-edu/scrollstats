@@ -1,7 +1,7 @@
 """
 This module contains the classes and functions used to extract data along the transects.
 
-Data is extracted at three scales bend, transect, and ridge.
+Data is extracted at three scales: bend, transect, and ridge.
 Packet-scale metrics are just the ridge scale metrics aggregated within the packet boundaries. No unique extraction is done for the packet-scale.
 
 Rules:
@@ -758,22 +758,20 @@ class BendDataExtractor:
     def calc_itx_metrics(self):
         """For each transect found in transects, calculate the itx metrics."""
 
+        # Determine input columns
+        input_columns = ["transect_id", "geometry"]
+
         if self.ridges is not None and self.dem is not None and self.bin_raster is not None:
+            input_columns += "dem_signal"
+            input_columns += "clean_bin_signal"
 
-            tde_list = []
-            for i, row in self.rich_transects[["transect_id", "geometry", "dem_signal", "clean_bin_signal"]].iterrows():
-                tde = TransectDataExtractor(*row, ridges = self.ridges).calc_ridge_metrics()
-                tde_list.append(tde)
+        # Use TransectDataExtractor for every transect to create the itx dataframe
+        tde_list = []
+        for i, row in self.rich_transects[input_columns].iterrows():
+            tde = TransectDataExtractor(*row, ridges = self.ridges).calc_ridge_metrics()
+            tde_list.append(tde)
 
-            itx = pd.concat(tde_list).set_index(["bend_id", "transect_id", "ridge_id"])    
-
-        else:
-            tde_list = []
-            for i, row in self.rich_transects[["transect_id", "geometry"]].iterrows():
-                tde = TransectDataExtractor(*row, ridges = self.ridges).calc_ridge_metrics()
-                tde_list.append(tde)
-
-            itx = pd.concat(tde_list).set_index(["bend_id", "transect_id", "ridge_id"])
+        itx = pd.concat(tde_list).set_index(["bend_id", "transect_id", "ridge_id"])
 
         return itx.sort_index()
     
