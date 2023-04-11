@@ -2,7 +2,7 @@ import pandas as pd
 import geopandas as gpd
 from sqlalchemy import create_engine
 
-from config import DB_PW
+from ..config import DB_PW
 
 
 class BendDataset:
