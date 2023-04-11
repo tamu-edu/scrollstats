@@ -762,8 +762,8 @@ class BendDataExtractor:
         input_columns = ["transect_id", "geometry"]
 
         if self.ridges is not None and self.dem is not None and self.bin_raster is not None:
-            input_columns += "dem_signal"
-            input_columns += "clean_bin_signal"
+            input_columns.append("dem_signal")
+            input_columns.append("clean_bin_signal")
 
         # Use TransectDataExtractor for every transect to create the itx dataframe
         tde_list = []
