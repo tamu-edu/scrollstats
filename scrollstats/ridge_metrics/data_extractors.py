@@ -95,19 +95,19 @@ class SignalScrubber:
         features from the signal.
         '''
 
-        # Remove partial ridges
-        self.signal = self.remove_leading_ones(self.signal)
-        self.signal = self.remove_leading_ones(self.signal[::-1])[::-1]
+        # # Remove partial ridges
+        # self.signal = self.remove_leading_ones(self.signal)
+        # self.signal = self.remove_leading_ones(self.signal[::-1])[::-1]
 
-        # Remove small ridges
-        self.remove_small_feats()
+        # # Remove small ridges
+        # self.remove_small_feats()
 
-        # Flip values and repeat to eliminate small swales
-        self.flip_bin()
-        self.remove_small_feats()
+        # # Flip values and repeat to eliminate small swales
+        # self.flip_bin()
+        # self.remove_small_feats()
 
-        # Flip values back
-        self.flip_bin()
+        # # Flip values back
+        # self.flip_bin()
 
         return self.signal
 
@@ -118,13 +118,16 @@ class RidgeDataExtractor:
     The geometry for this class is a 3-vertex LineString
     """
 
-    def __init__(self, geometry, ridges, dem_signal=None, bin_signal=None) -> None:
+    def __init__(self, geometry, position, ridges, dem_signal=None, bin_signal=None) -> None:
         # Inputs
         self.id = None
         self.geometry = geometry
+        self.position = position
         self.ridges = ridges
         self.dem_signal = dem_signal
+        self.dem_signal_selection = self.dem_signal
         self.bin_signal = bin_signal
+        self.bool_mask = self.boolify_mask()
         self.signal_length = self.determine_signal_length()
         print("Started RDE")
 
@@ -148,7 +151,10 @@ class RidgeDataExtractor:
         self.gdf = self.calc_relative_vertex_distance(self.gdf, self.geometry)
         self.gdf = self.calc_vertex_indices(self.gdf, self.signal_length)
         
-        # Process Binary Signal 
+        # Process Binary Signal
+        self.metric_confidence = self.detemine_metric_confidence()
+        self.swale_dq_adjustment = 0
+        self.bool_mask = self.dq_first_swale()
         self.ridge_com = self.calc_ridge_coms()
         self.single_ridge_num = None  # Set by self.find_closest_ridge()
         self.single_ridge_bin_signal = self.find_closest_ridge()
@@ -196,7 +202,6 @@ class RidgeDataExtractor:
     def join_ridge_info(self, gdf, ridges):
         """Get ridge ids, time, distance, and migration rates via spatial join from the ridge features"""
 
-        
         # Use slight buffer to ensure intersection on spatial join
         gdf["geometry_buff"] = gdf.buffer(1e-5)
         gdf.set_geometry("geometry_buff", inplace=True)
@@ -206,11 +211,9 @@ class RidgeDataExtractor:
         gdf["bend_id"] = join_gdf["bend_id_right"]
         gdf["deposit_year"] = join_gdf["deposit_year_right"].astype(float)
         
-
         # Reset geometry to points
         gdf.set_geometry("geometry", inplace=True)
         
-
         return gdf
 
     def calc_values_from_ridge_info(self, gdf):
@@ -250,6 +253,64 @@ class RidgeDataExtractor:
 
         return gdf
 
+
+    def boolify_mask(self):
+        """Simplifies the bin_sig (which may contain nans) to a pure boolean array"""
+
+        if self.bin_signal is None:
+            return None
+        
+        return np.where(np.isnan(self.bin_signal), 0, self.bin_signal).astype(bool)
+
+    def detemine_metric_confidence(self):
+        """
+        Assign a metric confidence score based on the boolean mask.
+        """
+        if self.bin_signal is None:
+            return 0
+
+        _labels, ridge_count = ndimage.label(self.bool_mask)
+        _labels, swale_count = ndimage.label(~self.bool_mask)
+
+        # All ridge or all swale
+        if (ridge_count == 1 and swale_count == 0) or (ridge_count == 0 and swale_count == 1):
+            metric_confidence = 1
+        # S-shape: 1 unbounded ridge and swale
+        elif ridge_count == 1 and swale_count == 1:
+            metric_confidence = 2
+        # One bounded ridge, unbounded swales
+        elif ridge_count < 3 and swale_count >= 1:
+            metric_confidence = 3
+        # One bounded ridge, two bounded swales
+        elif ridge_count >= 3 and swale_count >= 2:
+            metric_confidence = 4
+        else:
+            raise Exception(f"Unexpected ridge-swale configuration in self.bool_mask. \
+                            \n{self.bool_mask=} \
+                            \n{ridge_count=} \
+                            \n{swale_count=}")
+
+        return metric_confidence
+    
+
+    def dq_first_swale(self):
+        """If the ridge position of the signal is 0, then remove the first chunk of false values"""
+        if self.bin_signal is None:
+            return None
+
+        if self.metric_confidence == 0:
+            print("metric_confidence was 0")
+            return self.bool_mask
+
+        if self.position == 0:
+            first_positive = np.flatnonzero(self.bool_mask)[0]
+            self.bool_mask = self.bool_mask[first_positive:]
+            self.dem_signal_selection = self.dem_signal_selection[first_positive:]
+            self.metric_confidence = self.detemine_metric_confidence()
+            self.swale_dq_adjustment = len(self.bin_signal) - len(self.bool_mask)
+        return self.bool_mask
+    
+    
     def calc_ridge_coms(self):
         """Find the center of mass for each ridge in the input binary signal."""
 
@@ -257,8 +318,8 @@ class RidgeDataExtractor:
             return None
 
         # Create a copy to not modify the original
-        sig = self.bin_signal.copy()
-        sig[np.isnan(sig)] = 0
+        sig = self.bool_mask.copy()
+        # sig[np.isnan(sig)] = 0
 
         # Find individual ridge areas
         labels, numfeats = ndimage.label(sig)
@@ -288,8 +349,11 @@ class RidgeDataExtractor:
         poi_idx = self.gdf.loc["p1", "vertex_indices"]
 
         # Find indices of ridge centers of mass
-        bin = self.bin_signal
-        ridge_midpoints = np.flatnonzero(self.ridge_com)
+        ## If the first swale area was disqualified (if self.position==0), then self.bool_mask
+        ## was cropped and the ridge_com indices need to be adjusted by the distance of that dq'd swale.
+        ## If first swale wasn't disqualified, then the adjustment is 0
+        bin = self.bool_mask
+        ridge_midpoints = np.flatnonzero(self.ridge_com) + self.swale_dq_adjustment
 
         # Find the closest ridge
         dist_from_poi = np.absolute(ridge_midpoints - poi_idx)
@@ -297,9 +361,10 @@ class RidgeDataExtractor:
         self.single_ridge_num = closest_ridge_num
         
         # Erase all ridges that are not closest
-        label, num_feats = ndimage.label(bin==1)
+        # label, num_feats = ndimage.label(bin==1)
+        label, num_feats = ndimage.label(bin)
         single_ridge = (label == closest_ridge_num+1).astype(float)
-        single_ridge[np.isnan(bin)] = np.nan
+        # single_ridge[np.isnan(bin)] = np.nan
 
         return single_ridge
     
@@ -309,9 +374,8 @@ class RidgeDataExtractor:
         """
         if self.bin_signal is None:
             return None
-        
-        # If all values in bin_signal are the same, return NaN
-        if np.all(self.bin_signal == self.bin_signal[0]):
+
+        if self.metric_confidence < 2:
             return np.nan
         
         return np.nansum(self.single_ridge_bin_signal)
@@ -321,23 +385,33 @@ class RidgeDataExtractor:
         Calculates the average amplitude of each observed ridges in the units of the DEM.
         """
         if self.bin_signal is None:
-            return None
+            return []
         
-        return calc_ridge_amps(self.dem_signal, self.bin_signal)
+        # if self.metric_confidence < 3:
+        #     return []
+        
+        return calc_ridge_amps(self.dem_signal_selection, self.bool_mask)
 
     def determine_ridge_amp(self):
         if self.bin_signal is None:
             return None
         
-        # If no ridge is in substring binary signal, return NaN
-        if self.single_ridge_num is None:
-            return np.nan
+        # # If no ridge is in substring binary signal, return NaN
+        # if self.single_ridge_num is None:
+        #     return np.nan
         
         # # If all values in bin_signal are the same, return NaN
-        if np.all(self.bin_signal == self.bin_signal[0]):
-            return np.nan
+        # if np.all(self.bin_signal == self.bin_signal[0]):
+        #     return np.nan
         
-        return self.ridge_amp_series[self.single_ridge_num]
+        if len(self.ridge_amp_series) == 0:
+            amp = np.nan
+        elif len(self.ridge_amp_series) == 1:
+            amp = self.ridge_amp_series[0]
+        else:
+            amp = self.ridge_amp_series[self.single_ridge_num]
+        
+        return amp
     
     def coerce_dtypes(self, gdf):
         """Coerce the the 'object' dtypes into their proper numeric types"""
@@ -351,6 +425,8 @@ class RidgeDataExtractor:
         d = {}
 
         d["ridge_id"] = self.gdf.loc["p1", "ridge_id"]
+        d["transect_position"] = self.position
+        d["metric_confidence"] = self.metric_confidence
         d["pre_mig_dist"] = self.gdf.loc["p2", "mig_dist"]
         d["post_mig_dist"] = self.gdf.loc["p1", "mig_dist"]
         d["pre_mig_time"] = self.gdf.loc["p2", "mig_time"]
@@ -361,6 +437,9 @@ class RidgeDataExtractor:
         d["bend_id"] = self.gdf.loc["p1", "bend_id"]
         d["geometry"] = self.gdf.loc["p1", "geometry"]
 
+        d["bool_mask"] = self.bool_mask
+        d["swale_dq_adjustment"] = self.swale_dq_adjustment
+        d["dem_signal_selection"] = self.dem_signal_selection
         d["ridge_width"] = self.ridge_width_px
         d["ridge_amp"] = self.ridge_amp
 
@@ -392,10 +471,14 @@ class TransectDataExtractor:
                              "transect_id":str,
                              "bend_id":str,
                              "start_distances":float, 
+                             "transect_position":int,
+                             "metric_confidence":int,
                              "relative_vertex_distances":None, 
                              "vertex_indices":None,
                              "dem_signal":None, 
+                             "dem_signal_selection":None,
                              "bin_signal":None, 
+                             "bool_mask":None, 
                              "pre_mig_dist":float,
                              "post_mig_dist":float,
                              "pre_mig_time":float,
@@ -415,7 +498,6 @@ class TransectDataExtractor:
         
         # Add transect_id
         self.itx_gdf = self.add_transect_id(self.itx_gdf)
-
 
         # Process binary and DEM signals
         self.clean_bin_signal = self.scrub_bin_signal()
@@ -556,19 +638,14 @@ class TransectDataExtractor:
         for i, row in self.itx_gdf.iterrows():
             
             row[row.isna()] = None
-            
-            rde = RidgeDataExtractor(row["substring_geometry"], self.ridges, row["dem_signal"], row["bin_signal"])
+            rde = RidgeDataExtractor(row["substring_geometry"], i, self.ridges, row["dem_signal"], row["bin_signal"])
 
             ridge_metrics = rde.dump_data()
 
-            # Uncomment for debug
-            # print(f"Created RDE for {row['transect_id']}@{ridge_metrics['ridge_id']} (row {i})")
-
             self.itx_gdf.loc[i, list(ridge_metrics.keys())] = ridge_metrics
 
-
         self.itx_gdf = self.itx_gdf.astype(self.data_columns)
-
+        
         return self.itx_gdf
 
 
@@ -714,25 +791,25 @@ class BendDataExtractor:
 
         return dom_wav
 
-    def create_amp_signal(self, bin_signal, dem_signal):
-        """Create a transect signal where the positive areas in clean_bin_sig are replaced with amplitude."""
+    # def create_amp_signal(self, bin_signal, dem_signal):
+    #     """Create a transect signal where the positive areas in clean_bin_sig are replaced with amplitude."""
 
-        # Boolify bin_signal
-        bin_sig = bin_signal.copy()
-        bin_sig[np.isnan(bin_sig)] = 0
+    #     # Boolify bin_signal
+    #     bin_sig = bin_signal.copy()
+    #     bin_sig[np.isnan(bin_sig)] = 0
 
-        # Create labels for each ridge area
-        labels, numfeats = ndimage.label(bin_sig)
-        float_labels = labels.astype(float)  # cast to float, otherwise precision is not stored when redefining
+    #     # Create labels for each ridge area
+    #     labels, numfeats = ndimage.label(bin_sig)
+    #     float_labels = labels.astype(float)  # cast to float, otherwise precision is not stored when redefining
 
-        # Calculate amplitude for each positive area in bin_signal
-        ridge_amps = calc_ridge_amps(dem_signal, bin_sig)
+    #     # Calculate amplitude for each positive area in bin_signal
+    #     ridge_amps = calc_ridge_amps(dem_signal, bin_sig)
 
-        # Redefine the positive areas in bin_sig to amps
-        for i, amp in enumerate(ridge_amps):
-            float_labels[labels==i+1] = amp
+    #     # Redefine the positive areas in bin_sig to amps
+    #     for i, amp in enumerate(ridge_amps):
+    #         float_labels[labels==i+1] = amp
 
-        return float_labels
+    #     return float_labels
     
 
     def calc_transect_metrics(self):
@@ -749,9 +826,9 @@ class BendDataExtractor:
             rich_transects["ridge_count_raster"] = rich_transects["clean_bin_signal"].apply(lambda x: self.count_ridges(x))
             rich_transects["fft_spacing"] = rich_transects[["ridge_count_raster", "clean_bin_signal"]].apply(lambda x: self.dominant_wavelength(*x), axis=1)
 
-        if self.dem is not None and self.bin_raster is not None:
-            rich_transects["amp_signal"] = rich_transects[["clean_bin_signal", "dem_signal"]].apply(lambda x: self.create_amp_signal(*x), axis=1)
-            rich_transects["fft_amps"] = rich_transects[["ridge_count_raster", "amp_signal"]].apply(lambda x: self.dominant_wavelength(*x), axis=1)
+        # if self.dem is not None and self.bin_raster is not None:
+        #     rich_transects["amp_signal"] = rich_transects[["clean_bin_signal", "dem_signal"]].apply(lambda x: self.create_amp_signal(*x), axis=1)
+        #     rich_transects["fft_amps"] = rich_transects[["ridge_count_raster", "amp_signal"]].apply(lambda x: self.dominant_wavelength(*x), axis=1)
                 
         return rich_transects.sort_index()
     

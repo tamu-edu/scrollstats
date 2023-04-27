@@ -1,10 +1,12 @@
+from typing import List
+
 import numpy as np
 from scipy import ndimage
 import geopandas as gpd
 
 
 def calc_ridge_maxes(dem_sig, mask):
-    """Calculate the max value of the dem sinal within each of the ridge areas in the mask"""
+    """Calculate the max value of the dem signal within each of the ridge areas in the mask"""
 
     # Find each unique ridge
     labels, numfeats = ndimage.label(mask)
@@ -14,7 +16,6 @@ def calc_ridge_maxes(dem_sig, mask):
     
     # Return list as array
     return np.array(dem_maxes)
-
 
 
 def calc_swale_mins(dem_sig, mask):
@@ -38,7 +39,6 @@ def s00_amps(maxes, mins):
     
     Amplitude for each ridge is calcualted as the average of the differences between ridge max and the swale mins on each side.
     However, the amplitude of the ridge at the beginning is calculated only by the following swale because of channel effects on the DEM signal.
-
     """
     
     # Calcualte diffs between ridge maxes and the preceeding swale mins
@@ -131,64 +131,70 @@ def s10_amps(maxes, mins):
     return np.vstack([d1, d2]).mean(axis=0)
 
 
+def determine_complex_strategy(bool_mask:List[bool]):
+    """
+    This function determines which multi ridge/swale amplitude calculation strategy to use.
+
+    Generally, the ridge amplitude is calcualted as the average differences between the ridge max and the two swale mins.
+    However, exceptions must be made if the boolean_mask begins or ends with a ridge (this beginning/ending ridge will not have a swale on one of the sides)
+
+    Importantly, this function only deals with boolean arrays with more than one ridges and or swales. 
+    This means that this function does not have to deal with edge cases of flat or s-shaped signals.
+    """
+
+    if not bool_mask[0] and not bool_mask[-1]:
+        strategy = s00_amps
+    elif bool_mask[0] and not bool_mask[-1]:
+        strategy = s10_amps
+    elif not bool_mask[0] and bool_mask[-1]:
+        strategy = s01_amps
+    elif bool_mask[0] and bool_mask[-1]:
+        strategy = s11_amps
+    else:
+        raise Exception(f"bool_mask is of unexpected type {type(bool_mask)} or contains unexpexted values\n{bool_mask=}")
+    
+    return strategy
+
+
 def calc_ridge_amps(dem_sig, bin_sig):
     """
-    Calculate the amplitude of each ridge in the DEM signal.
+    Calculate the ridge amplitudes from a DEM profile using the boolean mask signal.
     
-    Amplitude is calcuated as the mean of the max ridge elevation minus the swale minimums of both sides of the ridge.
-    
-    mean( [(max(elev_ri) - min(elev_si)), (max(elev_ri) - min(elev_si+1))])
+    Different strategies are used to calculate the ridge amplitude based on the ridge and swale count 
+    found within the boolean mask signal.
     """
-    
+        
     # Create a boolean mask from the binay signal
     mask = np.where(np.isnan(bin_sig), 0, bin_sig).astype(bool)
-    
+
     # Calculate ridge maxes
     maxes = calc_ridge_maxes(dem_sig, mask)
+    ridge_count = len(maxes)
     
-    # Calcualte swale mins
+    # Calculate swale mins
     mins = calc_swale_mins(dem_sig, mask)
+    swale_count = len(mins)
 
-    # Catch scenarios where bin_sig is either all ridge or all swale
-    if (mins.size==0 or maxes.size==0):
-        amps = np.array([])
+    if (ridge_count==1 and swale_count==0) or (ridge_count==0 and swale_count==1):
+        amps = np.array([np.nanmax(dem_sig) - np.nanmin(dem_sig)])
+
+    elif ridge_count==1 and swale_count==1:
+        amps = maxes - mins
     
-    # Test for different ridge-swale scenarios:
-    elif mins.size == maxes.size:
-        
-        # Only 1 ridge-swale pair
-        if mins.size==1:
-            amps = maxes - mins
-        
-        # Starts with ridge, ends with swale
-        elif mask[0] and not mask[-1]:
-            amps = s10_amps(maxes, mins)
-        
-        # Starts with swale and ends with ridge
-        elif not mask[0] and mask[-1]:
-            amps = s01_amps(maxes, mins)
-        
-        else:
-            raise Exception("Equal ridge and swale count, but in an unexpected pattern.")
-    
-    elif np.abs(mins.size - maxes.size) == 1:
-        
-        # Starts and ends with ridge
-        if mask[0] and mask[-1]:
-            amps = s11_amps(maxes, mins)
-        
-        # Starts and ends with swale
-        elif not mask[0] and not mask[-1]:
-            amps = s00_amps(maxes, mins)
-    
-        else:
-            raise Exception("Ridge and swale count are off by one, but in an unexpected pattern.")
-    
+    elif ridge_count>=1 or swale_count>=1:
+        strategy = determine_complex_strategy(mask)
+        amps = strategy(maxes, mins)
+
     else:
-        raise Exception("Ridge and swale count are not equal and differ by more than one.")
-    
+        raise Exception(f"Unexpected configuration/count of ridge and swales. \
+                        \n{bin_sig=} \
+                        \n{mask=} \
+                        \n{dem_sig=} \
+                        \n{maxes=} \
+                        \n{mins=}")
+
     return amps
-            
+
 
 def map_amp_values(amp_series, width_series):
     """
