@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from scrollstats import BendDataset, calculate_ridge_metrics
 
 
-bend_ids = ["LBR_025", 
+bend_ids = ["LBR_025",
             "LBR_029", 
             "LBR_043", 
             "LBR_077",
@@ -90,14 +90,20 @@ for bend in bend_ids:
     
 
     # Make Plots
-    fig, ax = plt.subplots(1,1, figsize=(10,8))
-    itx.plot(ax=ax, column="ridge_amp", markersize="ridge_width", legend=True)
-    ridges.plot(ax=ax, color="k", ls="--", lw=0.5, zorder=0)
+    fig, (ax1, ax2) = plt.subplots(2,1, figsize=(10,8))
+    # itx.plot(ax=ax1, column="ridge_amp", markersize="ridge_width", legend=True, missing_kwds={"edgecolor":"k", "facecolor":"None"})
+    itx.plot(ax=ax1, column="ridge_amp", legend=True, missing_kwds={"edgecolor":"k", "facecolor":"None"})
+    ridges.plot(ax=ax1, color="k", ls="--", lw=0.5, zorder=0)
+    ax1.set_axis_off()
 
-    out_path = Path(f"/Users/avan/Desktop/TestPlots")
-    if not out_path.is_dir():
-        out_path.mkdir()                
-    out_path = out_path / f"{bend}.png"
+    itx.plot(ax=ax2, column="metric_confidence", categorical=True, legend=True)
+    ridges.plot(ax=ax2, color="k", ls="--", lw=0.5, zorder=0)
+    ax2.set_axis_off()
+
+    out_dir = Path(f"/Users/avan/Desktop/TestPlots")
+    if not out_dir.is_dir():
+        out_dir.mkdir()                
+    out_path = out_dir / f"{bend}.png"
     plt.savefig(out_path, dpi=300)
 
 
