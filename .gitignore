@@ -134,3 +134,4 @@ config.py
 scrollstats/config.py
 .DS_Store
 */.DS_Store/*
+data/
