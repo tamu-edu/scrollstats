@@ -48,7 +48,7 @@ def calculate_ridge_metrics(in_transects, in_bin_raster=None, in_dem=None, in_ri
         
     # If packets are provided, create intersection with packets and return MultiIndex DataFrame
     if isinstance(packets, gpd.GeoDataFrame):
-        transects = transects.overlay(packets, how="intersection").set_index(["packet_id", "transect_id"])
+        transects = transects.overlay(packets, how="intersection") #.set_index(["packet_id", "transect_id"])
     
     # Calculate sampled ridge metrics
     bde = BendDataExtractor(transects, bin_raster, dem, ridges)
