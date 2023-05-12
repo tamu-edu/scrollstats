@@ -98,3 +98,12 @@ class BendDataset:
             centerline = centerline.to_crs(self.get_local_utm(centerline))
 
         return centerline
+    
+    def get_packet_points(self, proj=False):
+        """Get the centerline from self.db_engine for the given bend id"""
+        packet_points = gpd.GeoDataFrame.from_postgis(f"SELECT * FROM packet_points WHERE bend_id='{self.bend_id}'", self.db_engine, geom_col="geometry")
+
+        if proj:
+            packet_points = packet_points.to_crs(self.get_local_utm(packet_points))
+            
+        return packet_points
