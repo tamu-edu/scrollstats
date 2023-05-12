@@ -152,7 +152,7 @@ class RidgeDataExtractor:
         self.gdf = self.calc_vertex_indices(self.gdf, self.signal_length)
         
         # Process Binary Signal
-        self.metric_confidence = self.detemine_metric_confidence()
+        self.metric_confidence = self.determine_metric_confidence()
         self.swale_dq_adjustment = 0
         self.bool_mask = self.dq_first_swale()
         self.ridge_com = self.calc_ridge_coms()
@@ -262,7 +262,7 @@ class RidgeDataExtractor:
         
         return np.where(np.isnan(self.bin_signal), 0, self.bin_signal).astype(bool)
 
-    def detemine_metric_confidence(self):
+    def determine_metric_confidence(self):
         """
         Assign a metric confidence score based on the boolean mask.
         """
@@ -306,7 +306,7 @@ class RidgeDataExtractor:
             first_positive = np.flatnonzero(self.bool_mask)[0]
             self.bool_mask = self.bool_mask[first_positive:]
             self.dem_signal_selection = self.dem_signal_selection[first_positive:]
-            self.metric_confidence = self.detemine_metric_confidence()
+            self.metric_confidence = self.determine_metric_confidence()
             self.swale_dq_adjustment = len(self.bin_signal) - len(self.bool_mask)
         return self.bool_mask
     
