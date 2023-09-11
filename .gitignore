@@ -136,3 +136,5 @@ scrollstats/config.py
 */.DS_Store/*
 data/
 figures/
+TEST_*
+*/TEST_*/*
