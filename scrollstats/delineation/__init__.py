@@ -1,5 +1,4 @@
-from .profile_curvature import profile_curvature
-from .residual_topography import res_topo
+from .geomorphic_parameters import profile_curvature, residual_topography
 
 __all__ = ["profile_curvature",
-           "res_topo"]
+           "residual_topography"]
