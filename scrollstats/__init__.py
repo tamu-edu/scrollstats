@@ -8,3 +8,4 @@ from .ridge_metrics import *
 from .utils import *
 from .transecting import *
 from .config import *
+from .delineation import *
