@@ -1,0 +1,25 @@
+name: scroll
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8.*
+  - jupyterlab
+  - matplotlib
+  - numpy
+  - pandas
+  - scipy
+  - gdal
+  - fiona
+  - shapely
+  - pywavelets
+  - scikit-image
+  - rasterio
+  - numba
+  - geopandas
+  - descartes
+  - panel
+  - geoviews
+  - psycopg2
+  - sqlalchemy
+  - geoalchemy2
