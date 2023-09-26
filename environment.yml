@@ -3,10 +3,9 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.8.*
-  - geopandas
+  - python=3.8.12
+  - geopandas=0.10.2
   - jupyter
-  - matplotlib
-  - scipy
-  - rasterio
-  - sqlalchemy
+  - matplotlib=3.5.1
+  - scipy=1.7.3
+  - rasterio=1.2.10
