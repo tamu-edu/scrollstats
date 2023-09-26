@@ -4,22 +4,9 @@ channels:
   - defaults
 dependencies:
   - python=3.8.*
-  - jupyterlab
-  - matplotlib
-  - numpy
-  - pandas
-  - scipy
-  - gdal
-  - fiona
-  - shapely
-  - pywavelets
-  - scikit-image
-  - rasterio
-  - numba
   - geopandas
-  - descartes
-  - panel
-  - geoviews
-  - psycopg2
+  - jupyter
+  - matplotlib
+  - scipy
+  - rasterio
   - sqlalchemy
-  - geoalchemy2
