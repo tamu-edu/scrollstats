@@ -2,10 +2,16 @@
 from pathlib import Path
 
 # Data directories
-INPUT_DIR = Path("data/input")
+# Set DATA_DIR to the directory where you would like all ScrollStats data to be stored.
+# All other directories within the `data` directory will be created automatically 
+# ScrollStats expects all extent DEMs to be in the `data/input/dem` directory
+# All other outputs of ScrollStats will be stored in the `data/output` directory
+DATA_DIR = Path("data")
+
+INPUT_DIR = DATA_DIR / "input"
 DEM_DIR = INPUT_DIR / "dem"
 
-OUTPUT_DIR = Path("data/output")
+OUTPUT_DIR = DATA_DIR / "output"
 
 PROFC_DIR = OUTPUT_DIR / "profc"
 PROFC_CLIP_DIR = OUTPUT_DIR / "profc_clip"
@@ -34,8 +40,8 @@ RASTER_DIRS = {"input":INPUT_DIR,
 
 # Create raster directories if they dont exist
 for RASTER_DIR in RASTER_DIRS.values():
-    if not RASTER_DIR.exists:
-        RASTER_DIR.mkdir()
+    if not RASTER_DIR.exists():
+        RASTER_DIR.mkdir(parents=True)
 
 
 # Constants
