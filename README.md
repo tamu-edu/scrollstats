@@ -15,6 +15,9 @@ cd path/to/scrollstats
 conda env create -f environment.yml
 ```
 
+## Create data directory structure
+
+
 ## Install QGIS3
 To download the latest version of QGIS, visit the [QGIS download page](https://www.qgis.org/en/site/forusers/download.html) and download the version appropriate for your OS. 
 
