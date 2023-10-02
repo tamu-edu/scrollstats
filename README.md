@@ -51,17 +51,23 @@ All geoprocessing parameters (such as window size) are kept in [parameters.py](p
 
 ## Create vector datasets
 ScrollStats uses 4 types of vector data as input:
-- bend boundary
+- bend boundary*
 - packet boundaries
 - ridges
-- centerline
+- centerline*
 
+\* = vector dataset needs to be created before raster processing
+
+### Bend Boundary 
 The bend boundary in this case defines the boundary encompasses the raised platform of ridge and swale topography between the channel and the relatively smooth floodplain. Each bend boundary should have a corresponding bend_id that can be used to relate data together. For example, the 25th bend on the Lower Brazos River after the city of Waco, TX was given the beind_id `LBR_025`.
 
+### Packet Boundaries
 The packet boundaries are polygons that fit perfectly within, and conver entirely, the bend boundary polygons. Packet boundaries encompass groups of ridges with similar trajectories. Packet boundaries should have bend_id column as well as a packet_id column. The bend_id can be used as a foreign key to relate the packets to their bend and the simple packet_id (ex. `p_01`) can be used to diffferentiate the packets within each bend. There is no guarantee of an inherent order with packets, but in gernal, they can and should be numbered incrementally from the most ancestral to the most recent.
 
-Ridge polylines are manually created for each ridge on the bend. Ridge polylines can be created before the raster ridge classification process, however it is reccommended the binary ridge area rasters be used to help inform the creation of ridge polylines. Ridge polylines should have a bend_id column, a ridge id column, and optionally a packet_id column, if packets are used. The bend_id and optional packet_id columns can be used as foreign keys to relate ridges to the larger morphological features and the simple ridge_id (ex. `r_001`) can be used to differentiate ridges within a bend. To a greater extent than the packets, there is no guarantee of an inherent order to the ridges on a given bend. However, as seen in the accompanying manuscript, ridges often can, but are not required to, be ordered within packets.
+### Ridge Polylines
+Ridge polylines are manually created for each ridge on the bend. Ridge polylines can be created before the raster ridge classification process, however it is reccommended that the binary ridge area rasters be used to help inform the creation of ridge polylines. Ridge polylines should have a bend_id column, a ridge id column, and optionally a packet_id column, if packets are used. The bend_id and optional packet_id columns can be used as foreign keys to relate ridges to the larger morphological features and the simple ridge_id (ex. `r_001`) can be used to differentiate ridges within a bend. To a greater extent than the packets, there is no guarantee of an inherent order to the ridges on a given bend. However, as seen in the accompanying manuscript, ridges often can, but are not required to, be ordered within packets.
 
+### Channel Centerlines
 The channel centerline polyline should not intersect the bend boundary polygon at all and should extend past the channel-ward edges of the bend boundary.
 
 A high vertex density and high degree of "smoothness" are necesarry for both the channel centerline and ridge lines when creating the migration pathways. However, relatively sparse and coarse polylines can be densified and smoothed with the inlcluded [line_smoother.py](scrollstats/delineation/line_smoother.py) script. 
