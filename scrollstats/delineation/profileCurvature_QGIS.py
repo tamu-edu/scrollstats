@@ -1,5 +1,5 @@
 # For help:
-# processing.algorithmHelp('grass7:r.param.scale')
+# run `processing.algorithmHelp('grass7:r.param.scale')` in the QGIS python console
 
 import processing
 from pathlib import Path
