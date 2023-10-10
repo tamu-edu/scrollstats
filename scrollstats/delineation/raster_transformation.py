@@ -13,13 +13,17 @@ def profile_curvature_instructions():
 
 
 class CalcResidualTopography:
-    def __init__(self, dem_path, window_size, out_dir) -> None:
+    def __init__(self, dem_path, window_size, out_dir, out_name=None) -> None:
         self.dem_path = dem_path
         self.window_size = window_size
         self.out_dir = out_dir
 
+        # File name attributes
         self.suffix = "rt"
-        self.out_name = f"{self.dem_path.stem}_{self.suffix}{self.window_size}px.tif"
+        if out_name:
+            self.out_name = out_name
+        else:
+            self.out_name = f"{self.dem_path.stem}_{self.suffix}{self.window_size}px.tif"
         self.out_path = self.out_dir / self.out_name
 
     def residual_topography(self, dem:array, w:int) -> array:
