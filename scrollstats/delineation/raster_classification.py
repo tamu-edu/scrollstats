@@ -112,8 +112,8 @@ class RasterAgreementAssessor:
         self.composite_suffix = "comp"
         self.agreement_out_name = f"{self.bend_id}_{self.agreement_suffix}.tif"
         self.composite_out_name = f"{self.bend_id}_{self.composite_suffix}.tif"
-        self.agreement_out_path = self.out_dir / self.agreement_suffix / self.agreement_out_name
-        self.composite_out_path = self.out_dir / self.composite_suffix / self.composite_out_name
+        self.agreement_out_path = self.out_dir / self.agreement_out_name
+        self.composite_out_path = self.out_dir / self.composite_out_name
 
     def calc_adjust(a1, a2, dim):
         """
