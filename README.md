@@ -27,24 +27,6 @@ To download a specific version of QGIS, visit the [QGIS download index page](htt
 
 
 # Using ScrollStats
-## Create data directory structure
-The variable `DATA_DIR` in [parameters.py](parameters.py) defines where all data input and output will occur. By default ScrollStats will create a `data` folder in this directory with the following structure:
-```
-data
-├── input
-│   └── dem
-└── output
-    ├── agr
-    ├── agr_denoise
-    ├── comp
-    ├── profc
-    ├── profc_bin
-    ├── profc_clip
-    ├── rt
-    ├── rt_bin
-    └── rt_clip
-```
-ScrollStats requires that all extent DEMs be stored in the `data/input/dem` folder. All other derived outputs will be stored in the various `data/outputs` folders
 
 ## Set geoprocessing parameters
 All geoprocessing parameters (such as window size) are kept in [parameters.py](parameters.py). Set all the parameters to the desired values before running any scripts. 
@@ -74,7 +56,7 @@ A high vertex density and high degree of "smoothness" are necesarry for both the
 
 ## Create Raster datasets
 The general raster processing pipeline is as follows:
-1. Apply transformations to rasters
+1. Apply transformations to DEMs
     - profile curvature  
     - residual topography
 2. Clip transformed rasters to the boundaries of the ridge and swale topography
@@ -83,9 +65,12 @@ The general raster processing pipeline is as follows:
 4. Assess where these two binary rasters agree in their classification
 5. Denoise the Agreement raster to remove errant pixels
 
-ScrollStats is designed to work on either many or single bends. ScrollStats expects the DEMs for all bends to be saved in the [data/input/dem](data/input/dem) folder.
+Follow the instructions in [TransformRasters.ipynb](TransformRasters.ipynb) to create the transform rasters
 
 ScrollStats uses interactive jupyter notebooks as the user interface, however the underlying [scripting library](scrollstats) can also be used on its own. Instructions on how to use the jupyter notebooks are described below
+
+### Create Vector Datasets
+Follow the instructions in [CreateVectorData.ipynb](CreateVectorData.ipynb) to create the vector datasets listed above
 
 ### Transform rasters
 Use the [TransformRasters.ipynb](TransformRasters.ipynb) notebook to apply the residual topography transformation to the DEMs.
@@ -95,23 +80,7 @@ Use the [profile_curvature_QGIS.py]() script to calculate the profile curvature 
 ### Classify Rasters
 Once raster transformation is complete, use the [ClassifyRasters.ipynb](ClassifyRasters.ipynb) to complete steps 2-5 of the raster porcessing pipeline described above. 
 
-[ClassifyRasters.ipynb](ClassifyRasters.ipynb) results in a set of binary rasters, saved in [data/output/agr_denoise](data/output/agr_denoise), where 1s represent ridge areas and 0s represent swale areas. These binary rasters are then used in [NOTEBOOK_TBD.ipynb]() to calculate ridge metrics.
+[ClassifyRasters.ipynb](ClassifyRasters.ipynb) results in a binary raster where 1s represent ridge areas and 0s represent swale areas. This binary raster is then used in [NOTEBOOK_TBD.ipynb]() to calculate ridge metrics.
 
-## Calculate Ridge Metrics
-- TODO
-
-
-
-
-
-# TO DO:
-- [x] rewrite metric calculation for each itx
-- [x] add transect creation modules
-- [x] add delineation modules
-- [x] incorporate the relative migration code
-- [x] add example data 
-- [x] add all figure creation scripts
-- [ ] create a 'main' script that can handle delineation, transect creation, and metrics
-- [x] assess use of sqlite for all data
-- [x] figure out how to interface with db and local files
-- [ ] create sql db generation file
+### Calculate Ridge Metrics
+- Once all of the vector datasets are created and the raster areas are delineated, use the [CalculateRidgeMetrics.ipynb](CalculateRidgeMetrics.ipynb) to calculate the ridge metrics
