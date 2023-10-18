@@ -29,7 +29,7 @@ Example usage of ScrollStats has been broken up in the four following jupyter no
 - [CreateVectorDatasets.ipynb](CreateVectorDatasets.ipynb)
 - [TransformRasters.ipynb](TransformRasters.ipynb)
 - [ClassifyRasters.ipynb](ClassifyRasters.ipynb)
-- [CalculateMetrics.ipynb](CalculateMetrics.ipynb)
+- [CalculateRidgeMetrics.ipynb](CalculateRidgeMetrics.ipynb)
 
 These four notebooks all include detailed instruction on the intended use of the ScrollStats library with an included [example dataset](example_data) of a bend from the Lower Brazos River, TX. Once you are comfortable using the library from the notebooks, feel free to edit the code or make your own scripts to suit your needs. 
 
