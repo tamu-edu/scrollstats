@@ -11,7 +11,7 @@ Create a conda environment from the provided `environment.yml` file with the fol
 # Navigate to this directory
 cd path/to/scrollstats
 
-# Create the environment
+# Create the environmen
 conda env create -f environment.yml
 ```
 
@@ -25,7 +25,7 @@ To download a specific version of QGIS, visit the [QGIS download index page](htt
 
 
 # Using ScrollStats
-Example usage of ScrollStats has been broken up in the four following jupyter notebooks:
+ScrollStats uses interactive jupyter notebooks as the user interface, however the underlying [scripting library](scrollstats) can also be used on its own. Example usage of ScrollStats has been broken up in the four following notebooks:
 - [CreateVectorDatasets.ipynb](CreateVectorDatasets.ipynb)
 - [TransformRasters.ipynb](TransformRasters.ipynb)
 - [ClassifyRasters.ipynb](ClassifyRasters.ipynb)
@@ -39,28 +39,20 @@ The four notebooks above are written to process 1 bend at a time. However, all o
 ## Set geoprocessing parameters
 All geoprocessing parameters (such as window size) are kept in [parameters.py](parameters.py). Set all the parameters to the desired values before running any scripts. 
 
-## Create Raster datasets
-The general raster processing pipeline is as follows:
-1. Apply transformations to DEMs
-    - profile curvature  
-    - residual topography
-2. Clip transformed rasters to the boundaries of the ridge and swale topography
-3. Apply binary classification to the rasters
-    - 1 = Ridge; 0 = Swale
-4. Assess where these two binary rasters agree in their classification
-5. Denoise the Agreement raster to remove errant pixels
 
-Follow the instructions in [TransformRasters.ipynb](TransformRasters.ipynb) to create the transform rasters
-
-ScrollStats uses interactive jupyter notebooks as the user interface, however the underlying [scripting library](scrollstats) can also be used on its own. Instructions on how to use the jupyter notebooks are described below
+## The ScrollStats workflow
 
 ### Create Vector Datasets
-Follow the instructions in [CreateVectorData.ipynb](CreateVectorData.ipynb) to create the vector datasets listed above
+Create the following vector datasets to define key morphological features of the bend. Details of the vector data creation can be found in [CreateVectorDatasets.ipynb](CreateVectorDatasets.ipynb).
 
-### Transform rasters
-Use the [TransformRasters.ipynb](TransformRasters.ipynb) notebook to apply the residual topography transformation to the DEMs.
+- bend boundary
+- packet boundary
+- channel centerline
+- ridge lines
 
-Use the [profile_curvature_QGIS.py]() script to calculate the profile curvature transformation of the dems. Instructions on how to use this script in the QGIS python console can be found in [TransformRasters.ipynb](TransformRasters.ipynb)
+All of the above vector datasets can be made before the next step of transeforming the DEM, however it is reccommended to use the binary ridge area raster (the output of [ClassifyRasters.ipynb](ClassifyRasters.ipynb)) to help inform the location of the ridge lines.
+
+### Transform Rasters
 
 ### Classify Rasters
 Once raster transformation is complete, use the [ClassifyRasters.ipynb](ClassifyRasters.ipynb) to complete steps 2-5 of the raster porcessing pipeline described above. 
