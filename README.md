@@ -19,14 +19,22 @@ conda env create -f environment.yml
 ## Install QGIS3
 To download the latest version of QGIS, visit the [QGIS download page](https://www.qgis.org/en/site/forusers/download.html) and download the version appropriate for your OS. 
 
-ScrollStats was developed using QGIS 3.16.6. However, unless there are major changes to the QGIS python API, processing toolbox, or the GRASS toolbox, the single [QGIS processing script](scrollstats/delineation/profileCurvature_QGIS.py) in ScrollStats should still work.
+ScrollStats was developed using QGIS 3.16.6. However, unless there are major changes to the QGIS python API, processing toolbox, or the GRASS toolbox, the single [QGIS processing script](scrollstats/delineation/profileCurvature_QGIS.py) in ScrollStats should still work on any version of QGIS 3.
 
 To download a specific version of QGIS, visit the [QGIS download index page](https://download.qgis.org/downloads/) and select your desired version.   
-## Install Postgress + PostGIS 
-- TODO
 
 
 # Using ScrollStats
+Example usage of ScrollStats has been broken up in the four following jupyter notebooks:
+- [CreateVectorDatasets.ipynb](CreateVectorDatasets.ipynb )
+- [TransformRasters.ipynb](TransformRasters.ipynb)
+- [ClassifyRasters.ipynb](ClassifyRasters.ipynb)
+- [CalculateMetrics.ipynb](CalculateMetrics.ipynb)
+
+These four notebooks all include detailed instruction on the intended use of the ScrollStats library with an included [example dataset](example_data) of a bend from the Lower Brazos River, TX. Once you are comfortable using the library from the notebooks, feel free to edit the code or make your own scripts to suit your needs. 
+
+The four notebooks above are written to process 1 bend at a time. However, all of these operations are designed to be easily incorporated into a `for` loop for batch processing of multiple bends, if desired.
+
 
 ## Set geoprocessing parameters
 All geoprocessing parameters (such as window size) are kept in [parameters.py](parameters.py). Set all the parameters to the desired values before running any scripts. 
