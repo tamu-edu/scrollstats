@@ -137,6 +137,7 @@ scrollstats/config.py
 data/
 figures/
 TEST_*
-*/TEST_*/*
+FIGURE_*
+DEV_*
 example_data/output/*.tif
 old_environment.yml
