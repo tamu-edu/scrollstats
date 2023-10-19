@@ -53,11 +53,10 @@ Create the following vector datasets to define key morphological features of the
 All of the above vector datasets can be made before the next step of transeforming the DEM, however it is reccommended to use the binary ridge area raster (the output of [ClassifyRasters.ipynb](ClassifyRasters.ipynb)) to help inform the location of the ridge lines.
 
 ### Transform Rasters
+The first step in the raster processing is applying geomorphic transformations (profile curvature and residual topography) to the extent DEM. Detailed steps of the transformation process are contained in the [TransformRasters](TransformRasters.ipynb) notebook.
 
 ### Classify Rasters
-Once raster transformation is complete, use the [ClassifyRasters.ipynb](ClassifyRasters.ipynb) to complete steps 2-5 of the raster porcessing pipeline described above. 
-
-[ClassifyRasters.ipynb](ClassifyRasters.ipynb) results in a binary raster where 1s represent ridge areas and 0s represent swale areas. This binary raster is then used in [NOTEBOOK_TBD.ipynb]() to calculate ridge metrics.
+Once raster transformation is complete, use the [ClassifyRasters.ipynb](ClassifyRasters.ipynb) to apply a threshold at 0 to the transformed rasters and fidn the union of these two binary rasters. This results in a single binary raster where 1s represent ridge areas and 0s represent swale areas.
 
 ### Calculate Ridge Metrics
-- Once all of the vector datasets are created and the raster areas are delineated, use the [CalculateRidgeMetrics.ipynb](CalculateRidgeMetrics.ipynb) to calculate the ridge metrics
+Once all of the vector datasets are created and the raster areas are delineated, use the [CalculateRidgeMetrics.ipynb](CalculateRidgeMetrics.ipynb) to calculate the ridge metrics. These metrics include ridge amplitude, width, and migration distance from last ridge for every intersection of a ridge and migration pathway. 
