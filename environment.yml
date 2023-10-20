@@ -9,4 +9,5 @@ dependencies:
   - matplotlib
   - scipy
   - rasterio
-  - sqlalchemy
+  - geoalchemy2
+  - psycopg2
