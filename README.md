@@ -76,7 +76,7 @@ The four notebooks above are written to process 1 bend at a time. However, all o
 Contribution to ScrollStats is welcome. There will forever be a "frozen" branch that contains the code exactly as it was at the time of publication, but it is the intent of the maintainer to accept community feedback and suggestions to the project.
 
 **Submitting Feedback**
-To submit feedback, please open an issue on this repository with the appropriate tag. Currently used tags are:
-- `feedback`: issues concerning the workflow or clarity of instructions
+To submit feedback, please open an issue on this repository with the appropriate label. Currently used labels are:
+- `documentation`: issues concerning the workflow or clarity of instructions
 - `feature`: issues requesting or proposing new features for scrollstats
 - `bug`: issues concerning errors in the code itself
