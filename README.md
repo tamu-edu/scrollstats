@@ -5,7 +5,7 @@ An open-source python library to calculate and extract morphometrics from scroll
 
 # Getting Started
 
-**Create conda environment**
+### Create conda environment
 
 Create a conda environment from the provided `environment.yml` file with the following commands
 ```shell
@@ -17,7 +17,7 @@ conda env create -f environment.yml
 ```
 
 
-**Install QGIS3**
+### Install QGIS3
 
 To download the latest version of QGIS, visit the [QGIS download page](https://www.qgis.org/en/site/forusers/download.html) and download the version appropriate for your OS. 
 
