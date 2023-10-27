@@ -60,3 +60,14 @@ Once raster transformation is complete, use the [ClassifyRasters.ipynb](Classify
 
 ### Calculate Ridge Metrics
 Once all of the vector datasets are created and the raster areas are delineated, use the [CalculateRidgeMetrics.ipynb](CalculateRidgeMetrics.ipynb) notebook to calculate the ridge metrics. These metrics include ridge amplitude, width, and migration distance from last ridge for every intersection of a ridge and migration pathway. 
+
+
+# Contributing
+
+Contribution to ScrollStats is welcome. There will forever be a "frozen" branch that contains the code exactly as it was at the time of publication, but it is the intent of the maintainer to accept community feedback and suggestions to the project.
+
+**Submitting Feedback**
+To submit feedback, please open an issue on this repository with the appropriate tag. Currently used tags are:
+- `feedback`: issues concerning the workflow or clarity of instructions
+- `feature`: issues requesting or proposing new features for scrollstats
+- `bug`: issues concerning errors in the code itself
