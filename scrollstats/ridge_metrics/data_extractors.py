@@ -272,8 +272,11 @@ class RidgeDataExtractor:
         _labels, ridge_count = ndimage.label(self.bool_mask)
         _labels, swale_count = ndimage.label(~self.bool_mask)
 
-        # All ridge or all swale
-        if (ridge_count == 1 and swale_count == 0) or (ridge_count == 0 and swale_count == 1):
+        # All swale
+        if ridge_count == 0 and swale_count == 1:
+            metric_confidence = 0
+        # All ridge
+        elif ridge_count == 1 and swale_count == 0:
             metric_confidence = 1
         # S-shape: 1 unbounded ridge and swale
         elif ridge_count == 1 and swale_count == 1:
