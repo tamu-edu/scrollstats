@@ -302,7 +302,6 @@ class RidgeDataExtractor:
             return None
 
         if self.metric_confidence == 0:
-            print("metric_confidence was 0")
             return self.bool_mask
 
         if self.position == 0:
