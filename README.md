@@ -56,7 +56,7 @@ The four notebooks above are written to process 1 bend at a time. However, all o
     - channel centerline
     - ridge lines
 
-- All of the above vector datasets can be made before the next step of transeforming the DEM, however it is reccommended to use the binary ridge area raster (the output of [ClassifyRasters.ipynb](ClassifyRasters.ipynb)) to help inform the location of the ridge lines.
+- All of the above vector datasets can be made before the next step of transforming the DEM, however it is reccommended to use the binary ridge area raster (the output of [ClassifyRasters.ipynb](ClassifyRasters.ipynb)) to help inform the location of the ridge lines.
 
 **3. Transform Rasters**
 
