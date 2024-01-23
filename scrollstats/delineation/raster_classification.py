@@ -115,7 +115,7 @@ class RasterAgreementAssessor:
         self.agreement_out_path = self.out_dir / self.agreement_out_name
         self.composite_out_path = self.out_dir / self.composite_out_name
 
-    def calc_adjust(a1, a2, dim):
+    def calc_adjust(self, a1, a2, dim):
         """
         Determine adjustment for the given dimension
         Here adjustment is defined as the value added to the beginning and end of the given dimension
