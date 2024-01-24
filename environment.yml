@@ -11,3 +11,4 @@ dependencies:
   - rasterio
   - geoalchemy2
   - psycopg2
+  - matplotlib-scalebar
