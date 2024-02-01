@@ -1,7 +1,5 @@
-
 import numpy as np
 from shapely.geometry import LineString
-import geopandas as gpd
 from geopandas import GeoDataFrame
 from scipy.interpolate import CubicSpline
 
@@ -11,6 +9,8 @@ class LineSmoother:
     Smooth and densify rough, manually drawn LineStrings.
     
     Smoothing is accomplished with the use of a mean filter and densifying is accomplished with the use of a piecewise cubic spline.
+    The GeoDataFrame provided must only contain LineStrings. MuliLineStrings or other geometries are not supported.
+    The vertex count of any ridge cannot be lower than the window size for the mean filter
 
     Values used for the Lower Brazos Ridges were:
         window = 5 (vertices)
@@ -20,6 +20,23 @@ class LineSmoother:
         self.lines = lines
         self.spacing = spacing
         self.window = window
+
+        # Preform checks on inputs
+        self.check_geometry_type()
+        self.check_vertex_count()
+
+
+    def check_geometry_type(self):
+        """Check that all geomerties are of type LineString"""
+        if any(self.lines.geom_type != "LineString"):
+            raise ValueError("Not all geometries are of type LineString. Remove the non-LineString geometry from `lines`")
+        
+        
+    def check_vertex_count(self):
+        """Check that all ridges have at least as many vertices as the smoothing window is long"""
+        if any(self.lines.geometry.apply(lambda x: len(x.coords)) < self.window):
+            raise ValueError(f"One or more ridges have fewer vertices than the smoothing window is long (window={self.window}). Remove these ridges or add more vertices to them.")
+
     
     def meanfilt(self, line:LineString, w:int) -> LineString:
         '''
