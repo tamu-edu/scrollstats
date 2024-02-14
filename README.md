@@ -28,17 +28,14 @@ To download a specific version of QGIS, visit the [QGIS download index page](htt
 
 # Using ScrollStats
 
-ScrollStats uses interactive jupyter notebooks as the user interface, however the underlying [scripting library](scrollstats) can also be used on its own. Example usage of ScrollStats has been broken up in the four following notebooks:
+ScrollStats uses interactive jupyter notebooks as the user interface, however the underlying [scripting library](scrollstats) can also be used on its own. Example usage of ScrollStats has been broken up in the three following notebooks:
+- [DelineateRidgeAreas.ipynb](DelineateRidgeAreas.ipynb)
 - [CreateVectorDatasets.ipynb](CreateVectorDatasets.ipynb)
-- [TransformRasters.ipynb](TransformRasters.ipynb)
-- [ClassifyRasters.ipynb](ClassifyRasters.ipynb)
 - [CalculateRidgeMetrics.ipynb](CalculateRidgeMetrics.ipynb)
 
-These four notebooks all include detailed instruction on the intended use of the ScrollStats library with an included [example dataset](example_data) of a bend from the Lower Brazos River, TX. Once you are comfortable using the library from the notebooks, feel free to edit the code or make your own scripts to suit your needs. 
+These three notebooks all include detailed instruction on the intended use of the ScrollStats library with an included [example dataset](example_data) of a bend from the Lower Brazos River, TX. Once you are comfortable using the library from the notebooks, feel free to edit the code or make your own scripts to suit your needs. 
 
-The four notebooks above are written to process 1 bend at a time. However, all of these operations are designed to be easily incorporated into a `for` loop for batch processing of multiple bends, if desired.
-
-
+The three notebooks above are written to process one bend at a time. However, all of these operations are designed to be easily incorporated into a `for` loop for batch processing of multiple bends, if desired.
 
 
 ## The ScrollStats workflow
@@ -47,7 +44,15 @@ The four notebooks above are written to process 1 bend at a time. However, all o
 
 - All geoprocessing parameters (such as window size) are kept in [parameters.py](parameters.py). Set all the parameters to the desired values before running any scripts. 
 
-**2. Create Vector Datasets**
+**2. Delineate Ridge Areas**
+
+- Delineate ridge areas from a DEM to create the ridge area raster. This is achieved in [DelineateRidgeAreas.ipynb](DelineateRidgeAreas.ipynb) by:
+    1. applying the profile curvature (using QGIS3) and residual topography transforms to the DEM
+    2. applying a threshold at 0 to these transformed rasters to create binary rasters
+    3. finding the union of these binary rasters 
+    4. denoising the union raster 
+
+**3. Create Vector Datasets**
 
 - Create the following vector datasets to define key morphological features of the bend. Details of the vector data creation can be found in [CreateVectorDatasets.ipynb](CreateVectorDatasets.ipynb).
 
@@ -56,17 +61,7 @@ The four notebooks above are written to process 1 bend at a time. However, all o
     - channel centerline
     - ridge lines
 
-- All of the above vector datasets can be made before the next step of transforming the DEM, however it is reccommended to use the binary ridge area raster (the output of [ClassifyRasters.ipynb](ClassifyRasters.ipynb)) to help inform the location of the ridge lines.
-
-**3. Transform Rasters**
-
-- The first step in the raster processing is applying geomorphic transformations (profile curvature and residual topography) to the extent DEM. Detailed steps of the transformation process are contained in the [TransformRasters.ipynb](TransformRasters.ipynb) notebook.
-
-**4. Classify Rasters**
-
-- Once raster transformation is complete, use the [ClassifyRasters.ipynb](ClassifyRasters.ipynb) notebook to apply a threshold at 0 to the transformed rasters and find the union of these two binary rasters. This results in a single binary raster where 1s represent ridge areas and 0s represent swale areas.
-
-**5. Calculate Ridge Metrics**
+**4. Calculate Ridge Metrics**
 
 - Once all of the vector datasets are created and the raster areas are delineated, use the [CalculateRidgeMetrics.ipynb](CalculateRidgeMetrics.ipynb) notebook to calculate the ridge metrics. These metrics include ridge amplitude, width, and migration distance from last ridge for every intersection of a ridge and migration pathway. 
 
