@@ -12,7 +12,7 @@ Create a conda environment from the provided `environment.yml` file with the fol
 # Navigate to this directory
 cd path/to/scrollstats
 
-# Create the environmen
+# Create the environment
 conda env create -f environment.yml
 ```
 
