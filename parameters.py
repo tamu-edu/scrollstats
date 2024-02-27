@@ -17,7 +17,7 @@ for d in [INPUT_DIR, OUTPUT_DIR]:
 
 # Raster Processing Constants
 RASTER_WINDOW_SIZE = 45    # Measured in img px
-SMALL_FEATS_SIZE = 50      # Measured in img px
+SMALL_FEATS_SIZE = 500     # Measured in img px
 ELONGATION_THRESHOLD = 80  # Percentage 
 
 # Vector Creation Constants
