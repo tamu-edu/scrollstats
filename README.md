@@ -37,6 +37,8 @@ These three notebooks all include detailed instruction on the intended use of th
 
 The three notebooks above are written to process one bend at a time. However, all of these operations are designed to be easily incorporated into a `for` loop for batch processing of multiple bends, if desired.
 
+[CompleteBendProcess.ipynb](CompleteBendProcess.ipynb) contains all of the processing steps in the three notebooks above without much annotation so that all processes for a bend can be completed at once. 
+
 
 ## The ScrollStats workflow
 
