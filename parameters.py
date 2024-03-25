@@ -8,9 +8,10 @@ DATA_DIR = Path("data")
 
 INPUT_DIR = DATA_DIR / "input"
 OUTPUT_DIR = DATA_DIR / "output"
+GRASS_DIR = OUTPUT_DIR / "grassdata"
 
 # Create data directories if they dont exist
-for d in [INPUT_DIR, OUTPUT_DIR]:
+for d in [INPUT_DIR, OUTPUT_DIR, GRASS_DIR]:
     if not d.exists():
         d.mkdir(parents=True)
 
