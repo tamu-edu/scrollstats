@@ -22,6 +22,7 @@ for d in [INPUT_DIR, OUTPUT_DIR, GRASS_DIR]:
 # If the wants to specify which GRASS install to use, the path variables can be modified below
 GRASS_BASE = Path("auto")
 GRASS_BIN = Path("auto")
+GRASS_PYTHON = Path("auto")
 
 
 # Raster Processing Constants
@@ -117,11 +118,14 @@ class GrassLocator:
 
             return grass_bin
         
-
-if (str(GRASS_BASE) == "auto") or (str(GRASS_BIN) == "auto"):
+# Check if user has already defined GRASS paths; automatically find if not
+if (str(GRASS_BASE) == "auto") or (str(GRASS_BIN) == "auto") or (str(GRASS_PYTHON) == "auto"):
     gl = GrassLocator()
     GRASS_BASE = gl.grass_base
-    GRASS_BIN = gl.grass_bin 
+    GRASS_BIN = gl.grass_bin
+    GRASS_PYTHON = GRASS_BASE / "etc" / "python"
 
+# Set GRASS environment variables once located
 os.environ["GISBASE"] = str(GRASS_BASE)
+sys.path.append(GRASS_PYTHON) 
 
