@@ -7,19 +7,7 @@ import numpy as np
 from numpy import array
 import rasterio
 from scipy.signal import convolve2d
-
-
-def get_grass_base() -> Path:
-    """Returns the path to the GRASS GIS resources shipped with QGIS"""
-
-    if sys.platform.startswith("darwin"):
-        grass_base = "/Applications/QGIS.app/Contents/Resources/grass78"
-    elif sys.platform.startswith("win"):
-        grass_base = r"C:\OSGeo4W\bin"
-    else:
-        grass_base = 'grass78'
-
-    return Path(grass_base)
+from parameters import GRASS_DIR, GRASS_BASE, GRASS_BIN
 
 
 def create_grass_project(db_path:Path, crs:str) -> Path:
@@ -33,12 +21,12 @@ def create_grass_project(db_path:Path, crs:str) -> Path:
     https://grass.osgeo.org/grass84/manuals/grass_database.html
     """
 
+    # Create CRS specific location; see doc string
     location_path = db_path / f"CRS_{crs.replace(':', '_')}"
 
     # Initialize the GRASS location
-    # This generates all of the required data/directories for the location
-    grass_bin = Path(os.environ["GISBASE"]) / "grass"
-    startcmd = f"{str(grass_bin)} -c {crs} -e {location_path}"
+    # This generates all required data/directories for the location
+    startcmd = f"{str(GRASS_BIN)} -c {crs} -e {location_path}"
 
     if not location_path.exists():
         p = subprocess.Popen(startcmd, shell=True,
@@ -58,7 +46,7 @@ class CalcProfileCurvature:
         self.dem_path = dem_path
         self.window_size = window_size
         self.out_dir = out_dir
-        self.grass_dir = self.out_dir / "grassdata"
+        self.grass_dir = GRASS_DIR
 
         # File name attributes
         self.suffix = "profc"
@@ -68,17 +56,8 @@ class CalcProfileCurvature:
             self.out_name = f"{self.dem_path.stem}_{self.suffix}{self.window_size}px.tif"
         self.out_path = self.out_dir / self.out_name
 
-        # Find where the grass resources are stored on the system
-        self.grass_base = get_grass_base()
-
-        # Add grass to env and PATH
-        os.environ["GISBASE"] = str(self.grass_base)
-        grass_python = str(self.grass_base / "etc" / "python")
-        sys.path.append(grass_python)
-
         # Create location specific directory for grass outputs
         crs = rasterio.open(self.dem_path).crs.to_string()
-
         if not crs == '':
             self.location_path = create_grass_project(self.grass_dir, crs)
         else:
@@ -88,13 +67,13 @@ class CalcProfileCurvature:
     def execute(self):
         """Launch a headless GRASS GIS session to calculate profile curvature"""
 
-        # `grass` library added to PYTHON_PATH in __init__()
+        # `grass` library added to PYTHON_PATH in parameters.py
         import grass.script as gs
         from grass.script import array as garray
         from grass.script import setup as gsetup
 
         # Intialize GRASS modules
-        gsetup.init(str(self.grass_base), self.grass_dir, self.location_path.stem, "PERMANENT")
+        gsetup.init(str(GRASS_BASE), self.grass_dir, self.location_path.stem, "PERMANENT")
 
         # Open DEM 
         dem = rasterio.open(self.dem_path)
