@@ -78,7 +78,11 @@ class CalcProfileCurvature:
 
         # Create location specific directory for grass outputs
         crs = rasterio.open(self.dem_path).crs.to_string()
-        self.location_path = create_grass_project(self.grass_dir, crs)
+
+        if not crs == '':
+            self.location_path = create_grass_project(self.grass_dir, crs)
+        else:
+            raise ValueError(f"Detected CRS of the tif is not valid.\n Detected CRS: {crs}")
 
     
     def execute(self):
