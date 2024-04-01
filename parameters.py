@@ -121,11 +121,11 @@ class GrassLocator:
 # Check if user has already defined GRASS paths; automatically find if not
 if (str(GRASS_BASE) == "auto") or (str(GRASS_BIN) == "auto") or (str(GRASS_PYTHON) == "auto"):
     gl = GrassLocator()
-    GRASS_BASE = str(gl.grass_base)
-    GRASS_BIN = str(gl.grass_bin)
-    GRASS_PYTHON = str(GRASS_BASE / "etc" / "python")
+    GRASS_BASE = gl.grass_base
+    GRASS_BIN = gl.grass_bin
+    GRASS_PYTHON = GRASS_BASE / "etc" / "python"
 
 # Set GRASS environment variables once located
 os.environ["GISBASE"] = str(GRASS_BASE)
-sys.path.append(GRASS_PYTHON) 
+sys.path.append(str(GRASS_PYTHON)) 
 
