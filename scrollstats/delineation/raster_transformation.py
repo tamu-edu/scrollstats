@@ -62,7 +62,7 @@ class CalcProfileCurvature:
         
         return location_path
     
-    def execute(self):
+    def execute(self) -> Path:
         """Launch a headless GRASS GIS session to calculate profile curvature"""
 
         # `grass` library added to PYTHON_PATH in parameters.py
