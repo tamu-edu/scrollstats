@@ -26,7 +26,7 @@ def create_grass_project(db_path:Path, crs:str) -> Path:
 
     # Initialize the GRASS location
     # This generates all required data/directories for the location
-    startcmd = f"{str(GRASS_BIN)} -c {crs} -e {location_path}"
+    startcmd = f'"{str(GRASS_BIN)}" -c {crs} -e "{location_path}"'
 
     if not location_path.exists():
         p = subprocess.Popen(startcmd, shell=True,
