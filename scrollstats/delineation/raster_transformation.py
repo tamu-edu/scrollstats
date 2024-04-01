@@ -10,37 +10,6 @@ from scipy.signal import convolve2d
 from parameters import GRASS_DIR, GRASS_BASE, GRASS_BIN
 
 
-def create_grass_project(db_path:Path, crs:str) -> Path:
-    """
-    Creates the GRASS GIS Database location (project) folder structure as defined below
-    
-    db_path: the base directory that will contain all GIS data
-    location: a subdirectory of `db_path` that contains all data for a project. All data must share the same CRS
-
-    See link below for more detail on GRASS GIS Database structure.
-    https://grass.osgeo.org/grass84/manuals/grass_database.html
-    """
-
-    # Create CRS specific location; see doc string
-    location_path = db_path / f"CRS_{crs.replace(':', '_')}"
-
-    # Initialize the GRASS location
-    # This generates all required data/directories for the location
-    startcmd = f'"{str(GRASS_BIN)}" -c {crs} -e "{location_path}"'
-
-    if not location_path.exists():
-        p = subprocess.Popen(startcmd, shell=True,
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        out, err = p.communicate()
-        if p.returncode != 0:
-            print(f"ERROR: {err}")
-            sys.exit(-1)
-        else:
-            print(f"Created location {location_path}")
-    
-    return location_path
-
-
 class CalcProfileCurvature:
     def __init__(self, dem_path, window_size, out_dir, out_name=None) -> None:
         self.dem_path = dem_path
@@ -59,10 +28,39 @@ class CalcProfileCurvature:
         # Create location specific directory for grass outputs
         crs = rasterio.open(self.dem_path).crs.to_string()
         if not crs == '':
-            self.location_path = create_grass_project(self.grass_dir, crs)
+            self.location_path = self.create_grass_project(crs)
         else:
             raise ValueError(f"Detected CRS of the tif is not valid.\n Detected CRS: {crs}")
 
+    def create_grass_project(self, crs:str) -> Path:
+        """
+        Creates the GRASS GIS Database location (project) folder structure as defined below
+        
+        grass_dir: the base directory that will contain all GRASS GIS data
+        location: a subdirectory of `grass_dir` that contains all data for a project. All data must share the same CRS
+
+        See link below for more detail on GRASS GIS Database structure.
+        https://grass.osgeo.org/grass84/manuals/grass_database.html
+        """
+
+        # Create CRS specific location; see doc string
+        location_path = self.grass_dir / f"CRS_{crs.replace(':', '_')}"
+
+        # Initialize the GRASS location
+        # This generates all required data/directories for the location
+        startcmd = f'"{str(GRASS_BIN)}" -c {crs} -e "{location_path}"'
+
+        if not location_path.exists():
+            p = subprocess.Popen(startcmd, shell=True,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = p.communicate()
+            if p.returncode != 0:
+                print(f"ERROR: {err}")
+                sys.exit(-1)
+            else:
+                print(f"Created location {location_path}")
+        
+        return location_path
     
     def execute(self):
         """Launch a headless GRASS GIS session to calculate profile curvature"""
