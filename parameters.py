@@ -52,7 +52,7 @@ class GrassLocator:
     def __init__(self):
         self.platform = sys.platform
 
-        if not (self.platform.startswith("darwin")) or (self.platform.startswith("windows")):
+        if not (self.platform.startswith("darwin") or self.platform.startswith("win")):
             raise OSError("Automatic searching for GRASS installations is only supported on MacOS and Windows")
 
         self.qgis = self.find_qgis()
@@ -76,7 +76,7 @@ class GrassLocator:
 
             return qgis
         
-        elif self.platform.startswith("windows"):
+        elif self.platform.startswith("win"):
             program_files = Path(r"C:\Program Files")
 
             # Check for multiple versions of QGIS. If multiple, choose the most recent
@@ -96,7 +96,7 @@ class GrassLocator:
             grass_base = sorted(resources.glob("grass*"))[-1]
             return grass_base
         
-        elif self.platform.startswith("windows"):
+        elif self.platform.startswith("win"):
             super_grass = self.qgis / "apps" / "grass"
             # Should only be one versioned `grass##` directory, but this grabs the most recent if there are multiple
             grass_base = sorted(super_grass.glob("grass*"))[-1]
@@ -111,7 +111,7 @@ class GrassLocator:
 
             return grass_bin
         
-        elif self.platform.startswith("windows"):
+        elif self.platform.startswith("win"):
             qgis_bin = self.qgis / "bin"
             # Should only be one versioned `grass##` binary, but this grabs the most recent if there are multiple
             grass_bin = sorted(qgis_bin.glob("grass*.bat"))[-1]
@@ -119,7 +119,7 @@ class GrassLocator:
             return grass_bin
         
 # Check if user has already defined GRASS paths; automatically find if not
-if (str(GRASS_BASE) == "auto") or (str(GRASS_BIN) == "auto") or (str(GRASS_PYTHON) == "auto"):
+if (str(GRASS_BASE) == "auto" or str(GRASS_BIN) == "auto" or str(GRASS_PYTHON) == "auto"):
     gl = GrassLocator()
     GRASS_BASE = gl.grass_base
     GRASS_BIN = gl.grass_bin
