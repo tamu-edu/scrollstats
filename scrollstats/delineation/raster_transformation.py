@@ -73,22 +73,22 @@ class CalcProfileCurvature:
         grass78: https://grass.osgeo.org/grass78/manuals/libpython/script.html#module-script.setup
         grass83: https://grass.osgeo.org/grass83/manuals/libpython/script.html#module-script.setup
         """
-        import grass.script as gscript
+        from grass.script import setup as gsetup
 
         if GRASS_VERSION.startswith("7"):
-            gscript.setup.init(
-                gisbase = GRASS_BASE,
-                dbase = GRASS_DIR,
+            gsetup.init(
+                gisbase = str(GRASS_BASE),
+                dbase = str(GRASS_DIR),
                 location = self.location_path.stem,
                 mapset = "PERMANENT"
             )
         
         elif GRASS_VERSION.startswith("8"):
-            gscript.setup.init(
-                path = GRASS_DIR,
+            gsetup.init(
+                path = str(GRASS_DIR),
                 location = self.location_path.stem,
                 mapset = "PERMANENT",
-                grass_path = GRASS_BASE 
+                grass_path = str(GRASS_BASE) 
             )
         else:
             raise ValueError(f"GRASS verison detected was not 7.* or 8.*. Detected GRASS version: {GRASS_VERSION}")
