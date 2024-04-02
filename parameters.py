@@ -129,3 +129,16 @@ if (str(GRASS_BASE) == "auto") or (str(GRASS_BIN) == "auto") or (str(GRASS_PYTHO
 os.environ["GISBASE"] = str(GRASS_BASE)
 sys.path.append(str(GRASS_PYTHON)) 
 
+# Get GRASS version from GRASS_BASE
+def get_grass_version(grass_base:Path) -> str:
+    """Infers the grass verison from the last characters of GRASS_BASE"""
+
+    version_num = grass_base.stem[-2:]
+
+    if version_num.isnumeric():
+        return version_num
+    else:
+        raise ValueError(f"Unable to infer grass verison from `GRASS_BASE`:{grass_base}")
+    
+GRASS_VERSION = get_grass_version(GRASS_BASE)
+

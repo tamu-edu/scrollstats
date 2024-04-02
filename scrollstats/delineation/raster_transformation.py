@@ -7,7 +7,7 @@ import numpy as np
 from numpy import array
 import rasterio
 from scipy.signal import convolve2d
-from parameters import GRASS_DIR, GRASS_BASE, GRASS_BIN
+from parameters import GRASS_DIR, GRASS_BASE, GRASS_BIN, GRASS_VERSION
 
 
 class CalcProfileCurvature:
@@ -62,16 +62,49 @@ class CalcProfileCurvature:
         
         return location_path
     
+    def initialize_grass_modules(self):
+        """
+        Initialize GRASS modules. `grass.setup.init` needs to be ran before any other grass modules can be used.
+        
+        Recent installations of QGIS were seen to be shipped with different major verisons of GRASS (7.* and 8.*).
+        GRASS 8.* changed the parameter names and order for `grass.setup.init` so the version needs to be checked first.
+
+        For more detail, see below
+        grass78: https://grass.osgeo.org/grass78/manuals/libpython/script.html#module-script.setup
+        grass83: https://grass.osgeo.org/grass83/manuals/libpython/script.html#module-script.setup
+        """
+        import grass.script as gscript
+
+        if GRASS_VERSION.startswith("7"):
+            gscript.setup.init(
+                gisbase = GRASS_BASE,
+                dbase = GRASS_DIR,
+                location = self.location_path.stem,
+                mapset = "PERMANENT"
+            )
+        
+        elif GRASS_VERSION.startswith("8"):
+            gscript.setup.init(
+                path = GRASS_DIR,
+                location = self.location_path.stem,
+                mapset = "PERMANENT",
+                grass_path = GRASS_BASE 
+            )
+        else:
+            raise ValueError(f"GRASS verison detected was not 7.* or 8.*. Detected GRASS version: {GRASS_VERSION}")
+
+    
     def execute(self) -> Path:
         """Launch a headless GRASS GIS session to calculate profile curvature"""
 
         # `grass` library added to PYTHON_PATH in parameters.py
         import grass.script as gs
         from grass.script import array as garray
-        from grass.script import setup as gsetup
+        
 
         # Intialize GRASS modules
-        gsetup.init(str(GRASS_BASE), self.grass_dir, self.location_path.stem, "PERMANENT")
+        # gsetup.init(str(GRASS_BASE), self.grass_dir, self.location_path.stem, "PERMANENT")
+        self.initialize_grass_modules()
 
         # Open DEM 
         dem = rasterio.open(self.dem_path)
