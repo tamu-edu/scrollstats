@@ -3,6 +3,8 @@ import os
 import sys
 from pathlib import Path
 
+from GrassResources import get_grass_resources
+
 # Data directories
 # Set DATA_DIR to the directory where you would like all ScrollStats data to be stored.
 # All other directories within the `data` directory will be created automatically 
@@ -20,10 +22,14 @@ for d in [INPUT_DIR, OUTPUT_DIR, GRASS_DIR]:
 # Set GRASS environment variables
 # It is assumed that the user will be using the version of GRASS shipped with QGIS
 # If the wants to specify which GRASS install to use, the path variables can be modified below
-GRASS_BASE = Path("auto")
-GRASS_BIN = Path("auto")
-GRASS_PYTHON = Path("auto")
-
+# GRASS_BASE = Path("auto")
+# GRASS_BIN = Path("auto")
+# GRASS_PYTHON = Path("auto")
+# GRASS_VERSION = "auto"
+GRASS_BASE = Path("/Applications/GRASS-7.8.app/Contents/Resources")
+GRASS_BIN = Path("/Applications/GRASS-7.8.app/Contents/Resources/bin/grass78")
+GRASS_PYTHON = Path("/Applications/GRASS-7.8.app/Contents/Resources/etc/python")
+GRASS_VERSION = "78"
 
 # Raster Processing Constants
 RASTER_WINDOW_SIZE = 45    # Measured in img px
@@ -42,103 +48,14 @@ DEV_FROM_90 = 5            # Max angular deviation from 90° allowed when search
 
 # ============================================================================
 
-class GrassLocator:
-    """
-    Locates the GRASS GIS resources that shipped with QGIS in order to run headless GRASS sessions
-    QGIS app structure differs based on the user's OS and the user may have multiple versions of QGIS installed.
 
-    This class contains the necesarry logic to navigate the above difficulties and return the relevant paths for the most recent verison of QGIS available
-    """
-    def __init__(self):
-        self.platform = sys.platform
 
-        if not (self.platform.startswith("darwin") or self.platform.startswith("win")):
-            raise OSError("Automatic searching for GRASS installations is only supported on MacOS and Windows")
 
-        self.qgis = self.find_qgis()
-        self.grass_base = self.find_grass_base()
-        self.grass_bin = self.find_grass_bin()
-    
-    def find_qgis(self) -> Path:
-        """Finds the installation of QGIS depending on the platform of the user."""
-        
-        if self.platform.startswith("darwin"):
-            apps = Path("/Applications")
-            qgis = apps / "QGIS.app"
-
-            # The user may have "QGIS-LTR" or multiple versions of QGIS installed
-            if not qgis.exists():
-                qgis_candidates = list(apps.glob("QGIS*.app"))
-                if qgis_candidates:
-                    qgis = qgis_candidates[-1]
-                else:
-                    raise OSError(f"QGIS was not found in {apps}")
-
-            return qgis
-        
-        elif self.platform.startswith("win"):
-            program_files = Path(r"C:\Program Files")
-
-            # Check for multiple versions of QGIS. If multiple, choose the most recent
-            qgis_candidates = sorted(program_files.glob("QGIS*"))
-            if qgis_candidates:
-                qgis = qgis_candidates[-1]
-                return qgis
-            else:
-                raise OSError(f"QGIS was not found in {program_files}")
-            
-    def find_grass_base(self) -> Path:
-        """Find the grass directory shipped with QGIS"""
-        
-        if self.platform.startswith("darwin"):
-            resources = self.qgis / "Contents" / "Resources"
-            # Grab the versioned `grass##` directory, grabs the most recent version if multiple
-            grass_base = sorted(resources.glob("grass*"))[-1]
-            return grass_base
-        
-        elif self.platform.startswith("win"):
-            super_grass = self.qgis / "apps" / "grass"
-            # Should only be one versioned `grass##` directory, but this grabs the most recent if there are multiple
-            grass_base = sorted(super_grass.glob("grass*"))[-1]
-
-            return grass_base
-        
-    def find_grass_bin(self) -> Path:
-        """Find the grass binary used to execute grass commands"""
-
-        if self.platform.startswith("darwin"):
-            grass_bin = self.grass_base / "grass"
-
-            return grass_bin
-        
-        elif self.platform.startswith("win"):
-            qgis_bin = self.qgis / "bin"
-            # Should only be one versioned `grass##` binary, but this grabs the most recent if there are multiple
-            grass_bin = sorted(qgis_bin.glob("grass*.bat"))[-1]
-
-            return grass_bin
-        
 # Check if user has already defined GRASS paths; automatically find if not
-if (str(GRASS_BASE) == "auto" or str(GRASS_BIN) == "auto" or str(GRASS_PYTHON) == "auto"):
-    gl = GrassLocator()
-    GRASS_BASE = gl.grass_base
-    GRASS_BIN = gl.grass_bin
-    GRASS_PYTHON = GRASS_BASE / "etc" / "python"
+if (str(GRASS_BASE) == "auto" or str(GRASS_BIN) == "auto" or str(GRASS_PYTHON) == "auto" or GRASS_VERSION == "auto"):
+    GRASS_BASE, GRASS_BIN, GRASS_PYTHON, GRASS_VERSION = get_grass_resources()
 
 # Set GRASS environment variables once located
 os.environ["GISBASE"] = str(GRASS_BASE)
 sys.path.append(str(GRASS_PYTHON)) 
-
-# Get GRASS version from GRASS_BASE
-def get_grass_version(grass_base:Path) -> str:
-    """Infers the grass verison from the last characters of GRASS_BASE"""
-
-    version_num = grass_base.stem[-2:]
-
-    if version_num.isnumeric():
-        return version_num
-    else:
-        raise ValueError(f"Unable to infer grass verison from `GRASS_BASE`:{grass_base}")
-    
-GRASS_VERSION = get_grass_version(GRASS_BASE)
 
