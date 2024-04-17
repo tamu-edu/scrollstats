@@ -100,11 +100,15 @@ class CalcProfileCurvature:
         # `grass` library added to PYTHON_PATH in parameters.py
         import grass.script as gs
         from grass.script import array as garray
+        from grass.script import setup as gsetup
         
 
         # Intialize GRASS modules
-        # gsetup.init(str(GRASS_BASE), self.grass_dir, self.location_path.stem, "PERMANENT")
-        self.initialize_grass_modules()
+        # TODO: order and name of arguments change in the grass8.* version of the init() function
+        # See differences below
+        # grass78: https://grass.osgeo.org/grass78/manuals/libpython/script.html#module-script.setup
+        # grass83: https://grass.osgeo.org/grass83/manuals/libpython/script.html#module-script.setup
+        gsetup.init(str(GRASS_BASE), self.grass_dir, self.location_path.stem, "PERMANENT")
 
         # Open DEM 
         dem = rasterio.open(self.dem_path)

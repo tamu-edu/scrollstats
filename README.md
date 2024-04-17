@@ -16,15 +16,13 @@ cd path/to/scrollstats
 conda env create -f environment.yml
 ```
 
+### Install GRASS GIS
 
-### Install QGIS3
+To install GRASS GIS, visit the [GRASS GIS download page](https://grass.osgeo.org/download/mac/) and download the latest version of GRASS 7 available. 
 
-To download the latest version of QGIS, visit the [QGIS download page](https://www.qgis.org/en/site/forusers/download.html) and download the version appropriate for your OS. 
+ScrollStats was developed with GRASS 7.* and major changes were introduced in GRASS 8.*. Compatibility with GRASS 8 is one of the near term goals for future scrollstats development. 
 
-ScrollStats was developed using QGIS 3.16.6. However, unless there are major changes to the QGIS python API, processing toolbox, or the GRASS toolbox, the single [QGIS processing script](scrollstats/delineation/profileCurvature_QGIS.py) in ScrollStats should still work on any version of QGIS 3.
-
-To download a specific version of QGIS, visit the [QGIS download index page](https://download.qgis.org/downloads/) and select your desired version.   
-
+You will have to "authorize" GRASS on MacOS before running it. Otherwise, MacOS will treat it as malicious software. See the note "Authorize GRASS GIS on MacOS" below for assistance.
 
 # Using ScrollStats
 
@@ -49,7 +47,7 @@ The three notebooks above are written to process one bend at a time. However, al
 **2. Delineate Ridge Areas**
 
 - Delineate ridge areas from a DEM to create the ridge area raster. This is achieved in [DelineateRidgeAreas.ipynb](DelineateRidgeAreas.ipynb) by:
-    1. applying the profile curvature (using QGIS3) and residual topography transforms to the DEM
+    1. applying the profile curvature and residual topography transforms to the DEM
     2. applying a threshold at 0 to these transformed rasters to create binary rasters
     3. finding the union of these binary rasters 
     4. denoising the union raster 
@@ -77,3 +75,16 @@ To submit feedback, please open an issue on this repository with the appropriate
 - `documentation`: issues concerning the workflow or clarity of instructions
 - `feature`: issues requesting or proposing new features for scrollstats
 - `bug`: issues concerning errors in the code itself
+
+
+# Authorize GRASS GIS on MacOS
+
+![Authorize GRASS GIS](img/authorize_grass_gis.png)
+
+If you encounter the above error message, follow the steps below to authorize GRASS GIS on MacOS
+1. Open Finder
+2. Go to Applications
+3. Right-click your installation of GRASS
+4. Select Open
+
+This will open GRASS GIS and authorize it for further use. You can close the window now without any further configuration.

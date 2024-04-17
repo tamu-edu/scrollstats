@@ -59,27 +59,32 @@ class GrassLocator_MacOS:
 
     def get_grass_version(self) -> str:
         """Infers grass verison from the last characters of GRASS_BIN"""
-
         version_num = self.grass_bin.stem[-2:]
-
         if version_num.isnumeric():
             return version_num
         else:
             raise ValueError(f"Unable to infer grass verison from `GRASS_BIN`:{self.grass_bin}")
 
-def get_grass_resources() -> Tuple[Path]:
+
+def locate_grass_resources(gl:GrassLocator) -> Tuple[Path, Path, Path]:
+    """Function used to enforce the GrassLocator protocol"""
+    return (gl.get_grass_base(), gl.get_grass_bin(), gl.get_grass_py(), gl.get_grass_version())
+
+
+def get_grass_resources() -> Tuple[Path, Path, Path, str]:
     if sys.platform.startswith("darwin"):
         gl = GrassLocator_MacOS()
     # TODO: add support for linux here with a GrassLocator_Linux()
     else:
         raise OSError("ScrollStats can only automatically find GRASS resources on MacOS")
     
+    grass_base, grass_bin, grass_py, grass_version = locate_grass_resources(gl())
+
     # Check grass version before returning resource paths
-    grass_version = gl.get_grass_version()
     if not grass_version.startswith("7"):
         raise ValueError(f"ScrollStats is only compatible with GRASS 7.*. Detected version: {'.'.join(grass_version)}")
     
-    return(gl.get_grass_base(), gl.get_grass_bin(), gl.get_grass_py(), gl.get_grass_version())
+    return(grass_base, grass_bin, grass_py, grass_version)
 
 
 

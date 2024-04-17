@@ -22,14 +22,10 @@ for d in [INPUT_DIR, OUTPUT_DIR, GRASS_DIR]:
 # Set GRASS environment variables
 # It is assumed that the user will be using the version of GRASS shipped with QGIS
 # If the wants to specify which GRASS install to use, the path variables can be modified below
-# GRASS_BASE = Path("auto")
-# GRASS_BIN = Path("auto")
-# GRASS_PYTHON = Path("auto")
-# GRASS_VERSION = "auto"
-GRASS_BASE = Path("/Applications/GRASS-7.8.app/Contents/Resources")
-GRASS_BIN = Path("/Applications/GRASS-7.8.app/Contents/Resources/bin/grass78")
-GRASS_PYTHON = Path("/Applications/GRASS-7.8.app/Contents/Resources/etc/python")
-GRASS_VERSION = "78"
+GRASS_BASE = Path("auto")
+GRASS_BIN = Path("auto")
+GRASS_PYTHON = Path("auto")
+GRASS_VERSION = "auto"
 
 # Raster Processing Constants
 RASTER_WINDOW_SIZE = 45    # Measured in img px
@@ -45,17 +41,13 @@ SHOOT_DISTANCE = 300       # Distance that the N1 coordinate will shoot out from
 SEARCH_DISTANCE = 200      # Buffer radius used to search for an N2 coordinate on R2; measured in linear unit of dataset
 DEV_FROM_90 = 5            # Max angular deviation from 90° allowed when searching for an N2 coordinate on R2; measured in degrees
 
-
 # ============================================================================
-
-
-
 
 # Check if user has already defined GRASS paths; automatically find if not
 if (str(GRASS_BASE) == "auto" or str(GRASS_BIN) == "auto" or str(GRASS_PYTHON) == "auto" or GRASS_VERSION == "auto"):
     GRASS_BASE, GRASS_BIN, GRASS_PYTHON, GRASS_VERSION = get_grass_resources()
 
-# Set GRASS environment variables once located
+# Set GRASS environment variables once resources are located
 os.environ["GISBASE"] = str(GRASS_BASE)
 sys.path.append(str(GRASS_PYTHON)) 
 
