@@ -78,7 +78,7 @@ def get_grass_resources() -> Tuple[Path, Path, Path, str]:
     else:
         raise OSError("ScrollStats can only automatically find GRASS resources on MacOS")
     
-    grass_base, grass_bin, grass_py, grass_version = locate_grass_resources(gl())
+    grass_base, grass_bin, grass_py, grass_version = locate_grass_resources(gl)
 
     # Check grass version before returning resource paths
     if not grass_version.startswith("7"):
