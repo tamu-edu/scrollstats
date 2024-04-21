@@ -139,5 +139,5 @@ figures/
 TEST_*
 FIGURE_*
 DEV_*
-example_data/output/*.tif
+example_data/output/
 old_environment.yml
