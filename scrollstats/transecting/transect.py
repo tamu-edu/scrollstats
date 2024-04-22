@@ -261,8 +261,6 @@ class h74_transect_constructor():
 
         # Create lines for each shot
         lines = [LineString([origin, point]) for point in new_points]
-        for line in lines:
-            print(line)
 
         # Evaluate intersection of the new lines and ridges
         itx_result = [ridges.intersects(l) for l in lines]
@@ -280,7 +278,6 @@ class h74_transect_constructor():
         dist = calc_dist_along_line(self.centerline)
         idx = find_closest_idx(self.origin, self.centerline)
         self.transect.distance_along_cl = dist[idx]
-
 
     def find_closest_ridge(self, line: LineString, ridges: MultiLineString) -> LineString:
         """
@@ -464,77 +461,83 @@ class h74_transect_constructor():
         the centerline and point on the centerline, respectively.
         """
 
-        print("")
-        print(f"--- Walking Transect {self.transect.ID} ---")
+        print(f"\n--- Walking Transect {self.transect.ID} ---")
         # Walk state controls the iteration - when false, stop iterating the transect
         while self.walk_state:
+            # TODO: develop more robust error handling
+            # The following try except block will shut down the generation of a transect if an error is encountered
+            # This behavior preserves and returns the data that was generated up until the point of the error
+            try:
+                # Calculate initial shot from r1 - different shoot method when shooting from centerline vs ridge
+                if self.iteration == 0:
 
-            # Calculate initial shot from r1 - different shoot method when shooting from centerline vs ridge
-            if self.iteration == 0:
+                    # Calculate the initial shot, see if it intersects a ridge
+                    shot_point = self.shoot_point(self.p1, self.r1, self.shoot_distance)
+                    shot = LineString([self.p1, shot_point])
+                    self.transect.n1_shoot_list.append(shot_point)
+                    self.r2 = self.find_closest_ridge(shot, self.ridges)
 
-                # Calculate the initial shot, see if it intersects a ridge
-                shot_point = self.shoot_point(self.p1, self.r1, self.shoot_distance)
-                shot = LineString([self.p1, shot_point])
-                self.transect.n1_shoot_list.append(shot_point)
-                self.r2 = self.find_closest_ridge(shot, self.ridges)
-
-            else:
-                # p0 is p1 of the previous iteration, cannot exist on the first iteration (self.iteration = 0)
-                p0 = self.transect.coord_list[-2]
-
-                # Calc shot and ridge
-                shot_point = self.shoot_point_rg(p0, self.p1, self.r1, self.shoot_distance)
-                shot = LineString([self.p1, shot_point])
-                self.transect.n1_shoot_list.append(shot_point)
-                self.r2 = self.find_closest_ridge(shot, self.ridges)
-
-            # Test if the shot actually intersects a ridge. If not, terminate the transect iteration
-            if self.r2.is_empty:
-                self.walk_state = False
-                self.transect.termination_reason = "Failed ridge itx"
-                print(f"TRANSECT TERMINATED (iter={self.iteration}): n1 shot failed to intersect any more ridges.")
-
-            else:
-                # We do have r2, so we can calculate n1
-                n1 = self.src90(shot, self.r2)
-                self.transect.n1_coord_list.append(n1)
-
-                # Calculate n2 coord - point on r2 from which a line perpendicular to the tangent intersects p1
-                n2 = self.dest90(self.p1, self.r2, self.dev_from_90)
-
-                if n2.is_empty:
-                    self.walk_state = False
-                    self.transect.termination_reason = "Failed n2 creation"
-                    print(f"TRANSECT TERMINATED (iter={self.iteration}): Failed to create n2 within a deviance of {self.dev_from_90 :.1f}°")
                 else:
-                    # Append n2 coord to list now that we know it's valid
-                    self.transect.n2_coord_list.append(n2)
+                    # p0 is p1 of the previous iteration, cannot exist on the first iteration (self.iteration = 0)
+                    p0 = self.transect.coord_list[-2]
 
-                    # We do have n2, so we can calculate p2
+                    # Calc shot and ridge
+                    shot_point = self.shoot_point_rg(p0, self.p1, self.r1, self.shoot_distance)
+                    shot = LineString([self.p1, shot_point])
+                    self.transect.n1_shoot_list.append(shot_point)
+                    self.r2 = self.find_closest_ridge(shot, self.ridges)
 
-                    # Calculate p2 coord - the intersection of r2 and the vertical resultant of p1->n1 and p1->n2
-                    p2 = self.result_coord(self.p1, n1, n2, self.r2)
-                    self.transect.p2_coord_list.append(p2)
+                # Test if the shot actually intersects a ridge. If not, terminate the transect iteration
+                if self.r2.is_empty:
+                    self.walk_state = False
+                    self.transect.termination_reason = "Failed ridge itx"
+                    print(f"TRANSECT TERMINATED (iter={self.iteration}): n1 shot failed to intersect any more ridges.")
 
-                    # Print iteration results
-                    print(f"Iteration {self.iteration :02} result: [n1: {n1}, n2: {n2}, p2: {p2}]")
+                else:
+                    # We do have r2, so we can calculate n1
+                    n1 = self.src90(shot, self.r2)
+                    self.transect.n1_coord_list.append(n1)
 
+                    # Calculate n2 coord - point on r2 from which a line perpendicular to the tangent intersects p1
+                    n2 = self.dest90(self.p1, self.r2, self.dev_from_90)
 
-                    # Append coordinates, reset ridges and points
-                    self.transect.coord_list.append(p2)
-                    self.r1 = self.r2
-                    self.p1 = p2
-                    self.r2 = self.n1 = self.n2 = None
-                    # print(f"{self.transect.ID} (iter={self.iteration:03}): {LineString(self.transect.coord_list).wkt}", end="\r")
+                    if n2.is_empty:
+                        self.walk_state = False
+                        self.transect.termination_reason = "Failed n2 creation"
+                        print(f"TRANSECT TERMINATED (iter={self.iteration}): Failed to create n2 within a deviance of {self.dev_from_90 :.1f}°")
+                    else:
+                        # Append n2 coord to list now that we know it's valid
+                        self.transect.n2_coord_list.append(n2)
 
-                    # Update the iteration count for this transect
-                    self.iteration += 1
+                        # We do have n2, so we can calculate p2
 
-            # Add a break for run-away iterations
-            if self.iteration > self.max_iterations:
+                        # Calculate p2 coord - the intersection of r2 and the vertical resultant of p1->n1 and p1->n2
+                        p2 = self.result_coord(self.p1, n1, n2, self.r2)
+                        self.transect.p2_coord_list.append(p2)
+
+                        # Print iteration results
+                        print(f"Iteration {self.iteration :02} result: [n1: {n1}, n2: {n2}, p2: {p2}]")
+
+                        # Append coordinates, reset ridges and points
+                        self.transect.coord_list.append(p2)
+                        self.r1 = self.r2
+                        self.p1 = p2
+                        self.r2 = self.n1 = self.n2 = None
+                        # print(f"{self.transect.ID} (iter={self.iteration:03}): {LineString(self.transect.coord_list).wkt}", end="\r")
+
+                        # Update the iteration count for this transect
+                        self.iteration += 1
+
+                # Add a break for run-away iterations
+                if self.iteration > self.max_iterations:
+                    self.walk_state = False
+                    self.transect.termination_reason = "Iteration limit"
+                    print(f"TRANSECT TERMINATED: Iteration counter reached iteration cap (max_iter={self.max_iterations})")
+
+            except Exception as error:
                 self.walk_state = False
-                self.transect.termination_reason = "Iteration limit"
-                print(f"TRANSECT TERMINATED: Iteration counter reached iteration cap (max_iter={self.max_iterations})")
+                self.transect.termination_reason = "Unknown"
+                print(f"TRANSECT TERMINATED: The following error occured: `{type(error).__name__}: {error}`")
 
         # Replace linestring coordinates if transect does leave the centerline
         if self.iteration > 0:
@@ -596,8 +599,9 @@ class MultiTransect():
         for transect in self.transect_list:
             if transect.linestring:
                 row = (
-                transect.ID, transect.distance_along_cl, transect.linestring.length, len(transect.linestring.coords),
-                self.shoot_distance, self.search_distance, self.dev_from_90, transect.linestring)
+                    transect.ID, transect.distance_along_cl, transect.linestring.length, len(transect.linestring.coords),
+                    self.shoot_distance, self.search_distance, self.dev_from_90, transect.linestring
+                )
                 ls_list.append(row)
 
         # Assemble GeoDataFrame from transect contents
@@ -683,4 +687,3 @@ def create_transects(centerline, ridges, step, shoot_distance, search_distance, 
 
     # Return just the transects
     return transect_df
-
