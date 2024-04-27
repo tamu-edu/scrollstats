@@ -1,0 +1,22 @@
+# Adapted from examples shown in https://autobencoder.com/2020-08-24-conda-actions/
+
+name: ScrollStats Test
+
+on: [push]
+
+jobs:
+  miniconda:
+    name: ScrollStats Test 
+    runs-on: "macos-latest"
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          activate-environment: scroll
+          environment-file: environment.yml
+          auto-activate-base: false
+      - shell: bash -l {0}
+        run: |
+          conda info
+          python test.py
