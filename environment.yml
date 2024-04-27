@@ -1,4 +1,4 @@
-name: scroll5
+name: scroll
 channels:
   - conda-forge
   - defaults
@@ -9,6 +9,3 @@ dependencies:
   - matplotlib
   - scipy
   - rasterio
-  - geoalchemy2
-  - psycopg2
-  - matplotlib-scalebar
