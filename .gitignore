@@ -136,8 +136,6 @@ scrollstats/config.py
 */.DS_Store/*
 data/
 figures/
-TEST_*
 FIGURE_*
 DEV_*
 example_data/output/
-old_environment.yml
