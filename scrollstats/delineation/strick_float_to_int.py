@@ -6,10 +6,12 @@ import sys, pathlib
 import numpy as np
 import rasterio
 
-def float_to_int(a:np.array, dtype="int32"):
+
+def float_to_int(a: np.array, dtype="int32"):
     """Cast the raster array to a integer type where cell values represent elevation in cm"""
 
-    return (np.round(a, 2)*100).astype(dtype).reshape(1, *a.shape)
+    return (np.round(a, 2) * 100).astype(dtype).reshape(1, *a.shape)
+
 
 if __name__ == "__main__":
 
@@ -27,7 +29,7 @@ if __name__ == "__main__":
     ds = rasterio.open(in_path)
     profile = ds.profile
     profile["dtype"] = dtype
-    profile["count"] =1
+    profile["count"] = 1
 
     # Create int array
     a = float_to_int(ds.read(1), dtype=dtype)
