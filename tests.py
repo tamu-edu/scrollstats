@@ -11,7 +11,7 @@ RIDGES_PATH = Path("example_data/input/LBR_025_ridges_manual.geojson")
 def check_line_smoother_density():
     """Ensure that LineSmoother generates LineStrings with a sufficient point density"""
 
-    manual_ridges = gpd.read_file("data/LBR_025_ridges_manual.geojson")
+    manual_ridges = gpd.read_file(RIDGES_PATH)
 
     spacing = 1
     window = 5
