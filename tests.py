@@ -34,13 +34,13 @@ def check_line_smoother_density():
 
 
 def check_rt_transformation():
-    """Check that the residual topography raster only contains values above and below zero"""
+    """Check that the residual topography raster contains values both above and below zero"""
     rt = CalcResidualTopography(DEM_PATH, 45, OUTPUT_DIR)
     rt_path = rt.execute()
 
     with rasterio.open(rt_path) as src:
         array = src.read(1)
-        assert (any(array > 0) & any(array < 0))
+        assert ((array > 0).any() and (array < 0).any())
 
 
 def check_binary_classification():
