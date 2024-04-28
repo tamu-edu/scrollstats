@@ -1,3 +1,3 @@
-from .transect import create_transects, MultiTransect
+from .transect import create_transects
+from .transect import MultiTransect
 
-__all__ = ["create_transects", "MultiTransect"]
