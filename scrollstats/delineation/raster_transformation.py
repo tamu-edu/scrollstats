@@ -7,7 +7,6 @@ import numpy as np
 from numpy import array
 import rasterio
 from scipy.signal import convolve2d
-from parameters import GRASS_DIR, GRASS_BASE, GRASS_BIN, GRASS_VERSION
 
 
 class CalcProfileCurvature:
@@ -15,7 +14,12 @@ class CalcProfileCurvature:
         self.dem_path = dem_path
         self.window_size = window_size
         self.out_dir = out_dir
+
+        from parameters import GRASS_DIR, GRASS_BASE, GRASS_BIN, GRASS_VERSION
         self.grass_dir = GRASS_DIR
+        self.grass_base = GRASS_BASE
+        self.grass_bin = GRASS_BIN
+        self.grass_version = GRASS_VERSION
 
         # File name attributes
         self.suffix = "profc"
@@ -52,7 +56,7 @@ class CalcProfileCurvature:
 
         # Initialize the GRASS location
         # This generates all required data/directories for the location
-        startcmd = f'"{str(GRASS_BIN)}" -c {crs} -e "{location_path}"'
+        startcmd = f'"{str(self.grass_bin)}" -c {crs} -e "{location_path}"'
 
         if not location_path.exists():
             p = subprocess.Popen(
@@ -80,24 +84,24 @@ class CalcProfileCurvature:
         """
         from grass.script import setup as gsetup
 
-        if GRASS_VERSION.startswith("7"):
+        if self.grass_version.startswith("7"):
             gsetup.init(
-                gisbase=str(GRASS_BASE),
-                dbase=str(GRASS_DIR),
+                gisbase=str(self.grass_base),
+                dbase=str(self.grass_dir),
                 location=self.location_path.stem,
                 mapset="PERMANENT",
             )
 
-        elif GRASS_VERSION.startswith("8"):
+        elif self.grass_version.startswith("8"):
             gsetup.init(
-                path=str(GRASS_DIR),
+                path=str(self.grass_dir),
                 location=self.location_path.stem,
                 mapset="PERMANENT",
-                grass_path=str(GRASS_BASE),
+                grass_path=str(self.grass_base),
             )
         else:
             raise ValueError(
-                f"GRASS verison detected was not 7.* or 8.*. Detected GRASS version: {GRASS_VERSION}"
+                f"GRASS verison detected was not 7.* or 8.*. Detected GRASS version: {self.grass_version}"
             )
 
     def execute(self) -> Path:
@@ -114,7 +118,7 @@ class CalcProfileCurvature:
         # grass78: https://grass.osgeo.org/grass78/manuals/libpython/script.html#module-script.setup
         # grass83: https://grass.osgeo.org/grass83/manuals/libpython/script.html#module-script.setup
         gsetup.init(
-            str(GRASS_BASE), self.grass_dir, self.location_path.stem, "PERMANENT"
+            str(self.grass_base), self.grass_dir, self.location_path.stem, "PERMANENT"
         )
 
         # Open DEM
