@@ -17,6 +17,9 @@ CENTERLINE_PATH = Path(f"example_data/input/LBR_025_cl.geojson")
 MANUAL_RIDGE_PATH = Path(f"example_data/input/LBR_025_ridges_manual.geojson")
 OUTPUT_DIR = Path("example_data/output")
 
+if not OUTPUT_DIR.is_dir():
+    OUTPUT_DIR.mkdir(parents=True)
+
 def check_line_smoother_density():
     """Ensure that LineSmoother generates LineStrings with a sufficient point density"""
 
