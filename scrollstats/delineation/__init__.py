@@ -1,6 +1,7 @@
 from .line_smoother import LineSmoother
 
-from .raster_transformation import CalcProfileCurvature, CalcResidualTopography
+from .raster_transformation import CalcProfileCurvature
+from .raster_transformation import CalcResidualTopography
 
 from .raster_classification import RasterClipper
 from .raster_classification import BinaryClassifier
