@@ -19,4 +19,4 @@ jobs:
       - shell: bash -l {0}
         run: |
           conda info
-          python tests.py
+          pytest tests.py

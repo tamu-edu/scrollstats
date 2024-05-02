@@ -61,7 +61,7 @@ def check_binary_classification():
 
 
 
-if __name__ == "__main__":
-    check_line_smoother_density()
-    check_rt_transformation()
-    check_binary_classification()
+# if __name__ == "__main__":
+#     check_line_smoother_density()
+#     check_rt_transformation()
+#     check_binary_classification()
