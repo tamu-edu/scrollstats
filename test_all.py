@@ -20,7 +20,7 @@ OUTPUT_DIR = Path("example_data/output")
 if not OUTPUT_DIR.is_dir():
     OUTPUT_DIR.mkdir(parents=True)
 
-def check_line_smoother_density():
+def test_line_smoother_density():
     """Ensure that LineSmoother generates LineStrings with a sufficient point density"""
 
     manual_ridges = gpd.read_file(MANUAL_RIDGE_PATH)
@@ -37,7 +37,7 @@ def check_line_smoother_density():
     assert all(deviance < tolerance) 
 
 
-def check_rt_transformation():
+def test_rt_transformation():
     """Check that the residual topography raster contains values both above and below zero"""
     rt = CalcResidualTopography(DEM_PATH, 45, OUTPUT_DIR)
     rt_path = rt.execute()
@@ -47,7 +47,7 @@ def check_rt_transformation():
         assert ((array > 0).any() and (array < 0).any())
 
 
-def check_binary_classification():
+def test_binary_classification():
     """Check that the binary raster only contains 1, 0, and nan around the perimeter"""
     rt = CalcResidualTopography(DEM_PATH, 45, OUTPUT_DIR)
     rt_path = rt.execute()
