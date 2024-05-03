@@ -18,5 +18,7 @@ jobs:
           auto-activate-base: false
       - shell: bash -l {0}
         run: |
-          conda info
+          curl http://download.osgeo.org/grass/mac/grass-7.8.8-arm64.dmg --output grass-7.8.8-arm64.dmg
+          hdiutil attach grass-7.8.8-arm64.dmg
+          mv /Volumes/GRASS-GIS-7.8.8/GRASS-7.8.app /Applications/
           pytest test_all.py
