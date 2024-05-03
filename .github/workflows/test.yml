@@ -20,5 +20,5 @@ jobs:
         run: |
           curl http://download.osgeo.org/grass/mac/grass-7.8.8-arm64.dmg --output grass-7.8.8-arm64.dmg
           hdiutil attach grass-7.8.8-arm64.dmg
-          cp /Volumes/GRASS-GIS-7.8.8/GRASS-7.8.app /Applications/
+          cp -R /Volumes/GRASS-GIS-7.8.8/GRASS-7.8.app /Applications/
           pytest test_all.py
