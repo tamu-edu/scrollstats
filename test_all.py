@@ -6,7 +6,7 @@ import geopandas as gpd
 import rasterio
 from shapely.geometry import LineString
 
-from scrollstats import CalcResidualTopography, BinaryClassifier, RasterAgreementAssessor, RasterClipper, RasterDenoiser, LineSmoother, create_transects, RidgeDataExtractor, calculate_ridge_metrics
+from scrollstats import CalcResidualTopography, CalcProfileCurvature, BinaryClassifier, RasterAgreementAssessor, RasterClipper, RasterDenoiser, LineSmoother, create_transects, RidgeDataExtractor, calculate_ridge_metrics
 
 
 
@@ -36,6 +36,16 @@ def test_line_smoother_density():
         lambda x: abs((len(x.coords) / x.length) - spacing)
     )
     assert all(deviance < tolerance) 
+
+
+def test_profc_transformation():
+    """Check that the profile curvature raster contains values both above and below zero"""
+    profc = CalcProfileCurvature(DEM_PATH, 45, OUTPUT_DIR)
+    profc_path = profc.execute()
+
+    with rasterio.open(profc_path) as src:
+        array = src.read(1)
+        assert ((array > 0).any() and (array < 0).any())
 
 
 def test_rt_transformation():
