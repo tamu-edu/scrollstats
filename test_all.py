@@ -91,7 +91,8 @@ def test_raster_clipper():
     assert dem_nan_count < clip_nan_count
 
 
-# def test_raster_denoiser()
+# def test_raster_denoiser():
+
 
 def test_create_transects():
     """Test that the transects intersect all of the ridges """
