@@ -8,8 +8,52 @@ from numpy import array
 import rasterio
 from scipy.signal import convolve2d
 
+from curvature import quadratic_profile_curvature
+
 
 class CalcProfileCurvature:
+    def __init__(self, dem_path, window_size, out_dir, out_name=None) -> None:
+        self.dem_path = dem_path
+        self.window_size = window_size
+        self.out_dir = out_dir
+
+        # File name attributes
+        self.suffix = "profc"
+        if out_name:
+            self.out_name = out_name
+        else:
+            self.out_name = (
+                f"{self.dem_path.stem}_{self.suffix}{self.window_size}px.tif"
+            )
+        self.out_path = self.out_dir / self.out_name
+
+
+    def execute(self):
+        """
+        Execute profile curvature
+        """
+
+        # Open DEM
+        dem_raster = rasterio.open(self.dem_path)
+        profile = dem_raster.profile
+        dem = dem_raster.read(1)
+
+        # Mask out no-data pixels with 0s
+        no_data = dem < 0
+        dem[no_data] = 0
+
+        # Apply profile curvature transformation to array
+        profc = quadratic_profile_curvature(elevation=dem, window=self.window_size, weighting_exponent=0, constrained=False)
+        profc[no_data] = np.nan
+        
+        # Save array to disk
+        with rasterio.open(self.out_path, "w", **profile) as dst:
+            dst.write(profc, 1)
+
+        return self.out_path
+
+
+class CalcProfileCurvature_GRASS:
     def __init__(self, dem_path, window_size, out_dir, out_name=None) -> None:
         self.dem_path = dem_path
         self.window_size = window_size
@@ -175,7 +219,6 @@ class CalcProfileCurvature:
             dst.write(profc_arr_np, 1)
 
         return self.out_path
-
 
 class CalcResidualTopography:
     def __init__(self, dem_path, window_size, out_dir, out_name=None) -> None:
