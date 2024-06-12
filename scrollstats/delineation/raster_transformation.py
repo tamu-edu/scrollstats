@@ -8,7 +8,7 @@ from numpy import array
 import rasterio
 from scipy.signal import convolve2d
 
-from curvature import quadratic_profile_curvature
+from .curvature import quadratic_profile_curvature
 
 
 class CalcProfileCurvature:
