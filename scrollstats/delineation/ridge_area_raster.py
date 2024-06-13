@@ -1,0 +1,239 @@
+from typing import Callable, Sequence
+from functools import partial
+from pathlib import Path
+
+import numpy as np
+import rasterio
+from scipy import ndimage
+import geopandas as gpd
+from shapely.geometry import Polygon
+from rasterio import DatasetReader
+
+from .curvature import quadratic_profile_curvature
+
+# Define types
+Array2D = Sequence[Sequence[any]]
+ElevationArray2D = Sequence[Sequence[float]]
+BinaryArray2D = Sequence[Sequence[bool]]
+
+# Define functions as interfaces
+## `BinaryClassifierFn`s and `BinaryDenoiserFn`s use the following signature
+## They take a 2D array as input and output a binary 2D array
+## Use partial functions fron the `functools` library to create wrapper functions which contain all input arguments other than the input 2D array
+BinaryClassifierFn = Callable[[ElevationArray2D], BinaryArray2D]
+BinaryDenoiserFn = Callable[[BinaryArray2D], BinaryArray2D]
+
+
+# Define the mathematical operations to apply to the ElevationArray2D
+# Profile curvature is defined in curvature.py 
+def residual_topography(dem:ElevationArray2D, w:int) -> Array2D:
+    """
+    Using a moving window with side length `w`, subtract the focal mean from the central pixel value.
+    """
+    # Construct an array of processing windows from the input elevation array
+    kernal = np.lib.stride_tricks.sliding_window_view(dem, (w,w))
+
+    # Take the mean of each window
+    means = kernal.mean(axis=(2,3))
+
+    # `kernal` above only has the inner valid windows from the array, so `means` needs to be padded by `w`//2 all the way around
+    padded_means = np.ones(dem.shape) * np.nan
+    padded_means[w//2:-(w//2), w//2:-(w//2)] = means
+
+    rt = dem - padded_means
+
+    return rt
+
+# Classifier Functions 
+## classifier functions take an ElevationArray2D and any other args as input and return a BinaryArray2D as output
+## use partial functions to supply other args to the classifier functions so that they may be used in `classify_raster()`
+def profile_curvature_classifier(dem:ElevationArray2D, window:int, dx:float, threshold: int = 0) -> BinaryArray2D:
+    """
+    Calculates the profile curvature within a moving window with side length `window`.
+    Returns a boolean array where True pixels are greater than `threshold`
+    """
+    profc = quadratic_profile_curvature(
+          elevation=dem,
+          window=window,
+          dx=dx
+    )
+    
+    return profc > threshold 
+
+def residual_topography_classifier(dem:ElevationArray2D, window:int, threshold:int = 0) -> BinaryArray2D:
+    """
+    Calculates the profile curvature within a moving window with side length `window`.
+    Returns a boolean array where True pixels are greater than `threshold`
+    """
+    rt = residual_topography(dem, window)
+
+    return rt > threshold
+
+
+def classify_raster(dem:ElevationArray2D, classifiers:list[BinaryClassifierFn]) -> BinaryArray2D:
+    """
+    Applies a series of functions (`classifiers`) to a DEM to classify the ridge areas.
+    Each classifier takes an ElevationArray2D (2D float numpy array) as input and produces a BinaryArray2D (2D boolean numpy array) as an output.
+    Partial functions are used to reduce the number of arguments needed for each classifier function to just the DEM array.
+
+    Returns:
+    The agreement (union) of all classifiers as a BinaryArray2D with the same shape as `dem` where True values represent ridge pixels.
+    """
+    out_array = np.ones(dem.shape).astype(bool)
+    for func in classifiers:
+        transform = func(dem)
+        out_array = transform & out_array
+    return out_array
+
+
+# Denoiser functions
+## denoiser functions take a BinaryArray2D and any other args as input and return a BinaryArray2D as output
+## use partial functions to supply other args to the denoiser functions so that they may be used in `denoise_raster()`
+def binary_flipper(binary_array:BinaryArray2D, func:Callable) -> BinaryArray2D:
+
+    out_array = func(binary_array)
+    out_array = ~func(~out_array)
+
+    return out_array
+
+def remove_small_feats(img:BinaryArray2D, size:int) -> BinaryArray2D:
+    """
+    Removes any patch/feature in a binary image that is below a certian pixel count
+
+    Parameters
+    ----------
+    img : binary ndarray
+    size : (int), minimum patch size needed to be kept in the image
+
+    Returns
+    -------
+    out : binary ndarray
+    """
+    # Label all unique features in binary image
+    label, _ = ndimage.label(img)
+
+    # Get list of unique feat ids as well as pixel counts
+    feats, counts = np.unique(label, return_counts=True)
+
+    # list of feat ids that are too small
+    ids = feats[counts < size]
+
+    # Wipe out patches with id that is in `ids` list
+    for id in ids:
+        label[label == id] = 0
+
+    # Convert all labels to 1
+    label[label != 0] = 1
+
+    return label.astype(bool)
+
+
+def denoise_raster(binary_array:BinaryArray2D, denoisers:list[BinaryDenoiserFn]) -> BinaryArray2D:
+    """
+    Applies a series of functions (`denoisers`) to a BinaryArray2D (2D boolean numpy array) to refine the ridge area classification.
+    Each denoiser is applied in succession, so the result of the first is used as input for the second and so on.
+    Each denoiser takes as input and produces as output a BinaryArray2D.
+    Partial functions are used to reduce the number of arguments needed for each denoiser function to just the input `binary_array`.
+
+    Returns:
+    The result of the series of denoising function as a BinaryArray2D with the same shape as the input `binary_array`
+    """
+    for func in denoisers:
+        binary_array = func(binary_array)
+    return binary_array
+
+
+
+def create_ridge_area_raster(dem_ds:DatasetReader, geometry:Polygon) -> tuple[Array2D, ElevationArray2D, dict]:
+
+    # with rasterio.open(dem_path) as src: 
+
+    dem = dem_ds.read(1)
+
+    # Set nodata values to absurd real number value to avoid mathematical errors with infinite values (np.nan)
+    no_data_mask = dem == dem_ds.nodata
+    dem[no_data_mask] = -99999
+    
+    # Collect classifier functions
+    classifier_funcs = [
+        partial(profile_curvature_classifier, window=45, dx=1),
+        partial(residual_topography_classifier, window=45)
+    ]
+    # Classify the raster 
+    binary_array = classify_raster(dem=dem, classifiers=classifier_funcs)
+
+    # Create mask to crop the DEM and Binary Raster
+    # For cropped_mask, True is area outside of geometry
+    cropped_mask, transform, window= rasterio.mask.raster_geometry_mask(
+        dataset=dem_ds,
+        shapes=[geometry],
+        crop=True
+    )
+    cropped_meta = dem_ds.meta
+    cropped_meta.update(
+        {
+            "driver": "GTiff",
+            "height": cropped_mask.shape[0],
+            "width": cropped_mask.shape[1],
+            "transform": transform,
+            "nodata": np.nan,
+        }
+    )
+
+    # Crop DEM 
+    dem_crop = dem[window.toslices()]
+    dem_crop[cropped_mask] = cropped_meta["nodata"]
+
+    # Crop binary array
+    binary_array_crop = binary_array[window.toslices()]
+    binary_array_crop[cropped_mask] = False
+
+    # Collect denoising functions 
+    remove_small_feats_partial = partial(remove_small_feats, size=500)
+    remove_small_feats_partial_flip = partial(binary_flipper, func=remove_small_feats_partial)
+
+    denoiser_funcs = [
+        ndimage.binary_closing, 
+        ndimage.binary_opening, 
+        remove_small_feats_partial_flip
+    ]
+
+    # Denoise the binary array
+    binary_array_crop_denoise = denoise_raster(binary_array=binary_array_crop, denoisers=denoiser_funcs)
+
+    # Cast to float so that np.nan can be assigned as nodata value 
+    binary_array_crop_denoise = binary_array_crop_denoise.astype(float)
+    binary_array_crop_denoise[cropped_mask] = cropped_meta["nodata"]
+
+    return binary_array_crop_denoise, dem_crop, cropped_meta
+
+
+def create_ridge_area_raster_fs(dem_path:Path, geometry_path:Path, out_dir:Path, bend_id_dict:dict[str:str] = None):
+    """File system interface for create_ridge_area_raster()"""
+
+    gdf = gpd.read_file(geometry_path)
+
+    if bend_id_dict:
+        col = list(bend_id_dict.keys())[0]
+        bend_id = bend_id_dict[col]
+        geometry = gdf.set_index(col).loc[bend_id, "geometry"]
+    else:
+        geometry = gdf.loc[0, "geometry"]
+    
+    with rasterio.open(dem_path) as src:
+        ridge_area_raster, cropped_dem, cropped_meta = create_ridge_area_raster(
+            dem_ds = src,
+            geometry=geometry
+        )
+
+        # Write arrays to disk
+        dem_out_path = out_dir / f"{dem_path.stem}_clip.tif"
+        binary_out_path = out_dir / f"{dem_path.stem}_ridge_area_raster.tif"
+
+        with rasterio.open(dem_out_path, "w", **cropped_meta) as dst:
+            dst.write(cropped_dem, 1)
+            print(f"Wrote clipped DEM to disk: {dem_out_path}")
+
+        with rasterio.open(binary_out_path, "w", **cropped_meta) as dst:
+            dst.write(ridge_area_raster, 1)
+            print(f"Wrote ridge area raster to disk: {binary_out_path}")

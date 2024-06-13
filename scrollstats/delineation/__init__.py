@@ -1,9 +1,4 @@
 from .line_smoother import LineSmoother
 
-from .raster_transformation import CalcProfileCurvature
-from .raster_transformation import CalcResidualTopography
-
-from .raster_classification import RasterClipper
-from .raster_classification import BinaryClassifier
-from .raster_classification import RasterAgreementAssessor
-from .raster_classification import RasterDenoiser
+from .ridge_area_raster import create_ridge_area_raster
+from .ridge_area_raster import create_ridge_area_raster_fs
