@@ -17,10 +17,6 @@ from .transecting import create_transects
 from .transecting import MultiTransect
 
 from .delineation import LineSmoother
-from .delineation import CalcProfileCurvature
-from .delineation import CalcResidualTopography
-from .delineation import RasterClipper
-from .delineation import BinaryClassifier
-from .delineation import RasterAgreementAssessor
-from .delineation import RasterDenoiser
+from .delineation import create_ridge_area_raster
+from .delineation import create_ridge_area_raster_fs
 
