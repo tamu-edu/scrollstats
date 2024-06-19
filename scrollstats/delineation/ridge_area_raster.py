@@ -1,4 +1,4 @@
-from typing import Callable, Sequence
+from typing import Callable, Tuple
 from functools import partial
 from pathlib import Path
 
@@ -12,9 +12,9 @@ from rasterio import DatasetReader
 from .curvature import quadratic_profile_curvature
 
 # Define types
-Array2D = Sequence[Sequence[any]]
-ElevationArray2D = Sequence[Sequence[float]]
-BinaryArray2D = Sequence[Sequence[bool]]
+Array2D = np.ndarray[Tuple[int, int], np.dtype[any]]
+ElevationArray2D = np.ndarray[Tuple[int, int], np.dtype[float]]
+BinaryArray2D = np.ndarray[Tuple[int, int], np.dtype[bool]]
 
 # Define functions as interfaces
 ## `BinaryClassifierFn`s and `BinaryDenoiserFn`s use the following signature
@@ -36,7 +36,7 @@ def residual_topography(dem:ElevationArray2D, w:int) -> Array2D:
     # Take the mean of each window
     means = kernal.mean(axis=(2,3))
 
-    # `kernal` above only has the inner valid windows from the array, so `means` needs to be padded by `w`//2 all the way around
+    # `kernal` above only has the valid inner windows from the array, so `means` needs to be padded by w//2 all the way around
     padded_means = np.ones(dem.shape) * np.nan
     padded_means[w//2:-(w//2), w//2:-(w//2)] = means
 
@@ -143,10 +143,63 @@ def denoise_raster(binary_array:BinaryArray2D, denoisers:list[BinaryDenoiserFn])
     return binary_array
 
 
+def clip_raster(ds:DatasetReader, geometry:Polygon, array=None, no_data=None):
 
-def create_ridge_area_raster(dem_ds:DatasetReader, geometry:Polygon) -> tuple[Array2D, ElevationArray2D, dict]:
+    # Replace optional values
+    if isinstance(array, np.ndarray):
+        array_copy = array.copy()
+    else:
+        array_copy = ds.read(1)
+    
+    if not no_data:
+        no_data = ds.nodata
 
-    # with rasterio.open(dem_path) as src: 
+    # For cropped_mask, True is area outside of geometry
+    cropped_mask, transform, window= rasterio.mask.raster_geometry_mask(
+        dataset=ds,
+        shapes=[geometry],
+        crop=True
+    )
+
+    # Update size, transform, and nodata value for output raster
+    cropped_meta = ds.meta
+    cropped_meta.update(
+        {
+            "driver": "GTiff",
+            "height": cropped_mask.shape[0],
+            "width": cropped_mask.shape[1],
+            "transform": transform,
+            "nodata": no_data,
+        }
+    )
+
+    # Crop array
+    array_crop = array_copy[window.toslices()]
+    
+    # Fill no_data values for output array
+    # Only 0s are falsy, so any other number (including np.nan) will evaluate to True in boolean arrays.
+    # So, we need to explicitly set the fill value as False for boolean arrays.
+    fill_value = no_data
+    if array_copy.dtype == bool:
+        fill_value = False
+
+    array_crop[cropped_mask] = fill_value
+
+    return array_crop, cropped_mask, cropped_meta
+
+
+def create_ridge_area_raster(dem_ds:DatasetReader, geometry:Polygon, **kwargs) -> tuple[Array2D, ElevationArray2D, dict]:
+    """
+    Main processing function to create the ridge area raster.
+
+    """
+
+    # Get kwargs
+    window = kwargs.get("window")
+    small_feats_size = kwargs.get("small_feats_size")
+    dx = kwargs.get("dx")
+    no_data = kwargs.get("no_data")
+
 
     dem = dem_ds.read(1)
 
@@ -156,40 +209,18 @@ def create_ridge_area_raster(dem_ds:DatasetReader, geometry:Polygon) -> tuple[Ar
     
     # Collect classifier functions
     classifier_funcs = [
-        partial(profile_curvature_classifier, window=45, dx=1),
-        partial(residual_topography_classifier, window=45)
+        partial(profile_curvature_classifier, window=window, dx=dx),
+        partial(residual_topography_classifier, window=window)
     ]
     # Classify the raster 
     binary_array = classify_raster(dem=dem, classifiers=classifier_funcs)
 
-    # Create mask to crop the DEM and Binary Raster
-    # For cropped_mask, True is area outside of geometry
-    cropped_mask, transform, window= rasterio.mask.raster_geometry_mask(
-        dataset=dem_ds,
-        shapes=[geometry],
-        crop=True
-    )
-    cropped_meta = dem_ds.meta
-    cropped_meta.update(
-        {
-            "driver": "GTiff",
-            "height": cropped_mask.shape[0],
-            "width": cropped_mask.shape[1],
-            "transform": transform,
-            "nodata": np.nan,
-        }
-    )
-
-    # Crop DEM 
-    dem_crop = dem[window.toslices()]
-    dem_crop[cropped_mask] = cropped_meta["nodata"]
-
-    # Crop binary array
-    binary_array_crop = binary_array[window.toslices()]
-    binary_array_crop[cropped_mask] = False
+    # Clip the DEM and Binary array to the bounds of the bend
+    dem_clip, _dem_mask, _dem_meta = clip_raster(dem_ds, geometry, no_data=no_data)
+    binary_clip, binary_mask, binary_meta = clip_raster(dem_ds, geometry, array=binary_array, no_data=no_data)
 
     # Collect denoising functions 
-    remove_small_feats_partial = partial(remove_small_feats, size=500)
+    remove_small_feats_partial = partial(remove_small_feats, size=small_feats_size)
     remove_small_feats_partial_flip = partial(binary_flipper, func=remove_small_feats_partial)
 
     denoiser_funcs = [
@@ -199,17 +230,17 @@ def create_ridge_area_raster(dem_ds:DatasetReader, geometry:Polygon) -> tuple[Ar
     ]
 
     # Denoise the binary array
-    binary_array_crop_denoise = denoise_raster(binary_array=binary_array_crop, denoisers=denoiser_funcs)
+    binary_clip_denoise = denoise_raster(binary_array=binary_clip, denoisers=denoiser_funcs)
 
-    # Cast to float so that np.nan can be assigned as nodata value 
-    binary_array_crop_denoise = binary_array_crop_denoise.astype(float)
-    binary_array_crop_denoise[cropped_mask] = cropped_meta["nodata"]
+    # Cast to float so that np.nan (or other floating point value) can be assigned as nodata value 
+    binary_clip_denoise = binary_clip_denoise.astype(float)
+    binary_clip_denoise[binary_mask] = binary_meta["nodata"]
 
-    return binary_array_crop_denoise, dem_crop, cropped_meta
+    return binary_clip_denoise, dem_clip, binary_meta
 
 
-def create_ridge_area_raster_fs(dem_path:Path, geometry_path:Path, out_dir:Path, bend_id_dict:dict[str:str] = None):
-    """File system interface for create_ridge_area_raster()"""
+def create_ridge_area_raster_fs(dem_path:Path, geometry_path:Path, out_dir:Path, bend_id_dict:dict[str:str] = None, **kwargs):
+    """File system interface for create_ridge_area_raster"""
 
     gdf = gpd.read_file(geometry_path)
 
@@ -223,17 +254,20 @@ def create_ridge_area_raster_fs(dem_path:Path, geometry_path:Path, out_dir:Path,
     with rasterio.open(dem_path) as src:
         ridge_area_raster, cropped_dem, cropped_meta = create_ridge_area_raster(
             dem_ds = src,
-            geometry=geometry
+            geometry=geometry,
+            **kwargs
         )
 
         # Write arrays to disk
-        dem_out_path = out_dir / f"{dem_path.stem}_clip.tif"
         binary_out_path = out_dir / f"{dem_path.stem}_ridge_area_raster.tif"
+        dem_out_path = out_dir / f"{dem_path.stem}_clip.tif"
+
+        with rasterio.open(binary_out_path, "w", **cropped_meta) as dst:
+            dst.write(ridge_area_raster, 1)
+            print(f"Wrote ridge area raster to disk: {binary_out_path}")
 
         with rasterio.open(dem_out_path, "w", **cropped_meta) as dst:
             dst.write(cropped_dem, 1)
             print(f"Wrote clipped DEM to disk: {dem_out_path}")
 
-        with rasterio.open(binary_out_path, "w", **cropped_meta) as dst:
-            dst.write(ridge_area_raster, 1)
-            print(f"Wrote ridge area raster to disk: {binary_out_path}")
+    return binary_out_path, dem_out_path

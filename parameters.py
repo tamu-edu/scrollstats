@@ -1,17 +1,4 @@
-# Contains global variables such as file directories and other constants
-
-from pathlib import Path
-
-# Data directories
-# Set DATA_DIR to the directory where you would like all ScrollStats data to be stored.
-DATA_DIR = Path("data")
-INPUT_DIR = DATA_DIR / "input"
-OUTPUT_DIR = DATA_DIR / "output"
-
-# Create data directories if they dont exist
-for d in [DATA_DIR, INPUT_DIR, OUTPUT_DIR]:
-    if not d.exists():
-        d.mkdir(parents=True)
+# Contains global variables for convenient batch processing
 
 # Raster Processing Constants
 RASTER_WINDOW_SIZE = 45  # Measured in img px

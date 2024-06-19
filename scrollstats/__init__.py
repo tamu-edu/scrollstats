@@ -12,10 +12,3 @@ from .ridge_metrics import BendDataExtractor
 from .ridge_metrics import calc_ridge_amps
 from .ridge_metrics import map_amp_values
 from .ridge_metrics import calculate_ridge_metrics
-
-# from .utils import densify_line
-# from .utils import transform_coords
-# from .utils import calc_dist
-# from .utils import meanfilt
-# from .utils import calc_cubic_spline
-# from .utils import explode
