@@ -6,8 +6,19 @@ import geopandas as gpd
 import rasterio
 from shapely.geometry import LineString
 
-from scrollstats import CalcResidualTopography, CalcProfileCurvature, BinaryClassifier, RasterAgreementAssessor, RasterClipper, RasterDenoiser, LineSmoother, create_transects, RidgeDataExtractor, calculate_ridge_metrics
+from scrollstats import LineSmoother, create_transects, RidgeDataExtractor, TransectDataExtractor, calculate_ridge_metrics
 
+from scrollstats.delineation.ridge_area_raster import (
+    residual_topography,
+    quadratic_profile_curvature,
+    clip_raster,
+    remove_small_feats,
+    binary_flipper 
+) 
+from scrollstats.delineation import (
+    create_ridge_area_raster,
+    create_ridge_area_raster_fs
+)
 
 
 # Data Paths
@@ -16,10 +27,44 @@ BEND_PATH = Path(f"example_data/input/LBR_025_bend.geojson")
 PACKET_PATH = Path(f"example_data/input/LBR_025_packets.geojson")
 CENTERLINE_PATH = Path(f"example_data/input/LBR_025_cl.geojson")
 MANUAL_RIDGE_PATH = Path(f"example_data/input/LBR_025_ridges_manual.geojson")
-OUTPUT_DIR = Path("example_data/output")
 
-if not OUTPUT_DIR.is_dir():
-    OUTPUT_DIR.mkdir(parents=True)
+
+def generate_waves(wavelength:int=30, amp:int=1, vert:int=5, signal_length:int = 60) -> np.ndarray:
+    """
+    Generate a 2D cosine wave with known properties for testing
+    """
+
+    p = 2*np.pi / wavelength
+    x = np.arange(signal_length)
+    
+    dem_1d = amp*np.cos(p*x) + vert
+
+    dem_2d = np.multiply(np.ones((signal_length, signal_length)), dem_1d)
+    
+    return dem_2d
+
+def generate_ridges(y:int=30, rep:int=5, crs:str="EPSG:32139"):
+    """Generate mock ridge lines with known spacing for testing """
+
+    r = {
+        "ridge_id": [f"r_{i:03d}" for i in range(0, rep-1)],
+        "bend_id": ["LBR_999" for i in range(0, rep-1)],
+        "deposit_year": [np.nan for i in range(0, rep-1)],
+        "geometry": [LineString([[i, 0], [i, y*5]]) for i in range(y, y*5, y)]
+    }
+    return gpd.GeoDataFrame(data=r, geometry="geometry", crs=crs)
+
+
+def generate_transects(y:int=30, rep:int=5, crs:str="EPSG:32139"):
+    """Generate mock transects with known spacing for testing """
+
+    t = {
+        "transect_id":[f"t_{i:03d}" for i in range(0, rep-1)],
+        "bend_id" :["LBR_999" for i in range(0, rep-1)],
+        "geometry" : [LineString([[j, i] for j in range(0, y*rep, y)]) for i in range(y, y*rep, y)]
+    }
+    return gpd.GeoDataFrame(data=t, geometry="geometry", crs=crs)
+
 
 def test_line_smoother_density():
     """Ensure that LineSmoother generates LineStrings with a sufficient point density"""
@@ -38,60 +83,69 @@ def test_line_smoother_density():
     assert all(deviance < tolerance) 
 
 
-def test_profc_transformation():
-    """Check that the profile curvature raster contains values both above and below zero"""
-    profc = CalcProfileCurvature(DEM_PATH, 45, OUTPUT_DIR)
-    profc_path = profc.execute()
-
-    with rasterio.open(profc_path) as src:
-        array = src.read(1)
-        assert ((array > 0).any() and (array < 0).any())
-
-
-def test_rt_transformation():
-    """Check that the residual topography raster contains values both above and below zero"""
-    rt = CalcResidualTopography(DEM_PATH, 45, OUTPUT_DIR)
-    rt_path = rt.execute()
-
-    with rasterio.open(rt_path) as src:
-        array = src.read(1)
-        assert ((array > 0).any() and (array < 0).any())
-
-
-def test_binary_classification():
-    """Check that the binary raster only contains 1, 0, and nan around the perimeter"""
-    rt = CalcResidualTopography(DEM_PATH, 45, OUTPUT_DIR)
-    rt_path = rt.execute()
-
-    binclass = BinaryClassifier(rt_path, 0, OUTPUT_DIR)
-    binclass_path = binclass.execute()
-
-    with rasterio.open(binclass_path) as src:
-        array = src.read(1)
-        assert all(np.unique(array[~np.isnan(array)]) == np.array([0., 1.]))
-
-# def test_raster_agreement()
-
-def test_raster_clipper():
-    """Test that the clipped raster has more nans after the clip"""
-    geom = gpd.read_file(BEND_PATH)["geometry"][0]
-
-    rc = RasterClipper(DEM_PATH, geom, OUTPUT_DIR)
-    clip_path = rc.execute()
-
-    with rasterio.open(DEM_PATH) as src:
-        dem = src.read(1)
-        dem[dem < 1e-10] = np.nan
-        dem_nan_count = np.isnan(dem).sum()
+def test_quadratic_profile_curvature():
+    """Check that the profile curvature transformation accurately identifies ridge areas"""
+    # Generate 2D cosine waves with known properties
+    wavelength = 30
+    amp = 1
+    vert = 5  # vertical adjustment for wave from the x-axis (inflection point)
+    dem = generate_waves(wavelength=wavelength, 
+                         amp=amp,
+                         vert=vert,
+                         signal_length=wavelength*2)
     
-    with rasterio.open(clip_path) as src:
-        clip = src.read(1)
-        clip_nan_count = np.isnan(clip).sum()
+    # Apply profile curvature to assess landscape convexity
+    profc = quadratic_profile_curvature(dem, window=int(wavelength/2))
 
-    assert dem_nan_count < clip_nan_count
+    # Select areas in the generated waves known to be ridges
+    known_ridge_area = dem > vert
+    known_swale_area = dem < vert
+
+    # Assess if the known ridge/swale areas are +/-
+    accurate_ridges = profc[known_ridge_area] > 0
+    accurate_swales = profc[known_swale_area] < 0
+
+    assert np.sum(accurate_ridges) > 0.9*accurate_ridges.size
+    assert np.sum(accurate_swales) > 0.9*accurate_swales.size
 
 
-# def test_raster_denoiser():
+def test_residual_topography():
+    """Check that the residual topography transformation accurately identifies ridge areas"""
+    # Generate 2D cosine waves with known properties
+    wavelength = 30
+    amp = 1
+    vert = 5  # vertical adjustment for wave from the x-axis (inflection point)
+    dem = generate_waves(wavelength=wavelength, 
+                         amp=amp,
+                         vert=vert,
+                         signal_length=wavelength*2)
+    
+    # Apply residual topography to assess landscape prominence
+    rt = residual_topography(dem, w=int(wavelength/2))
+    rt_not_nan = ~np.isnan(rt)
+
+    # Select areas in the generated waves known to be ridges
+    known_ridge_area = dem > vert
+    known_swale_area = dem < vert
+
+    # Assess if the known ridge/swale areas are +/- (excluding nan areas)
+    accurate_ridges = rt[known_ridge_area & rt_not_nan] > 0
+    accurate_swales = rt[known_swale_area & rt_not_nan] < 0
+
+    assert np.sum(accurate_ridges) > 0.9*accurate_ridges.size
+    assert np.sum(accurate_swales) > 0.9*accurate_swales.size
+
+
+def test_clip_raster():
+    """Test if the array window shrunk as a result of the clip and if all values outside to the geometry are cast to np.nan """
+    dem_ds = rasterio.open(DEM_PATH)
+    gdf = gpd.read_file(BEND_PATH)
+    geom = gdf.loc[0, "geometry"]
+
+    array_clip, clipped_mask, clipped_meta = clip_raster(dem_ds, geom, no_data=np.nan)
+
+    assert clipped_meta["width"] * clipped_meta["height"] < dem_ds.width * dem_ds.height
+    assert np.all(np.isnan(array_clip[clipped_mask]))
 
 
 def test_create_transects():
@@ -113,25 +167,23 @@ def test_create_transects():
 
 
 def test_ridge_data_extractor():
-    """Test that the ridge data extractor calculates expected ridge width, amplitude, and spacing"""
+    """Test that the RidgeDataExtractor calculates expected ridge width, amplitude, and spacing"""
     
-    # Assume regularly spaced ridges with a 30m peak-to-peak distance
+    # Generate a 1D DEM signal with 30m peak-to-peak distance (wavelength)
     p2p = 30
-    transect_substring = LineString([[0, 50], [0+p2p, 50], [0+2*p2p, 50]])
-    position = 1
+    vert = 5
+    amp = 1
+    signal_length = p2p*2
+    dem = generate_waves(wavelength=p2p, vert=vert, signal_length=signal_length)[0]
 
-    # Model the DEM profile along the transect as a cosine wave 
-    # Cosine wave is 60m in length with a wavelength of 30m  
-    p = 2*np.pi / p2p
-    x = np.arange(60)
-    a = 1
-    e = 5
-    dem = a*np.cos(p*x) + e
+    # Create a straight transect at position 1
+    transect_substring = LineString([[0*p2p, 50], [1*p2p, 50], [2*p2p, 50]])
+    position = 1
 
     # Create a binary wave from the DEM where swales are 0 and ridges are 1
     bw = dem.copy()
-    bw[bw <= e] = 0
-    bw[bw > e] = 1
+    bw[bw <= vert] = 0
+    bw[bw > vert] = 1
 
     # Mock a ridge line that intersects the middle vertex of the transect substring
     ridge_vals = {
@@ -145,9 +197,43 @@ def test_ridge_data_extractor():
     # Calculate the three core metrics (ridge amplitude, width, and spacing) at the transect-ridge intersection
     rde_data = RidgeDataExtractor(transect_substring, position, ridge, dem, bw).dump_data()
 
-    assert rde_data["ridge_amp"] == a*2
+    assert rde_data["ridge_amp"] == amp*2
     assert rde_data["ridge_width"] == p2p / 2
     assert rde_data["pre_mig_dist"] == p2p
 
 
-# def test_calculate_ridge_metrics():
+def test_transect_data_extractor():
+    """
+    Test that the TransectDataExtractor calculates expected ridge width, amplitude, and spacing for an entire transect
+    
+    Mock ridges and transects are perpendicular to each other on a 30m grid.
+    Mock DEM is a simple cosine wave with a 30m wavelength.
+    """
+
+    y = 30 # wavelength of cosine wave
+    amp = 1 # amplitude of cosine wave
+    vert = 5  # vertical adjustment of the cosine wave from x axis
+    rep = 5  # repetitions of the cosine wave
+
+    # Mock DEM
+    dem = generate_waves(y, amp, 5, y*rep)
+
+    # Mock ridges
+    ridges = generate_ridges(y, rep)
+
+    # Mock transects
+    transects = generate_transects(y, rep)
+
+    # Calculate ridge metrics for the first transect
+    tde = TransectDataExtractor(
+        **transects.loc[0, ["transect_id", "geometry"]], 
+        dem_signal=dem[0], 
+        bin_signal=(dem[0] > vert).astype(int),
+        ridges=ridges
+    )
+
+    transect_metrics = tde.calc_ridge_metrics()
+
+    assert all(transect_metrics["ridge_amp"] == amp*2)
+    assert all(transect_metrics["ridge_width"] == y / 2)
+    assert all(transect_metrics["pre_mig_dist"] == y)
