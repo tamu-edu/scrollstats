@@ -4,6 +4,7 @@ from pathlib import Path
 
 import numpy as np
 import rasterio
+import rasterio.mask
 from scipy import ndimage
 import geopandas as gpd
 from shapely.geometry import Polygon
@@ -155,26 +156,26 @@ def clip_raster(ds:DatasetReader, geometry:Polygon, array=None, no_data=None):
         no_data = ds.nodata
 
     # For cropped_mask, True is area outside of geometry
-    cropped_mask, transform, window= rasterio.mask.raster_geometry_mask(
+    clipped_mask, transform, window= rasterio.mask.raster_geometry_mask(
         dataset=ds,
         shapes=[geometry],
         crop=True
     )
 
     # Update size, transform, and nodata value for output raster
-    cropped_meta = ds.meta
-    cropped_meta.update(
+    clipped_meta = ds.meta
+    clipped_meta.update(
         {
             "driver": "GTiff",
-            "height": cropped_mask.shape[0],
-            "width": cropped_mask.shape[1],
+            "height": clipped_mask.shape[0],
+            "width": clipped_mask.shape[1],
             "transform": transform,
             "nodata": no_data,
         }
     )
 
     # Crop array
-    array_crop = array_copy[window.toslices()]
+    array_clip = array_copy[window.toslices()]
     
     # Fill no_data values for output array
     # Only 0s are falsy, so any other number (including np.nan) will evaluate to True in boolean arrays.
@@ -183,9 +184,9 @@ def clip_raster(ds:DatasetReader, geometry:Polygon, array=None, no_data=None):
     if array_copy.dtype == bool:
         fill_value = False
 
-    array_crop[cropped_mask] = fill_value
+    array_clip[clipped_mask] = fill_value
 
-    return array_crop, cropped_mask, cropped_meta
+    return array_clip, clipped_mask, clipped_meta
 
 
 def create_ridge_area_raster(dem_ds:DatasetReader, geometry:Polygon, **kwargs) -> tuple[Array2D, ElevationArray2D, dict]:
