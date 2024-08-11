@@ -1,12 +1,13 @@
-# Testing suite for ScrollStats
+# Testing for ScrollStats
 
 from pathlib import Path
+import tempfile
 import numpy as np
 import geopandas as gpd
 import rasterio
 from shapely.geometry import LineString
 
-from scrollstats import LineSmoother, create_transects, RidgeDataExtractor, TransectDataExtractor, calculate_ridge_metrics
+from scrollstats import LineSmoother, create_transects, RidgeDataExtractor, TransectDataExtractor, BendDataExtractor, calculate_ridge_metrics
 
 from scrollstats.delineation.ridge_area_raster import (
     residual_topography,
@@ -237,3 +238,54 @@ def test_transect_data_extractor():
     assert all(transect_metrics["ridge_amp"] == amp*2)
     assert all(transect_metrics["ridge_width"] == y / 2)
     assert all(transect_metrics["pre_mig_dist"] == y)
+
+
+def test_bend_data_extractor():
+    """
+    Test that the BendDataExtractor calculates expected ridge width, amplitude, and spacing for an entire bend.
+    
+    Mock ridges and transects are perpendicular to each other on a 30m grid.
+    Mock DEM is a simple cosine wave with a 30m wavelength.
+    Mock Binary Raster is a binary classification of DEM where 1s are values greater than a threshold and 0s are less than.
+    Both DEM and Binary Raster are converted into temporary rasterio Dataset objects as required by BendDataExtractor
+    """
+        
+    y = 30 # wavelength of cosine wave
+    amp = 1 # amplitude of cosine wave
+    vert = 5  # vertical adjustment of the cosine wave from x axis
+    rep = 5  # repetitions of the cosine wave
+
+    # Mock DEM and Binary Raster
+    dem = generate_waves(y, amp, vert, y*rep)
+    bin_arr = (dem > vert).astype(int)
+
+    # Write DEM to disk
+    with tempfile.NamedTemporaryFile(suffix=".tiff") as fp:
+        with rasterio.open(fp.name, "w", driver="GTiff", 
+                        width=dem.shape[1], height=dem.shape[0], count=1, 
+                        dtype=dem.dtype, crs="EPSG:32139") as dst:
+            dst.write(dem, 1)
+
+            dem_ras = rasterio.open(fp.name)
+
+    # Write Binary Raster to disk
+    with tempfile.NamedTemporaryFile(suffix=".tiff") as fp:
+        with rasterio.open(fp.name, "w", driver="GTiff", 
+                        width=bin_arr.shape[1], height=bin_arr.shape[0], count=1, 
+                        dtype=bin_arr.dtype, crs="EPSG:32139") as dst:
+            dst.write(bin_arr, 1)
+        
+            bin_ras = rasterio.open(fp.name)
+
+    # Mock ridges
+    ridges = generate_ridges(y, rep)
+
+    # Mock transects
+    transects = generate_transects(y, rep)
+
+    # Create BendDataExtractor to calculate metrics
+    bde = BendDataExtractor(transects, bin_ras, dem_ras, ridges)
+
+    assert all(bde.itx_metrics["ridge_amp"] == amp*2)
+    assert all(bde.itx_metrics["ridge_width"] == y / 2)
+    assert all(bde.itx_metrics["pre_mig_dist"] == y)
