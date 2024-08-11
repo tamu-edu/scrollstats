@@ -86,96 +86,6 @@ def transform_coords(coord_array, bin_raster):
     return np.round(t_coords).astype(int)  # round coords for indexing
 
 
-class SignalScrubber:
-    """Responsible for cleaning a given binary signal"""
-
-    def __init__(self, signal, th=3) -> None:
-        self.signal = np.array(signal).astype(float)
-        self.th = th
-        self.scrubbed_signal = self.clean_signal()
-
-        pass
-
-    def remove_leading_ones(self, sig):
-        """
-        This function replaces all 1s that preceed a 0 in the input signal with a NaN.
-
-        Run this function across the signal in both directions like so
-        `clean_sig = remove_ones(remove_ones(sig)[::-1])[::-1]`
-        """
-
-        # Create a watch variable;
-        make_nan = 1
-
-        for i, v in enumerate(sig):
-            if make_nan == 1:
-                if v != 0:
-                    # Define the new value
-                    sig[i] = np.nan
-
-                # Once a zero is encountered, just return the same value and turn off the watch variable
-                if v == 0:
-                    sig[i] = v
-                    make_nan = 0
-            # Once make_nan==0, then stop altering values
-            else:
-                pass
-        return sig
-
-    def flip_bin(self):
-        """
-        flips binary values
-        """
-
-        # Get locs
-        one_loc = self.signal == 1
-        z_loc = self.signal == 0
-
-        # Flip array values
-        self.signal[one_loc] = 0
-        self.signal[z_loc] = 1
-
-    def remove_small_feats(self):
-        """
-        Removes features smaller than the threshold `th` in the given signal array.
-        """
-
-        # Label all unique features
-        labels, numfeats = ndimage.label(self.signal)
-
-        # Find their counts (widths)
-        val, count = np.unique(labels, return_counts=True)
-
-        # Find all labels corresponding to small features
-        small_ridge_vals = val[count <= self.th]
-
-        # Redefine small features to 0s
-        for i in small_ridge_vals:
-            self.signal[labels == i] = 0
-
-    def clean_signal(self):
-        """
-        Apply several functions to the raw transect signal to remove small or incomplete
-        features from the signal.
-        """
-
-        # # Remove partial ridges
-        # self.signal = self.remove_leading_ones(self.signal)
-        # self.signal = self.remove_leading_ones(self.signal[::-1])[::-1]
-
-        # # Remove small ridges
-        # self.remove_small_feats()
-
-        # # Flip values and repeat to eliminate small swales
-        # self.flip_bin()
-        # self.remove_small_feats()
-
-        # # Flip values back
-        # self.flip_bin()
-
-        return self.signal
-
-
 class RidgeDataExtractor:
     """
     Responsible for calculating ridge metrics at each intersection of a ridge and transect.
@@ -300,9 +210,6 @@ class RidgeDataExtractor:
     def calc_relative_vertex_distance(self, gdf, line):
         """Calculate the relative distance of each vertex along the transect."""
 
-        # coords = np.asarray(self.geometry.coords)
-        # dists = np.insert(calc_dist(coords[:-1], coords[1:]), 0, 0)
-
         gdf["relative_distance"] = np.cumsum(gdf["mig_dist"]) / line.length
 
         return gdf
@@ -388,7 +295,6 @@ class RidgeDataExtractor:
 
         # Create a copy to not modify the original
         sig = self.bool_mask.copy()
-        # sig[np.isnan(sig)] = 0
 
         # Find individual ridge areas
         labels, numfeats = ndimage.label(sig)
@@ -430,10 +336,8 @@ class RidgeDataExtractor:
         self.single_ridge_num = closest_ridge_num
 
         # Erase all ridges that are not closest
-        # label, num_feats = ndimage.label(bin==1)
         label, num_feats = ndimage.label(bin)
         single_ridge = (label == closest_ridge_num + 1).astype(float)
-        # single_ridge[np.isnan(bin)] = np.nan
 
         return single_ridge
 
@@ -456,22 +360,11 @@ class RidgeDataExtractor:
         if self.bin_signal is None:
             return []
 
-        # if self.metric_confidence < 3:
-        #     return []
-
         return calc_ridge_amps(self.dem_signal_selection, self.bool_mask)
 
     def determine_ridge_amp(self):
         if self.bin_signal is None:
             return None
-
-        # # If no ridge is in substring binary signal, return NaN
-        # if self.single_ridge_num is None:
-        #     return np.nan
-
-        # # If all values in bin_signal are the same, return NaN
-        # if np.all(self.bin_signal == self.bin_signal[0]):
-        #     return np.nan
 
         if len(self.ridge_amp_series) == 0:
             amp = np.nan
@@ -573,7 +466,6 @@ class TransectDataExtractor:
         self.itx_gdf = self.add_transect_id(self.itx_gdf)
 
         # Process binary and DEM signals
-        self.clean_bin_signal = self.scrub_bin_signal()
         self.itx_gdf = self.determine_substring_starts(self.itx_gdf)
         self.itx_gdf = self.add_relative_vertex_distances(self.itx_gdf)
         self.itx_gdf = self.calc_vertex_indices(self.itx_gdf)
@@ -651,16 +543,6 @@ class TransectDataExtractor:
 
         return gdf
 
-    def scrub_bin_signal(self):
-        """
-        Clean errant noise extracted along the binary signal.
-        Examples of noise removed:
-            - positive areas smaller than a given threshold
-            - incomplete ridges (signal starts or ends with ones)
-        """
-        if self.raw_bin_signal is not None:
-            return SignalScrubber(self.raw_bin_signal).scrubbed_signal
-
     def calc_relative_vertex_distances(self, ls, start_dist):
         """Calculate the relative distance of each vertex along the transect."""
 
@@ -704,7 +586,7 @@ class TransectDataExtractor:
         """Slice the binary signal between the two end vertices of the substrings"""
         if self.raw_bin_signal is not None:
             gdf["bin_signal"] = gdf["vertex_indices"].apply(
-                lambda x: self.clean_bin_signal[x[0] : x[2]]
+                lambda x: self.raw_bin_signal[x[0] : x[2]]
             )
 
         return gdf
@@ -835,19 +717,16 @@ class BendDataExtractor:
         # We want to sample the signal 1 time every meter
         # Therefore the interval between samples is equal to 1/1 meters
         sampling_freq = 1
-        sampling_intv = 1 / sampling_freq
 
         ## Fourier Transform
-        # Some reason we have to normalize the amplitude to the number of samples
+        # Normalize the amplitude to the number of samples
         # The second half of the fft array seems to be the mirror image of the first half. So we only need the first half
         amps = np.fft.fft(scroll_sig) / scroll_sig.size  # normalize amplitude
         amps = abs(amps[range(int(scroll_sig.size / 2))])  # exclude sampling
 
         ## Variables
-        # make a new range of sampling points; 0 - 499
-        # define the "time period" (length) of the signal; 500m
-        # All available frequencies the fft can identfy - or maybe just x values
-
+        # make a new range of sampling points
+        # define the "time period" (length) of the signal
         values = np.arange(int(scroll_sig.size / 2))
         time_period = scroll_sig.size / sampling_freq
         freqs = values / time_period
@@ -879,25 +758,6 @@ class BendDataExtractor:
 
         return dom_wav
 
-    # def create_amp_signal(self, bin_signal, dem_signal):
-    #     """Create a transect signal where the positive areas in clean_bin_sig are replaced with amplitude."""
-
-    #     # Boolify bin_signal
-    #     bin_sig = bin_signal.copy()
-    #     bin_sig[np.isnan(bin_sig)] = 0
-
-    #     # Create labels for each ridge area
-    #     labels, numfeats = ndimage.label(bin_sig)
-    #     float_labels = labels.astype(float)  # cast to float, otherwise precision is not stored when redefining
-
-    #     # Calculate amplitude for each positive area in bin_signal
-    #     ridge_amps = calc_ridge_amps(dem_signal, bin_sig)
-
-    #     # Redefine the positive areas in bin_sig to amps
-    #     for i, amp in enumerate(ridge_amps):
-    #         float_labels[labels==i+1] = amp
-
-    #     return float_labels
 
     def calc_transect_metrics(self):
 
@@ -915,19 +775,16 @@ class BendDataExtractor:
             rich_transects["bin_signal"] = rich_transects["geometry"].apply(
                 lambda x: self.dense_sample(x, self.bin_raster)
             )
-            rich_transects["clean_bin_signal"] = rich_transects["bin_signal"].apply(
-                lambda x: SignalScrubber(x).scrubbed_signal
-            )
-            rich_transects["ridge_count_raster"] = rich_transects[
-                "clean_bin_signal"
-            ].apply(lambda x: self.count_ridges(x))
-            rich_transects["fft_spacing"] = rich_transects[
-                ["ridge_count_raster", "clean_bin_signal"]
-            ].apply(lambda x: self.dominant_wavelength(*x), axis=1)
 
-        # if self.dem is not None and self.bin_raster is not None:
-        #     rich_transects["amp_signal"] = rich_transects[["clean_bin_signal", "dem_signal"]].apply(lambda x: self.create_amp_signal(*x), axis=1)
-        #     rich_transects["fft_amps"] = rich_transects[["ridge_count_raster", "amp_signal"]].apply(lambda x: self.dominant_wavelength(*x), axis=1)
+            rich_transects["ridge_count_raster"] = rich_transects["bin_signal"].apply(
+                lambda x: self.count_ridges(x)
+            )
+
+            rich_transects["fft_spacing"] = rich_transects[
+                ["ridge_count_raster", "bin_signal"]
+            ].apply(
+                lambda x: self.dominant_wavelength(*x), axis=1
+            )
 
         return rich_transects.sort_index()
 
@@ -943,7 +800,7 @@ class BendDataExtractor:
             and self.bin_raster is not None
         ):
             input_columns.append("dem_signal")
-            input_columns.append("clean_bin_signal")
+            input_columns.append("bin_signal")
 
         # Use TransectDataExtractor for every transect to create the itx dataframe
         tde_list = []
