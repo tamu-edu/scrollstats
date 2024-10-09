@@ -5,17 +5,17 @@ import tempfile
 import numpy as np
 import geopandas as gpd
 import rasterio
-from shapely.geometry import LineString
+from shapely.geometry import Point, LineString
 
 from scrollstats import LineSmoother, create_transects, RidgeDataExtractor, TransectDataExtractor, BendDataExtractor, calculate_ridge_metrics
 
-from scrollstats.delineation.ridge_area_raster import (
-    residual_topography,
+from scrollstats.delineation.ridge_area_raster import clip_raster
+
+from scrollstats.delineation.raster_classifiers import (
     quadratic_profile_curvature,
-    clip_raster,
-    remove_small_feats,
-    binary_flipper 
-) 
+    residual_topography
+)
+
 from scrollstats.delineation import (
     create_ridge_area_raster,
     create_ridge_area_raster_fs
@@ -147,6 +147,60 @@ def test_clip_raster():
 
     assert clipped_meta["width"] * clipped_meta["height"] < dem_ds.width * dem_ds.height
     assert np.all(np.isnan(array_clip[clipped_mask]))
+
+
+def test_create_ridge_area_raster():
+    """
+    Test the following aspects of the create_ridge_area_raster function:
+        1. no data is set correctly
+        2. the output binary raster accurately identifies ridge areas
+        3. the output dem raster window has shrunk as a result of the clip and if all values outside to the geometry are cast to the no data value 
+    """
+    wavelength = 30 # wavelength of cosine wave
+    amp = 1 # amplitude of cosine wave
+    vert = 5  # vertical adjustment of the cosine wave from x axis
+    rep = 5  # repetitions of the cosine wave
+    
+    no_data_value = np.nan  # no data value set for input and output rasters
+
+    # Mock DEM
+    dem = generate_waves(wavelength, amp, vert, wavelength*rep)
+
+    # Mock the bend area polygon by creating a circle in the middle of the area
+    point = Point([i//2 for i in dem.shape])
+    circle = point.buffer((wavelength/2)*(rep-1))
+
+    # Write DEM to disk
+    with tempfile.NamedTemporaryFile(suffix=".tiff") as fp:
+        with rasterio.open(fp.name, "w", driver="GTiff", 
+                        width=dem.shape[1], height=dem.shape[0], count=1, 
+                        dtype=dem.dtype, crs="EPSG:32139", nodata=no_data_value) as dst:
+            dst.write(dem, 1)
+
+        dem_ds = rasterio.open(fp.name)
+        
+    binary_clip, dem_clip, binary_meta = create_ridge_area_raster(
+        dem_ds = dem_ds, 
+        geometry = circle, 
+        no_data_value = no_data_value,
+        window=int(wavelength/2), dx=1, small_feats_size=1)
+        
+
+    known_ridge_areas = dem_clip > vert
+    no_data_area = (binary_clip != 0) & (binary_clip!=1)
+
+    # Do all classified ridge pixels correspond to known ridge pixels?
+    assert known_ridge_areas[binary_clip == 1].all()
+
+    # Were nearly all of the known ridge pixels classified as ridge pixels?
+    assert ((binary_clip == 1).sum() / known_ridge_areas.sum()) > 0.9
+
+    # Was the no data value set correctly?
+    if np.isnan(no_data_value):
+        assert np.isnan(binary_clip[no_data_area]).all()
+    else:
+        assert (binary_clip[no_data_area] == no_data_value).all()
+
 
 
 def test_create_transects():
