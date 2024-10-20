@@ -21,10 +21,6 @@ from .raster_classifiers import DEFAULT_CLASSIFIERS
 from .raster_denoisers import DEFAULT_DENOISERS
 
 
-
-
-
-
 def clip_raster(ds:rasterio.DatasetReader, geometry:Polygon, array=None, no_data=None):
 
     # Replace optional values
