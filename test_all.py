@@ -90,7 +90,7 @@ class MockRidgeData:
         """Create a rasterio.DatasetReader object from a 2D array"""
     
         # Write DEM to disk
-        with tempfile.NamedTemporaryFile(suffix=".tiff") as fp:
+        with tempfile.NamedTemporaryFile(suffix=".tif") as fp:
             with rasterio.open(fp.name, "w", driver="GTiff", 
                             width=array.shape[1], height=array.shape[0], count=1, 
                             dtype=array.dtype, crs=self.crs, nodata=no_data) as dst:
@@ -214,6 +214,11 @@ def test_create_ridge_area_raster():
     else:
         assert (binary_clip[no_data_area] == no_data_value).all()
 
+def test_create_ridge_area_raster_fs():
+    """
+    Test that the file system interface for the creat_ridge_area_raster function can:
+        1. 
+    """
 
 
 def test_create_transects():
