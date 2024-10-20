@@ -30,41 +30,115 @@ CENTERLINE_PATH = Path(f"example_data/input/LBR_025_cl.geojson")
 MANUAL_RIDGE_PATH = Path(f"example_data/input/LBR_025_ridges_manual.geojson")
 
 
-def generate_waves(wavelength:int=30, amp:int=1, vert:int=5, signal_length:int = 60) -> np.ndarray:
-    """
-    Generate a 2D cosine wave with known properties for testing
-    """
+# def generate_waves(wavelength:int=30, amp:int=1, vert:int=5, signal_length:int = 60) -> np.ndarray:
+#     """
+#     Generate a 2D cosine wave with known properties for testing
+#     """
 
-    p = 2*np.pi / wavelength
-    x = np.arange(signal_length)
+#     p = 2*np.pi / wavelength
+#     x = np.arange(signal_length)
     
-    dem_1d = amp*np.cos(p*x) + vert
+#     dem_1d = amp*np.cos(p*x) + vert
 
-    dem_2d = np.multiply(np.ones((signal_length, signal_length)), dem_1d)
+#     dem_2d = np.multiply(np.ones((signal_length, signal_length)), dem_1d)
     
-    return dem_2d
+#     return dem_2d
 
-def generate_ridges(y:int=30, rep:int=5, crs:str="EPSG:32139"):
-    """Generate mock ridge lines with known spacing for testing """
+# def generate_ridges(y:int=30, rep:int=5, crs:str="EPSG:32139"):
+#     """Generate mock ridge lines with known spacing for testing """
 
-    r = {
-        "ridge_id": [f"r_{i:03d}" for i in range(0, rep-1)],
-        "bend_id": ["LBR_999" for i in range(0, rep-1)],
-        "deposit_year": [np.nan for i in range(0, rep-1)],
-        "geometry": [LineString([[i, 0], [i, y*5]]) for i in range(y, y*5, y)]
-    }
-    return gpd.GeoDataFrame(data=r, geometry="geometry", crs=crs)
+#     r = {
+#         "ridge_id": [f"r_{i:03d}" for i in range(0, rep-1)],
+#         "bend_id": ["LBR_999" for i in range(0, rep-1)],
+#         "deposit_year": [np.nan for i in range(0, rep-1)],
+#         "geometry": [LineString([[i, 0], [i, y*5]]) for i in range(y, y*5, y)]
+#     }
+#     return gpd.GeoDataFrame(data=r, geometry="geometry", crs=crs)
 
 
-def generate_transects(y:int=30, rep:int=5, crs:str="EPSG:32139"):
-    """Generate mock transects with known spacing for testing """
+# def generate_transects(y:int=30, rep:int=5, crs:str="EPSG:32139"):
+#     """Generate mock transects with known spacing for testing """
 
-    t = {
-        "transect_id":[f"t_{i:03d}" for i in range(0, rep-1)],
-        "bend_id" :["LBR_999" for i in range(0, rep-1)],
-        "geometry" : [LineString([[j, i] for j in range(0, y*rep, y)]) for i in range(y, y*rep, y)]
-    }
-    return gpd.GeoDataFrame(data=t, geometry="geometry", crs=crs)
+#     t = {
+#         "transect_id":[f"t_{i:03d}" for i in range(0, rep-1)],
+#         "bend_id" :["LBR_999" for i in range(0, rep-1)],
+#         "geometry" : [LineString([[j, i] for j in range(0, y*rep, y)]) for i in range(y, y*rep, y)]
+#     }
+#     return gpd.GeoDataFrame(data=t, geometry="geometry", crs=crs)
+
+class MockRidgeData:
+    def __init__(self,
+                 wavelength:int=30,
+                 amp:int=1,
+                 vert_adj:int=5,
+                 reps:int=5,
+                 crs:str="EPSG:32139",
+                 no_data = np.nan
+                 ) -> None:
+        
+        self.wavelength = wavelength
+        self.amp = amp
+        self.vert_adj = vert_adj
+        self.reps = reps
+        self.crs = crs
+        self.no_data = no_data
+
+
+    def generate_waves(self) -> np.ndarray:
+        """
+        Generate a 2D cosine wave with known properties for testing
+        """
+
+        p = 2*np.pi / self.wavelength
+        signal_length = self.wavelength * self.reps
+        x = np.arange(signal_length)
+        
+        dem_1d = self.amp*np.cos(p*x) + self.vert_adj
+
+        dem_2d = np.multiply(np.ones((signal_length, signal_length)), dem_1d)
+        
+        return dem_2d
+
+
+    def generate_ridges(self):
+        """Generate mock ridge lines with known spacing for testing """
+
+        r = {
+            "ridge_id": [f"r_{i:03d}" for i in range(0, self.reps-1)],
+            "bend_id": ["LBR_999" for i in range(0, self.reps-1)],
+            "deposit_year": [np.nan for i in range(0, self.reps-1)],
+            "geometry": [LineString([[i, 0], [i, self.wavelength*self.reps]]) for i in range(self.wavelength, self.wavelength*self.reps, self.wavelength)]
+        }
+        return gpd.GeoDataFrame(data=r, geometry="geometry", crs=self.crs)
+
+
+    def generate_transects(self):
+        """Generate mock transects with known spacing for testing """
+
+        t = {
+            "transect_id":[f"t_{i:03d}" for i in range(0, self.reps-1)],
+            "bend_id" :["LBR_999" for i in range(0, self.reps-1)],
+            "geometry" : [LineString([[j, i] for j in range(0, self.wavelength*self.reps, self.wavelength)]) 
+                            for i in range(self.wavelength, self.wavelength*self.reps, self.wavelength)]
+        }
+        return gpd.GeoDataFrame(data=t, geometry="geometry", crs=self.crs)
+    
+
+    def generate_raster(self):
+        """Create a rasterio.DatasetReader object from the output of self.generate_waves()"""
+        
+        dem = self.generate_waves()
+
+        # Write DEM to disk
+        with tempfile.NamedTemporaryFile(suffix=".tiff") as fp:
+            with rasterio.open(fp.name, "w", driver="GTiff", 
+                            width=dem.shape[1], height=dem.shape[0], count=1, 
+                            dtype=dem.dtype, crs=self.crs, nodata=self.no_data) as dst:
+                dst.write(dem, 1)
+
+            dem_ds = rasterio.open(fp.name)
+        
+        return dem_ds
 
 
 def test_line_smoother_density():
