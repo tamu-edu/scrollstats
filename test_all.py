@@ -7,7 +7,7 @@ import geopandas as gpd
 import rasterio
 from shapely.geometry import Point, LineString
 
-from scrollstats import LineSmoother, create_transects, RidgeDataExtractor, TransectDataExtractor, BendDataExtractor, calculate_ridge_metrics
+from scrollstats import LineSmoother, create_transects, RidgeDataExtractor, TransectDataExtractor, BendDataExtractor
 
 from scrollstats.delineation.ridge_area_raster import clip_raster
 
@@ -377,9 +377,3 @@ def test_bend_data_extractor():
     assert all(bde.itx_metrics["ridge_amp"] == data.amp*2)
     assert all(bde.itx_metrics["ridge_width"] == data.wavelength / 2)
     assert all(bde.itx_metrics["pre_mig_dist"] == data.wavelength)
-
-
-def test_calculate_ridge_metrics():
-    """
-    Test
-    """
