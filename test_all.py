@@ -2,12 +2,20 @@
 
 from pathlib import Path
 import tempfile
+import warnings
+
 import numpy as np
 import geopandas as gpd
 import rasterio
 from shapely.geometry import Point, LineString
 
-from scrollstats import LineSmoother, create_transects, RidgeDataExtractor, TransectDataExtractor, BendDataExtractor
+from scrollstats import (
+    LineSmoother,
+    create_transects,
+    RidgeDataExtractor,
+    TransectDataExtractor,
+    BendDataExtractor
+)
 
 from scrollstats.delineation.ridge_area_raster import clip_raster
 
@@ -20,7 +28,6 @@ from scrollstats.delineation import (
     create_ridge_area_raster,
     create_ridge_area_raster_fs
 )
-
 
 # Data Paths
 DEM_PATH = Path(f"example_data/input/LBR_025_dem.tif")
@@ -199,12 +206,12 @@ def test_create_ridge_area_raster():
         3. the output dem raster window has shrunk as a result of the clip and if all values outside to the geometry are cast to the no data value 
     """
 
-    # Generate 2D cosine waves with known properties
+    # Mock Data
     data = MockRidgeData()
     dem = data.generate_waves()
     no_data_value = np.nan
     dem_ds = data.generate_raster(dem, no_data=no_data_value)
-    circle = data.generate_bend_area().loc[0, "geometry"]
+    circle = data.generate_bend_area().loc[0, "geometry"] # get Polygon from gdf
 
     # Identify ridge areas within the mocked dem
     binary_clip, dem_clip, _binary_meta = create_ridge_area_raster(
@@ -229,6 +236,7 @@ def test_create_ridge_area_raster():
     else:
         assert (binary_clip[no_data_area] == no_data_value).all()
 
+
 def test_create_ridge_area_raster_fs():
     """
     Test that the file system interface for the create_ridge_area_raster function can matches the output from create_ridge_area_raster
@@ -237,10 +245,10 @@ def test_create_ridge_area_raster_fs():
     data = MockRidgeData()
     dem = data.generate_waves()
     bend_area = data.generate_bend_area()
-
     no_data_value = np.nan
     dem_ds = data.generate_raster(dem, no_data=no_data_value)
 
+    # Create ridge area raster and clipped dem with file system interface
     with tempfile.NamedTemporaryFile(suffix=".tif") as dem_path:
         with rasterio.open(dem_path.name, "w", driver="GTiff", 
                 width=dem.shape[1], height=dem.shape[0], count=1, 
@@ -256,13 +264,13 @@ def test_create_ridge_area_raster_fs():
                 geometry_path=Path(bend_path.name),
                 out_dir=Path(out_dir),
                 no_data_value = no_data_value,
-                 window=int(data.wavelength/2), dx=1, small_feats_size=1
+                window=int(data.wavelength/2), dx=1, small_feats_size=1
             )
 
     binary_from_disk = rasterio.open(binary_out_path).read(1)
     dem_from_disk = rasterio.open(dem_out_path).read(1)
 
-    # Identify ridge areas within the mocked dem
+    # Create ridge area raster and clipped dem directly from objects in memory
     binary_from_mem, dem_from_mem, _binary_meta = create_ridge_area_raster(
         dem_ds = dem_ds, 
         geometry = bend_area.loc[0, "geometry"], 
