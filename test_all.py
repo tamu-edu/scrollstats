@@ -85,6 +85,24 @@ class MockRidgeData:
         }
         return gpd.GeoDataFrame(data=t, geometry="geometry", crs=self.crs)
     
+    def generate_bend_area(self):
+        """
+        Generate a mock bend area polygon of a known area in the middle of the wave array.
+        Return the bend area polygon as a GeoDataFrame
+        """
+        
+        # Find the midpoint of the array
+        dem_shape = np.ones(2) * (self.wavelength*self.reps)
+        point = Point(dem_shape // 2)
+
+        # Buffer out this point to create a circle slightly smaller than the wave array
+        circle = point.buffer((self.wavelength/2)*(self.reps-1))
+
+        b = {
+            "bend_id" : ["LBR_999"],
+            "geometry": [circle]
+        }
+        return gpd.GeoDataFrame(data=b, geometry="geometry", crs=self.crs)
     
     def generate_raster(self, array, no_data=None):
         """Create a rasterio.DatasetReader object from a 2D array"""
@@ -99,7 +117,7 @@ class MockRidgeData:
             out_ds = rasterio.open(fp.name)
         
         return out_ds
-
+    
 
 def test_line_smoother_density():
     """Ensure that LineSmoother generates LineStrings with a sufficient point density"""
@@ -186,13 +204,10 @@ def test_create_ridge_area_raster():
     dem = data.generate_waves()
     no_data_value = np.nan
     dem_ds = data.generate_raster(dem, no_data=no_data_value)
-
-    # Mock the bend area polygon by creating a circle in the middle of the area
-    point = Point([i//2 for i in dem.shape])
-    circle = point.buffer((data.wavelength/2)*(data.reps-1))
+    circle = data.generate_bend_area().loc[0, "geometry"]
 
     # Identify ridge areas within the mocked dem
-    binary_clip, dem_clip, binary_meta = create_ridge_area_raster(
+    binary_clip, dem_clip, _binary_meta = create_ridge_area_raster(
         dem_ds = dem_ds, 
         geometry = circle, 
         no_data_value = no_data_value,
@@ -217,9 +232,48 @@ def test_create_ridge_area_raster():
 def test_create_ridge_area_raster_fs():
     """
     Test that the file system interface for the creat_ridge_area_raster function can:
-        1. 
+        1. successfuly write outputs to disk
+        2. written outputs have the appropriate nodata values set
     """
+    # Generate a bend dataset known properties
+    data = MockRidgeData()
+    dem = data.generate_waves()
+    bend_area = data.generate_bend_area()
 
+    no_data_value = np.nan
+    dem_ds = data.generate_raster(dem, no_data=no_data_value)
+
+    with tempfile.NamedTemporaryFile(suffix=".tif") as dem_path:
+        with rasterio.open(dem_path.name, "w", driver="GTiff", 
+                width=dem.shape[1], height=dem.shape[0], count=1, 
+                dtype=dem.dtype, crs=data.crs, nodata=no_data_value) as dst:
+            dst.write(dem, 1)
+
+        with tempfile.NamedTemporaryFile(suffix=".geojson") as bend_path:
+            bend_area.to_file(bend_path.name, driver="GeoJSON", index=False, crs=data.crs)
+
+            out_dir = tempfile.gettempdir()
+            binary_out_path, dem_out_path = create_ridge_area_raster_fs(
+                dem_path=Path(dem_path.name),
+                geometry_path=Path(bend_path.name),
+                out_dir=Path(out_dir),
+                no_data_value = no_data_value,
+                 window=int(data.wavelength/2), dx=1, small_feats_size=1
+            )
+
+    binary_from_disk = rasterio.open(binary_out_path).read(1)
+    dem_from_disk = rasterio.open(dem_out_path).read(1)
+
+    # Identify ridge areas within the mocked dem
+    binary_from_mem, dem_from_mem, _binary_meta = create_ridge_area_raster(
+        dem_ds = dem_ds, 
+        geometry = bend_area.loc[0, "geometry"], 
+        no_data_value = no_data_value,
+        window=int(data.wavelength/2), dx=1, small_feats_size=1)
+    
+    assert np.array_equal(binary_from_disk, binary_from_mem, equal_nan=True)
+    assert np.array_equal(dem_from_disk, dem_from_mem, equal_nan=True)
+        
 
 def test_create_transects():
     """Test that the transects intersect all of the ridges """
