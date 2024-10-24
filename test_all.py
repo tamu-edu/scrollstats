@@ -231,9 +231,7 @@ def test_create_ridge_area_raster():
 
 def test_create_ridge_area_raster_fs():
     """
-    Test that the file system interface for the creat_ridge_area_raster function can:
-        1. successfuly write outputs to disk
-        2. written outputs have the appropriate nodata values set
+    Test that the file system interface for the create_ridge_area_raster function can matches the output from create_ridge_area_raster
     """
     # Generate a bend dataset known properties
     data = MockRidgeData()
@@ -379,3 +377,9 @@ def test_bend_data_extractor():
     assert all(bde.itx_metrics["ridge_amp"] == data.amp*2)
     assert all(bde.itx_metrics["ridge_width"] == data.wavelength / 2)
     assert all(bde.itx_metrics["pre_mig_dist"] == data.wavelength)
+
+
+def test_calculate_ridge_metrics():
+    """
+    Test
+    """
