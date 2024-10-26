@@ -256,7 +256,7 @@ def test_create_ridge_area_raster_fs():
             dst.write(dem, 1)
 
         with tempfile.NamedTemporaryFile(suffix=".geojson") as bend_path:
-            bend_area.to_file(bend_path.name, driver="GeoJSON", index=False, crs=data.crs)
+            bend_area.to_file(bend_path.name, driver="GeoJSON", index=False)
 
             out_dir = tempfile.gettempdir()
             binary_out_path, dem_out_path = create_ridge_area_raster_fs(
