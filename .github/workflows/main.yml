@@ -1,0 +1,27 @@
+# Adapted from examples shown in https://autobencoder.com/2020-08-24-conda-actions/
+
+name: ScrollStats Test
+
+on: [push]
+
+jobs:
+  test:
+    name: ScrollStats Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ['3.x']
+
+    steps:
+      - name: Checkout Branch
+        uses: actions/checkout@v4
+      - name: Setup Conda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          activate-environment: scroll
+          environment-file: environment.yml
+          auto-activate-base: false
+      - name: Run Tests
+        run: |
+          pytest test_all.py
