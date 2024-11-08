@@ -1,9 +1,12 @@
 """
-Contains all functions responsible for denoising an input binary array to more accurately represent the ridge and swale areas
+Contains all functions responsible for denoising an input binary array ("denoiser functions") to more accurately represent the ridge and swale areas
 Ridge areas will correspond to a value of True or 1, swale areas will correspond to a value of False or 0
-"""
 
-from typing import Callable
+Denoiser functions take a BinaryArray2D and any other kwargs as input and return a BinaryArray2D as output
+
+    denoiser_func(BinaryArray2D, **kwargs) -> BinaryArray2D
+
+"""
 
 import numpy as np
 from scipy import ndimage
@@ -12,8 +15,6 @@ from .array_types import BinaryArray2D, BinaryDenoiserFn
 
 
 # Denoiser functions
-## denoiser functions take a BinaryArray2D and any other args as input and return a BinaryArray2D as output
-## use partial functions to supply other args to the denoiser functions so that they may be used in `denoise_raster()`
 def binary_flipper(binary_array:BinaryArray2D, func:BinaryDenoiserFn) -> BinaryArray2D:
 
     out_array = func(binary_array)
@@ -23,16 +24,7 @@ def binary_flipper(binary_array:BinaryArray2D, func:BinaryDenoiserFn) -> BinaryA
 
 def remove_small_feats(img:BinaryArray2D, size:int) -> BinaryArray2D:
     """
-    Removes any patch/feature in a binary image that is below a certian pixel count
-
-    Parameters
-    ----------
-    img : binary ndarray
-    size : (int), minimum patch size needed to be kept in the image
-
-    Returns
-    -------
-    out : binary ndarray
+    Removes any patch/feature in a binary image that is below a certian size (measured in px)
     """
     # Label all unique features in binary image
     label, _ = ndimage.label(img)
@@ -55,8 +47,7 @@ def remove_small_feats(img:BinaryArray2D, size:int) -> BinaryArray2D:
 
 def remove_small_feats_w_flip(img:BinaryArray2D, small_feats_size:int) -> BinaryArray2D:
     """
-    Apply `remove_small_feats` to the ridge areas, then flip the values in the binary array to apply
-    `remove_small_feats` to the swale areas
+    Apply `remove_small_feats` to the ridge areas, then flip the values in the binary array to apply `remove_small_feats` to the swale areas
     """
     out_array = remove_small_feats(img, small_feats_size)
     out_array = ~remove_small_feats(~out_array, small_feats_size)
