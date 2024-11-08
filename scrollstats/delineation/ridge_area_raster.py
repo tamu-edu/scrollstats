@@ -137,7 +137,7 @@ def create_ridge_area_raster(dem_ds:rasterio.DatasetReader,
     dem[no_data_mask] = -99999
     
     # Classify the ridge and swale areas within the DEM with the provided classifier functions
-    ## `partial_from_kwargs` creates a partial function which fills all of the parameters of the functions in `classifier_funcs` (except for the dem) from kwargs.
+    ## `partial_from_kwargs` creates a partial function which fills the parameters of each classifier function (except for the dem) from kwargs.
     ## This allows for us to simply loop over all of the classifier functions (which must return a BinarryArray2D) and apply them to the DEM
     ## The user must supply kwargs that exactly match the other parameter names in the classifier functions.
     binary_array = np.ones(dem.shape).astype(bool)
