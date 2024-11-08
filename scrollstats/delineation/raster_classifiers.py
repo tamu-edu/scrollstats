@@ -1,6 +1,10 @@
 """
-Contains all functions responsible for classifying an input DEM into a binary array of ridges and swales
+Contains all functions responsible for classifying an input DEM into a binary array of ridges and swales ("classifier functions").
 Ridge areas will correspond to a value of True or 1, swale areas will correspond to a value of False or 0
+
+Classifier functions take an ElevationArray2D and any other kwargs as input and return a BinaryArray2D as output
+
+    classifier_func(ElevationArray2D, **kwargs) -> BinaryArray2D
 """
 
 
@@ -457,9 +461,6 @@ def __realize_quadratic_surface(_elev, _coeff, wsize, dx):
     plt.show()
 
 
-
-# Define the mathematical operations to apply to the ElevationArray2D
-# Profile curvature is defined in curvature.py 
 def residual_topography(dem:ElevationArray2D, w:int) -> Array2D:
     """
     Using a moving window with side length `w`, subtract the focal mean from the central pixel value.
@@ -481,11 +482,10 @@ def residual_topography(dem:ElevationArray2D, w:int) -> Array2D:
 
 # Classifier Functions 
 ## classifier functions take an ElevationArray2D and any other args as input and return a BinaryArray2D as output
-## use partial functions to supply other args to the classifier functions so that they may be used in `classify_raster()`
 def profile_curvature_classifier(dem:ElevationArray2D, window:int, dx:float, threshold: int = 0) -> BinaryArray2D:
     """
-    Calculates the profile curvature within a moving window with side length `window`.
-    Returns a boolean array where True pixels are greater than `threshold`
+    Calculates the profile curvature within a moving window with side length `window` and pixel width `dx`.
+    Returns a BooleanArray2D where True pixels are greater than `threshold`
     """
     profc = quadratic_profile_curvature(
           elevation=dem,
@@ -497,7 +497,7 @@ def profile_curvature_classifier(dem:ElevationArray2D, window:int, dx:float, thr
 
 def residual_topography_classifier(dem:ElevationArray2D, window:int, threshold:int = 0) -> BinaryArray2D:
     """
-    Calculates the profile curvature within a moving window with side length `window`.
+    Calculates the residual topography within a moving window with side length `window`.
     Returns a boolean array where True pixels are greater than `threshold`
     """
     rt = residual_topography(dem, window)
