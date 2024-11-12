@@ -1,3 +1,13 @@
+"""
+This module was used to locate all of the required GRASS GIS resources when scrollstats still used GRASS as a dependency.
+
+Since GRASS is no longer used, this module is no longer necesarry and will therefore be removed from the main branch.
+
+This will be saved in the GRASS branch for the time being.
+"""
+
+
+
 import sys
 from pathlib import Path
 from typing import Protocol, Tuple
