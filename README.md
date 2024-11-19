@@ -9,7 +9,7 @@ An open-source python library to calculate and extract morphometrics from scroll
 
 Create a conda environment from the provided `environment.yml` file with the following commands
 ```shell
-# Navigate to this directory
+# Navigate to the install location of scrollstats
 cd path/to/scrollstats
 
 # Create the environment
@@ -32,9 +32,10 @@ The three notebooks above are written to process one bend at a time. However, al
 
 ## The ScrollStats workflow
 
-**1. Set geoprocessing parameters**
+**1. Set geoprocessing parameters (optional)**
 
-- All geoprocessing parameters (such as window size) are kept in [parameters.py](parameters.py). Set all the parameters to the desired values for a convenient overview of all parameters used in a single run. 
+- All geoprocessing parameters (such as raster window size) for the example notebooks are kept in [parameters.py](parameters.py) then imported where needed in the notebooks. This allows for a convenient overview of all parameters used in a single run. 
+- No part of the internal scripting library is dependent on the values set in [parameters.py](parameters.py).
 
 **2. Delineate Ridge Areas**
 
@@ -47,7 +48,6 @@ The three notebooks above are written to process one bend at a time. However, al
 **3. Create Vector Datasets**
 
 - Create the following vector datasets to define key morphological features of the bend. Details of the vector data creation can be found in [CreateVectorDatasets.ipynb](CreateVectorDatasets.ipynb).
-
     - bend boundary
     - packet boundary
     - channel centerline
