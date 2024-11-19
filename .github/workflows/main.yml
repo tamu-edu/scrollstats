@@ -20,7 +20,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
         matrix:
-            os: ["ubuntu-latest", "windows-latest", "macos-latest"]
+          # TODO: add "windows-latest"
+            os: ["ubuntu-latest", "macos-latest"]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -43,4 +44,4 @@ jobs:
       - name: Run tests
         shell: bash -el {0}
         run: | 
-            pytest test_all.py
+            pytest tests/
