@@ -44,4 +44,4 @@ jobs:
       - name: Run tests
         shell: bash -el {0}
         run: | 
-            pytest tests/
+            pytest test_all.py
