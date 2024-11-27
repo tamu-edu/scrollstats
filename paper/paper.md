@@ -16,7 +16,6 @@ authors:
     affiliation: '1'
   - name: Andrew Moodie
     orcid: 0000-0000-0000-0000 
-    corresponding: true
     affiliation: '1'
   - name: İnci Güneralp 
     orcid: 0000-0000-0000-0000 
