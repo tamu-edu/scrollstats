@@ -8,17 +8,17 @@ tags:
   - geomorphology
 authors:
   - name: Andrew Vanderheiden
-    orcid: 0000-0000-0000-0000 
+    orcid: 0009-0003-2466-8144 
     corresponding: true
     affiliation: '1'
   - name: Billy Hales
-    orcid: 0000-0000-0000-0000 
+    orcid: 0000-0002-6591-9363 
     affiliation: '1'
   - name: Andrew Moodie
-    orcid: 0000-0000-0000-0000 
+    orcid: 0000-0002-6745-036X
     affiliation: '1'
   - name: İnci Güneralp 
-    orcid: 0000-0000-0000-0000 
+    orcid: 0000-0002-7268-2974
     affiliation: '1'
 affiliations:
 - name: Texas A&M University, United States
