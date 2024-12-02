@@ -166,6 +166,10 @@ def create_ridge_area_raster(dem_ds:rasterio.DatasetReader,
 def create_ridge_area_raster_fs(dem_path:Path, geometry_path:Path, out_dir:Path, bend_id_dict:Dict = None, **kwargs) -> Tuple[Path, Path]:
     """File system interface for create_ridge_area_raster"""
 
+
+    # create output folder if not exists
+    out_dir.mkdir(parents=True, exist_ok=True)
+
     gdf = gpd.read_file(geometry_path)
 
     if bend_id_dict:
