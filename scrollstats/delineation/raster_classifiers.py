@@ -285,12 +285,14 @@ def quadratic_profile_curvature(
 
 def _find_weight(wsize, exponent):
     """
-    Function to find the weightings matrix for the */
-    /*               observed cell values.                          */
-    /*               Uses an inverse distance function that can be  */
-    /*               calibrated with an exponent (0= no decay,      */
-    /*               1=linear decay, 2=squared distance decay etc.) */
-    /*               V.1.1, Jo Wood, 11th May, 1995.                */
+    Function to find the weightings matrix for the observed cell values. Uses
+    an inverse distance function that can be calibrated with an exponent
+    (0=no decay, 1=linear decay, 2=squared distance decay, etc.).
+
+    .. note::
+
+        Code is adapted from the GRASS implementation, from Jo Wood thesis.
+        V.1.1, Jo Wood, 11th May, 1995.
     """
     edge = (wsize - 1) / 2
     _weight = np.zeros((wsize, wsize))
@@ -304,15 +306,14 @@ def _find_weight(wsize, exponent):
 
 def _find_normal(weights, wsize, resoln):
     """
-    /****************************************************************/
-    /* find_normal() - Function to find the set of normal equations */
-    /*                 that allow a quadratic trend surface to be   */
-    /*                 fitted through N points using least squares */
-    /*                 V.1.0, Jo Wood, 27th November, 1994.         */
+    Function to find the set of normal equations that allow a quadratic trend
+    surface to be fitted through N points using least squares.
 
-    /****************************************************************/
-    Code is adapted from the GRASS implementation, from Jo  Wood thesis.
-    Normal equations defined for quadratic surface are from Unwin, 1975
+    .. note::
+
+        Code is adapted from the GRASS implementation, from Jo  Wood thesis.
+        Normal equations defined for quadratic surface are from Unwin, 1975.
+        V.1.0, Jo Wood, 27th November, 1994.
     """
     edge = int((wsize - 1) / 2)
 
@@ -360,7 +361,7 @@ def _find_normal(weights, wsize, resoln):
             N += cnt * w
             cnt += 1
 
-    # /* --- Store cross-product matrix elements. --- */
+    # store cross-product matrix elements
     normal[0][0] = x4
     normal[0][1] = normal[1][0] = x2y2
     normal[0][2] = normal[2][0] = x3y
@@ -390,28 +391,28 @@ def _find_normal(weights, wsize, resoln):
 
     return normal
 
+
 @jit
 def _find_obs(elevations, weights, wsize, resoln, constrained):
     """
-    /****************************************************************/
-    /* find_obs() - Function to find the observed vector as part of */
-    /*              the set of normal equations for least squares.  */
-    /*              V.1.0, Jo Wood, 11th December, 1994.            */
+    Function to find the observed vector as part of the set of normal
+    equations for least squares.
 
-    /****************************************************************/
+    Returns
+    -------
+    obs
+        The column vector in matrix form for LU decomp.
 
-    return obs, the column vector in matrix form for LU decomp
+    .. note::
 
-    .. important:: this might be a good target for jitting!
+            Code is adapted from the GRASS implementation, from Jo Wood thesis.
+            V.1.0, Jo Wood, 11th December, 1994.
     """
     edge = (wsize - 1) / 2
-    # offset      /* Array offset for weights & z */
-
     obs = np.zeros((6,))  # column vector
-
     for row in np.arange(wsize):
         for col in np.arange(wsize):
-            # /* Local window coordinates */
+            # local window coordinates
             x = resoln * (col - edge)
             y = resoln * (row - edge)
 
@@ -424,7 +425,7 @@ def _find_obs(elevations, weights, wsize, resoln, constrained):
             obs[3] += w * z * x
             obs[4] += w * z * y
 
-            if not constrained:  # /* If constrained, should remain 0.0 */
+            if not constrained:  # If constrained, should remain 0.0
                 obs[5] += w * z
     return obs
 
@@ -461,41 +462,42 @@ def __realize_quadratic_surface(_elev, _coeff, wsize, dx):
     plt.show()
 
 
-def residual_topography(dem:ElevationArray2D, w:int) -> Array2D:
+def residual_topography(dem: ElevationArray2D, w: int) -> Array2D:
     """
     Using a moving window with side length `w`, subtract the focal mean from the central pixel value.
     """
     # Construct an array of processing windows from the input elevation array
-    kernal = np.lib.stride_tricks.sliding_window_view(dem, (w,w))
+    kernal = np.lib.stride_tricks.sliding_window_view(dem, (w, w))
 
     # Take the mean of each window
-    means = kernal.mean(axis=(2,3))
+    means = kernal.mean(axis=(2, 3))
 
     # `kernal` above only has the valid inner windows from the array, so `means` needs to be padded by w//2 all the way around
     padded_means = np.ones(dem.shape) * np.nan
-    padded_means[w//2:-(w//2), w//2:-(w//2)] = means
+    padded_means[w // 2 : -(w // 2), w // 2 : -(w // 2)] = means
 
     rt = dem - padded_means
 
     return rt
 
 
-# Classifier Functions 
+# Classifier Functions
 ## classifier functions take an ElevationArray2D and any other args as input and return a BinaryArray2D as output
-def profile_curvature_classifier(dem:ElevationArray2D, window:int, dx:float, threshold: int = 0) -> BinaryArray2D:
+def profile_curvature_classifier(
+    dem: ElevationArray2D, window: int, dx: float, threshold: int = 0
+) -> BinaryArray2D:
     """
     Calculates the profile curvature within a moving window with side length `window` and pixel width `dx`.
     Returns a BooleanArray2D where True pixels are greater than `threshold`
     """
-    profc = quadratic_profile_curvature(
-          elevation=dem,
-          window=window,
-          dx=dx
-    )
-    
-    return profc > threshold 
+    profc = quadratic_profile_curvature(elevation=dem, window=window, dx=dx)
 
-def residual_topography_classifier(dem:ElevationArray2D, window:int, threshold:int = 0) -> BinaryArray2D:
+    return profc > threshold
+
+
+def residual_topography_classifier(
+    dem: ElevationArray2D, window: int, threshold: int = 0
+) -> BinaryArray2D:
     """
     Calculates the residual topography within a moving window with side length `window`.
     Returns a boolean array where True pixels are greater than `threshold`
@@ -505,7 +507,4 @@ def residual_topography_classifier(dem:ElevationArray2D, window:int, threshold:i
     return rt > threshold
 
 
-DEFAULT_CLASSIFIERS = (
-    profile_curvature_classifier,
-    residual_topography_classifier
-)
+DEFAULT_CLASSIFIERS = (profile_curvature_classifier, residual_topography_classifier)
