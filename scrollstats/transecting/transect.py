@@ -8,6 +8,7 @@ from shapely.geometry import (
     MultiPolygon,
 )
 import geopandas as gpd
+from tqdm import tqdm
 
 
 ## Simple Geometric functions: accepts and returns arrays of coordinates
@@ -640,8 +641,8 @@ class MultiTransect:
 
         # Create a transect for each coord in `self.coord_list`
         transect_list = []
-        for i, coord in enumerate(self.coord_list):
-            # Create h74_constructor object
+        for i, coord in enumerate(tqdm(self.coord_list, desc = "Generate Transects", ascii = True, disable = (self.verbose!=1))):
+
             const = h74_transect_constructor(
                 coord,
                 f"t_{i:03}",
@@ -656,7 +657,6 @@ class MultiTransect:
 
             # Walk transect up the ridges
             t = const.walk_transect()
-
             transect_list.append(t)
 
         return transect_list

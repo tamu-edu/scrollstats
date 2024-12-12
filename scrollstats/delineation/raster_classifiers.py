@@ -7,11 +7,13 @@ Classifier functions take an ElevationArray2D and any other kwargs as input and 
     classifier_func(ElevationArray2D, **kwargs) -> BinaryArray2D
 """
 
+import time
 
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy
 from numba import jit
+from tqdm import tqdm
 
 from .array_types import Array2D, ElevationArray2D, BinaryArray2D
 
@@ -56,6 +58,7 @@ def _quadratic_coefficients_least_squares(
     coefficients_matrix = np.zeros((elevation.shape[0], elevation.shape[1], ncoeff))
 
     # loop through the domain
+    pbar = tqdm(total=elevation.size, desc="Profile Curvature", ascii=True)
     for i in np.arange(elevation.shape[0]):
         for j in np.arange(elevation.shape[1]):
             # get ij observations
@@ -71,6 +74,9 @@ def _quadratic_coefficients_least_squares(
             ij_coeff = scipy.linalg.lu_solve(lu_A, ij_obs)
 
             coefficients_matrix[i, j, :] = ij_coeff
+
+            pbar.update()
+    pbar.close()
 
     if constrained:
         # add a zero coefficient to the whole matrix
@@ -466,6 +472,9 @@ def residual_topography(dem: ElevationArray2D, w: int) -> Array2D:
     """
     Using a moving window with side length `w`, subtract the focal mean from the central pixel value.
     """
+    print("Residual Topography: Begin", end="\r")
+    t1 = time.time()
+
     # Construct an array of processing windows from the input elevation array
     kernal = np.lib.stride_tricks.sliding_window_view(dem, (w, w))
 
@@ -477,6 +486,9 @@ def residual_topography(dem: ElevationArray2D, w: int) -> Array2D:
     padded_means[w // 2 : -(w // 2), w // 2 : -(w // 2)] = means
 
     rt = dem - padded_means
+
+    t2 = time.time()
+    print(f"Residual Topography: Complete ({round(t2-t1, 1)}s elapsed)")
 
     return rt
 

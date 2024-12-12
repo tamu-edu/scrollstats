@@ -16,6 +16,7 @@ import pandas as pd
 import geopandas as gpd
 from scipy import ndimage
 from shapely.geometry import Point, LineString
+from tqdm import tqdm
 
 from .ridgeAmplitudes import calc_ridge_amps
 
@@ -105,7 +106,6 @@ class RidgeDataExtractor:
         self.bin_signal = bin_signal
         self.bool_mask = self.boolify_mask()
         self.signal_length = self.determine_signal_length()
-        print("Started RDE")
 
         # Create GeoDataFrame
         self.data_columns = {
@@ -427,7 +427,6 @@ class TransectDataExtractor:
         self.raw_dem_signal = dem_signal
         self.raw_bin_signal = bin_signal
         self.ridges = ridges
-        print(f"Started TDE for {self.transect_id}")
 
         # Create GeoDataFrame
 
@@ -628,7 +627,6 @@ class BendDataExtractor:
         self.dem = dem
         self.ridges = ridges
         self.packets = packets
-        print("Started BDE")
 
         # Calculate Metrics at the smaller scales
         self.rich_transects = self.calc_transect_metrics()
@@ -804,9 +802,12 @@ class BendDataExtractor:
 
         # Use TransectDataExtractor for every transect to create the itx dataframe
         tde_list = []
+        pbar = tqdm(total=len(self.rich_transects), desc="Ridge Metrics", ascii=True)
         for i, row in self.rich_transects[input_columns].iterrows():
             tde = TransectDataExtractor(*row, ridges=self.ridges).calc_ridge_metrics()
             tde_list.append(tde)
+            pbar.update()
+        pbar.close()
 
         itx = pd.concat(tde_list).set_index(["bend_id", "transect_id", "ridge_id"])
 
