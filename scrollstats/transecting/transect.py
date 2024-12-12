@@ -208,7 +208,7 @@ class h74_transect_constructor:
         search_distance: int,
         dev_from_90: float,
         user_direction=None,
-        feedback="t",
+        verbose: int = 1,
     ):
 
         # Transect values
@@ -230,7 +230,7 @@ class h74_transect_constructor:
         # State Variables
         self.walk_state = True
         self.iteration = 0
-        self.feedback_state = feedback
+        self.verbose = verbose
 
         # Transect parameters
         self.shoot_distance = shoot_distance
@@ -251,7 +251,7 @@ class h74_transect_constructor:
 
         if self.user_direction is not None:
             d_list = ("undetermined", "left", "right")
-            if self.feedback_state == "v":
+            if self.verbose == 2:
                 print(
                     f"Overriding calculated direction value with user specified `{self.user_direction}` ({d_list[self.user_direction]})"
                 )
@@ -405,10 +405,11 @@ class h74_transect_constructor:
                 [Point(i) for i in itx.geoms], key=lambda x: self.p1.distance(x)
             )[0]
         else:
-            print(f"Failure at Src90: itx = {itx.wkt}")
-            print(f"Shot: {shot.wkt}")
-            print(f"Ridge: {ridge.wkt}")
-            print("")
+            if self.verbose == 2:
+                print(f"Failure at Src90: itx = {itx.wkt}")
+                print(f"Shot: {shot.wkt}")
+                print(f"Ridge: {ridge.wkt}")
+                print("")
             return Point()
 
     def dest90(self, p1: Point, r2: LineString, dev_from_90: float) -> Point:
@@ -442,19 +443,19 @@ class h74_transect_constructor:
         # Get midpoint coords where int_angle is smallest
         mid = Point(b[min_idx])
 
-        # Print Feedback
-        if self.feedback_state == "v":
+        # Print n2 info if verbose output
+        if self.verbose == 2:
             print(
                 f"n2 candidate:\t ANGLE: {beta[min_idx] * (180 / np.pi) :.2f}° (dev={dev[min_idx] :.2f}°)\t COORDS: {tuple(b[min_idx])}"
             )
 
         # Determine if deviance from 90° is acceptable
         if dev[min_idx] < dev_from_90:
-            if self.feedback_state == "v":
+            if self.verbose == 2:
                 print("Successfully created n2 point")
             return mid
         else:
-            if self.feedback_state == "v":
+            if self.verbose == 2:
                 print(
                     f"N2 point creation failed. Angle between ridge at n2 and line n2->p1 is not close enough to 90 (dev={dev[min_idx]:.2f}, tol={dev_from_90}); returned empty Point"
                 )
@@ -483,7 +484,8 @@ class h74_transect_constructor:
                 [Point(i) for i in itx.geoms], key=lambda x: self.p1.distance(x)
             )[0]
         else:
-            print(f"Result_coord: {itx.wkt}")
+            if self.verbose == 2:
+                print(f"Result_coord: {itx.wkt}")
             return Point()
 
     def walk_transect(self) -> h74_transect:
@@ -491,8 +493,8 @@ class h74_transect_constructor:
         Iteratively walk the transect up the ridge field. Objects `self.r1` and `self.p1` are set in __init__ as
         the centerline and point on the centerline, respectively.
         """
-
-        print(f"\n--- Walking Transect {self.transect.ID} ---")
+        if self.verbose == 2:
+            print(f"\n--- Walking Transect {self.transect.ID} ---")
         # Walk state controls the iteration - when false, stop iterating the transect
         while self.walk_state:
             # TODO: develop more robust error handling
@@ -524,9 +526,10 @@ class h74_transect_constructor:
                 if self.r2.is_empty:
                     self.walk_state = False
                     self.transect.termination_reason = "Failed ridge itx"
-                    print(
-                        f"TRANSECT TERMINATED (iter={self.iteration}): n1 shot failed to intersect any more ridges."
-                    )
+                    if self.verbose == 2:
+                        print(
+                            f"TRANSECT TERMINATED (iter={self.iteration}): n1 shot failed to intersect any more ridges."
+                        )
 
                 else:
                     # We do have r2, so we can calculate n1
@@ -539,9 +542,10 @@ class h74_transect_constructor:
                     if n2.is_empty:
                         self.walk_state = False
                         self.transect.termination_reason = "Failed n2 creation"
-                        print(
-                            f"TRANSECT TERMINATED (iter={self.iteration}): Failed to create n2 within a deviance of {self.dev_from_90 :.1f}°"
-                        )
+                        if self.verbose == 2:
+                            print(
+                                f"TRANSECT TERMINATED (iter={self.iteration}): Failed to create n2 within a deviance of {self.dev_from_90 :.1f}°"
+                            )
                     else:
                         # Append n2 coord to list now that we know it's valid
                         self.transect.n2_coord_list.append(n2)
@@ -553,16 +557,16 @@ class h74_transect_constructor:
                         self.transect.p2_coord_list.append(p2)
 
                         # Print iteration results
-                        print(
-                            f"Iteration {self.iteration :02} result: [n1: {n1}, n2: {n2}, p2: {p2}]"
-                        )
+                        if self.verbose == 2:
+                            print(
+                                f"Iteration {self.iteration :02} result: [n1: {n1}, n2: {n2}, p2: {p2}]"
+                            )
 
                         # Append coordinates, reset ridges and points
                         self.transect.coord_list.append(p2)
                         self.r1 = self.r2
                         self.p1 = p2
                         self.r2 = self.n1 = self.n2 = None
-                        # print(f"{self.transect.ID} (iter={self.iteration:03}): {LineString(self.transect.coord_list).wkt}", end="\r")
 
                         # Update the iteration count for this transect
                         self.iteration += 1
@@ -571,16 +575,18 @@ class h74_transect_constructor:
                 if self.iteration > self.max_iterations:
                     self.walk_state = False
                     self.transect.termination_reason = "Iteration limit"
-                    print(
-                        f"TRANSECT TERMINATED: Iteration counter reached iteration cap (max_iter={self.max_iterations})"
-                    )
+                    if self.verbose == 2:
+                        print(
+                            f"TRANSECT TERMINATED: Iteration counter reached iteration cap (max_iter={self.max_iterations})"
+                        )
 
             except Exception as error:
                 self.walk_state = False
                 self.transect.termination_reason = "Unknown"
-                print(
-                    f"TRANSECT TERMINATED: The following error occured: `{type(error).__name__}: {error}`"
-                )
+                if self.verbose == 2:
+                    print(
+                        f"TRANSECT TERMINATED: The following error occured: `{type(error).__name__}: {error}`"
+                    )
 
         # Replace linestring coordinates if transect does leave the centerline
         if self.iteration > 0:
@@ -600,8 +606,8 @@ class MultiTransect:
         shoot_distance,
         search_distance,
         dev_from_90,
-        user_direction=None,
-        feedback="t",
+        user_direction = None,
+        verbose: int = 1,
     ):
         self.coord_list = coord_list
         self.centerline = centerline
@@ -610,7 +616,7 @@ class MultiTransect:
         self.search_distance = search_distance
         self.dev_from_90 = dev_from_90
         self.user_direction = user_direction
-        self.feedback = feedback
+        self.verbose = verbose
         self.crs = self.centerline.crs
 
         # List to contain generated transects
@@ -645,7 +651,7 @@ class MultiTransect:
                 self.search_distance,
                 self.dev_from_90,
                 self.user_direction,
-                self.feedback,
+                self.verbose,
             )
 
             # Walk transect up the ridges
