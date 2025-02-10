@@ -21,9 +21,9 @@ authors:
     orcid: 0000-0002-7268-2974
     affiliation: '1'
 affiliations:
-- name: Texas A&M University, United States
+- name: Department of Geography, Texas A&M University, United States
   index: '1'
-date: 30 January 2025
+date: 14 February 2025
 bibliography: paper.bib
 
 ---
@@ -48,6 +48,6 @@ The intersections of migration pathways and ridge lines form a migrationally rel
 ![Measures of ridge amplitude (orange), width (purple), and spacing (green) are shown at the intersection, ridge, and migration pathway scales. Aggregate values represent the medain value of each measurement taken at a ridge or migration pathway.\label{fig:figure4}](figs/example_output.png)
 
 # Acknowledgements
-We would like to acknowledge and thank the other members of the FLUD Lab for their help and feedback through the process of conceptualization, development, and testing for ScrollStats. Without their support, this tool would not be what it is today. 
+This work was supported by the T3 Triads for Transformation Program, Texas A&M University. We would also like to acknowledge and thank the other members of the FLUD Lab for their help and feedback through the process of conceptualization, development, and testing for ScrollStats. Without their support, this tool would not be what it is today. 
 
 # References 
