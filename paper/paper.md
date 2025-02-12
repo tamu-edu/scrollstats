@@ -14,7 +14,7 @@ authors:
   - name: Billy Hales
     orcid: 0000-0002-6591-9363 
     affiliation: '1'
-  - name: Andrew Moodie
+  - name: Andrew J. Moodie
     orcid: 0000-0002-6745-036X
     affiliation: '1'
   - name: İnci Güneralp 
