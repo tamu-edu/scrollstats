@@ -83,6 +83,8 @@ addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
 xfail_strict = true
 filterwarnings = [
   "error",
+  "ignore::DeprecationWarning",
+  "ignore::rasterio.errors.NotGeoreferencedWarning",
 ]
 log_cli_level = "INFO"
 testpaths = [
