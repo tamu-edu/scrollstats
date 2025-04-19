@@ -12,3 +12,4 @@ dependencies:
   - numba
   - pytest
   - tqdm
+  - nox
