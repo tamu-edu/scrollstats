@@ -29,7 +29,14 @@ classifiers = [
   "Typing :: Typed",
 ]
 dynamic = ["version"]
-dependencies = []
+dependencies = [
+  "geopandas",
+  "matplotlib",
+  "scipy",
+  "rasterio",
+  "numba",
+  "tqdm"
+  ]
 
 [project.optional-dependencies]
 test = [
