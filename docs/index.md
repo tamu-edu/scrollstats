@@ -3,7 +3,9 @@
 ```{toctree}
 :maxdepth: 2
 :hidden:
+:caption: API
 
+api/scrollstats
 ```
 
 ```{include} ../README.md
