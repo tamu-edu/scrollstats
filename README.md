@@ -44,7 +44,7 @@ conda env create -f environment.yml
 
 # Using ScrollStats
 
-ScrollStats uses interactive jupyter notebooks as the user interface, however the underlying [scripting library](scrollstats) can also be used on its own. Example usage of ScrollStats has been broken up in the three following notebooks:
+ScrollStats uses interactive jupyter notebooks as the user interface, however the underlying [scripting library](src/scrollstats) can also be used on its own. Example usage of ScrollStats has been broken up in the three following notebooks:
 - [DelineateRidgeAreas.ipynb](DelineateRidgeAreas.ipynb)
 - [CreateVectorDatasets.ipynb](CreateVectorDatasets.ipynb)
 - [CalculateRidgeMetrics.ipynb](CalculateRidgeMetrics.ipynb)
