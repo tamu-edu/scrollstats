@@ -259,7 +259,7 @@ class RidgeDataExtractor:
         elif ridge_count >= 3 and swale_count >= 2:
             metric_confidence = 4
         else:
-            raise Exception(
+            raise ValueError(
                 f"Unexpected ridge-swale configuration in self.bool_mask. \
                             \n{self.bool_mask=} \
                             \n{ridge_count=} \
@@ -324,7 +324,7 @@ class RidgeDataExtractor:
         ## If the first swale area was disqualified (if self.position==0), then self.bool_mask
         ## was cropped and the ridge_com indices need to be adjusted by the distance of that dq'd swale.
         ## If first swale wasn't disqualified, then the adjustment is 0
-        bin = self.bool_mask
+        b = self.bool_mask
         ridge_midpoints = np.flatnonzero(self.ridge_com) + self.swale_dq_adjustment
 
         # Find the closest ridge
@@ -333,7 +333,7 @@ class RidgeDataExtractor:
         self.single_ridge_num = closest_ridge_num
 
         # Erase all ridges that are not closest
-        label, num_feats = ndimage.label(bin)
+        label, _num_feats = ndimage.label(b)
         single_ridge = (label == closest_ridge_num + 1).astype(float)
 
         return single_ridge
@@ -551,7 +551,7 @@ class TransectDataExtractor:
         """Calculate the distance between the substring coordinates relative to the length of the whole line."""
         bucket = []
 
-        for i, row in gdf[["substring_geometry", "start_distances"]].iterrows():
+        for _i, row in gdf[["substring_geometry", "start_distances"]].iterrows():
             geom, dist = row
             relative_distances = self.calc_relative_vertex_distances(geom, dist)
             bucket.append(relative_distances)
@@ -675,7 +675,7 @@ class BendDataExtractor:
         """Counts ridges in binary waves."""
 
         mask = np.isnan(signal)
-        labs, numfeats = ndimage.label(signal[~mask])
+        _labs, numfeats = ndimage.label(signal[~mask])
 
         return numfeats
 
@@ -794,7 +794,7 @@ class BendDataExtractor:
         # Use TransectDataExtractor for every transect to create the itx dataframe
         tde_list = []
         pbar = tqdm(total=len(self.rich_transects), desc="Ridge Metrics", ascii=True)
-        for i, row in self.rich_transects[input_columns].iterrows():
+        for _i, row in self.rich_transects[input_columns].iterrows():
             tde = TransectDataExtractor(*row, ridges=self.ridges).calc_ridge_metrics()
             tde_list.append(tde)
             pbar.update()
