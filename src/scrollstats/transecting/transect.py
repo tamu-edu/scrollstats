@@ -1,13 +1,16 @@
+from __future__ import annotations
+
 from typing import Tuple
+
+import geopandas as gpd
 import numpy as np
 from shapely.geometry import (
-    Point,
     LineString,
-    MultiPoint,
     MultiLineString,
+    MultiPoint,
     MultiPolygon,
+    Point,
 )
-import geopandas as gpd
 from tqdm import tqdm
 
 
@@ -169,7 +172,6 @@ def direction_alpha_at_point(point: Point, line: LineString) -> tuple:
 
 class h74_transect:
     def __init__(self, origin: Point, ID=None) -> None:
-
         # Initial information for the transect
         self.origin = Point(origin)
         self.ID = ID
@@ -211,7 +213,6 @@ class h74_transect_constructor:
         user_direction=None,
         verbose: int = 1,
     ):
-
         # Transect values
         self.transect = h74_transect(origin, transect_id)
         self.origin = Point(origin)
@@ -286,12 +287,10 @@ class h74_transect_constructor:
         # Return the output_value corresponding to the shortest distance
         if any(itx_result):
             return output_values[itx_result][0]
-        else:
-            # If no intersection, then return 0 (tangent line)
-            return 0
+        # If no intersection, then return 0 (tangent line)
+        return 0
 
     def calc_dist_along_cl(self):
-
         # Get distance along centerline at transect origin
         dist = calc_dist_along_line(self.centerline)
         idx = find_closest_idx(self.origin, self.centerline)
@@ -317,7 +316,6 @@ class h74_transect_constructor:
 
         # Return None if itx is empty
         if not itx.is_empty:
-
             # Feature maybe a single point, Multipoint, or geometry collection
             try:
                 itx = MultiPoint(itx.coords)
@@ -350,8 +348,7 @@ class h74_transect_constructor:
 
             return ridge_clip
 
-        else:
-            return LineString()
+        return LineString()
 
     def shoot_point(self, p1: Point, r1: LineString, dist: float) -> Point:
         """
@@ -400,18 +397,17 @@ class h74_transect_constructor:
 
         if itx.geom_type == "Point":
             return itx
-        elif itx.geom_type == "MultiPoint":
+        if itx.geom_type == "MultiPoint":
             # Shot may intersect ridge piece more than once within the search buffer
             return sorted(
                 [Point(i) for i in itx.geoms], key=lambda x: self.p1.distance(x)
             )[0]
-        else:
-            if self.verbose == 2:
-                print(f"Failure at Src90: itx = {itx.wkt}")
-                print(f"Shot: {shot.wkt}")
-                print(f"Ridge: {ridge.wkt}")
-                print("")
-            return Point()
+        if self.verbose == 2:
+            print(f"Failure at Src90: itx = {itx.wkt}")
+            print(f"Shot: {shot.wkt}")
+            print(f"Ridge: {ridge.wkt}")
+            print("")
+        return Point()
 
     def dest90(self, p1: Point, r2: LineString, dev_from_90: float) -> Point:
         """
@@ -447,7 +443,7 @@ class h74_transect_constructor:
         # Print n2 info if verbose output
         if self.verbose == 2:
             print(
-                f"n2 candidate:\t ANGLE: {beta[min_idx] * (180 / np.pi) :.2f}° (dev={dev[min_idx] :.2f}°)\t COORDS: {tuple(b[min_idx])}"
+                f"n2 candidate:\t ANGLE: {beta[min_idx] * (180 / np.pi):.2f}° (dev={dev[min_idx]:.2f}°)\t COORDS: {tuple(b[min_idx])}"
             )
 
         # Determine if deviance from 90° is acceptable
@@ -455,12 +451,11 @@ class h74_transect_constructor:
             if self.verbose == 2:
                 print("Successfully created n2 point")
             return mid
-        else:
-            if self.verbose == 2:
-                print(
-                    f"N2 point creation failed. Angle between ridge at n2 and line n2->p1 is not close enough to 90 (dev={dev[min_idx]:.2f}, tol={dev_from_90}); returned empty Point"
-                )
-            return Point()
+        if self.verbose == 2:
+            print(
+                f"N2 point creation failed. Angle between ridge at n2 and line n2->p1 is not close enough to 90 (dev={dev[min_idx]:.2f}, tol={dev_from_90}); returned empty Point"
+            )
+        return Point()
 
     def result_coord(
         self, p1: Point, src90: Point, dest90: Point, r2: LineString
@@ -479,15 +474,14 @@ class h74_transect_constructor:
 
         if itx.geom_type == "Point":
             return itx
-        elif itx.geom_type == "MultiPoint":
+        if itx.geom_type == "MultiPoint":
             # Shot may intersect ridge piece more than once within the search buffer
             return sorted(
                 [Point(i) for i in itx.geoms], key=lambda x: self.p1.distance(x)
             )[0]
-        else:
-            if self.verbose == 2:
-                print(f"Result_coord: {itx.wkt}")
-            return Point()
+        if self.verbose == 2:
+            print(f"Result_coord: {itx.wkt}")
+        return Point()
 
     def walk_transect(self) -> h74_transect:
         """
@@ -504,7 +498,6 @@ class h74_transect_constructor:
             try:
                 # Calculate initial shot from r1 - different shoot method when shooting from centerline vs ridge
                 if self.iteration == 0:
-
                     # Calculate the initial shot, see if it intersects a ridge
                     shot_point = self.shoot_point(self.p1, self.r1, self.shoot_distance)
                     shot = LineString([self.p1, shot_point])
@@ -545,7 +538,7 @@ class h74_transect_constructor:
                         self.transect.termination_reason = "Failed n2 creation"
                         if self.verbose == 2:
                             print(
-                                f"TRANSECT TERMINATED (iter={self.iteration}): Failed to create n2 within a deviance of {self.dev_from_90 :.1f}°"
+                                f"TRANSECT TERMINATED (iter={self.iteration}): Failed to create n2 within a deviance of {self.dev_from_90:.1f}°"
                             )
                     else:
                         # Append n2 coord to list now that we know it's valid
@@ -560,7 +553,7 @@ class h74_transect_constructor:
                         # Print iteration results
                         if self.verbose == 2:
                             print(
-                                f"Iteration {self.iteration :02} result: [n1: {n1}, n2: {n2}, p2: {p2}]"
+                                f"Iteration {self.iteration:02} result: [n1: {n1}, n2: {n2}, p2: {p2}]"
                             )
 
                         # Append coordinates, reset ridges and points
@@ -598,7 +591,6 @@ class h74_transect_constructor:
 
 
 class MultiTransect:
-
     def __init__(
         self,
         coord_list,
@@ -607,7 +599,7 @@ class MultiTransect:
         shoot_distance,
         search_distance,
         dev_from_90,
-        user_direction = None,
+        user_direction=None,
         verbose: int = 1,
     ):
         self.coord_list = coord_list
@@ -641,8 +633,14 @@ class MultiTransect:
 
         # Create a transect for each coord in `self.coord_list`
         transect_list = []
-        for i, coord in enumerate(tqdm(self.coord_list, desc = "Generate Transects", ascii = True, disable = (self.verbose!=1))):
-
+        for i, coord in enumerate(
+            tqdm(
+                self.coord_list,
+                desc="Generate Transects",
+                ascii=True,
+                disable=(self.verbose != 1),
+            )
+        ):
             const = h74_transect_constructor(
                 coord,
                 f"t_{i:03}",
@@ -697,7 +695,6 @@ class MultiTransect:
         return df
 
     def create_point_df(self):
-
         # Loop through all the transects which left the centerline to create the row
         row_list = []
 
@@ -738,7 +735,6 @@ class MultiTransect:
         return df
 
     def create_search_area_df(self):
-
         row_list = []
 
         for transect in self.transect_list:
@@ -769,7 +765,6 @@ class MultiTransect:
         return df
 
     def create_ridge_clip_df(self):
-
         row_list = []
 
         for transect in self.transect_list:

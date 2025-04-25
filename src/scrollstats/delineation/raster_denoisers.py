@@ -8,6 +8,8 @@ Denoiser functions take a BinaryArray2D and any other kwargs as input and return
 
 """
 
+from __future__ import annotations
+
 import numpy as np
 from scipy import ndimage
 
@@ -15,14 +17,16 @@ from .array_types import BinaryArray2D, BinaryDenoiserFn
 
 
 # Denoiser functions
-def binary_flipper(binary_array:BinaryArray2D, func:BinaryDenoiserFn) -> BinaryArray2D:
-
+def binary_flipper(
+    binary_array: BinaryArray2D, func: BinaryDenoiserFn
+) -> BinaryArray2D:
     out_array = func(binary_array)
     out_array = ~func(~out_array)
 
     return out_array
 
-def remove_small_feats(img:BinaryArray2D, size:int) -> BinaryArray2D:
+
+def remove_small_feats(img: BinaryArray2D, size: int) -> BinaryArray2D:
     """
     Removes any patch/feature in a binary image that is below a certian size (measured in px)
     """
@@ -45,7 +49,9 @@ def remove_small_feats(img:BinaryArray2D, size:int) -> BinaryArray2D:
     return label.astype(bool)
 
 
-def remove_small_feats_w_flip(img:BinaryArray2D, small_feats_size:int) -> BinaryArray2D:
+def remove_small_feats_w_flip(
+    img: BinaryArray2D, small_feats_size: int
+) -> BinaryArray2D:
     """
     Apply `remove_small_feats` to the ridge areas, then flip the values in the binary array to apply `remove_small_feats` to the swale areas
     """
@@ -55,9 +61,8 @@ def remove_small_feats_w_flip(img:BinaryArray2D, small_feats_size:int) -> Binary
     return out_array
 
 
-
 DEFAULT_DENOISERS = (
     ndimage.binary_closing,
     ndimage.binary_opening,
-    remove_small_feats_w_flip
+    remove_small_feats_w_flip,
 )

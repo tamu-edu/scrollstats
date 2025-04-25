@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import numpy as np
-from shapely.geometry import LineString
 from geopandas import GeoDataFrame
 from scipy.interpolate import CubicSpline
+from shapely.geometry import LineString
 
 
 class LineSmoother:

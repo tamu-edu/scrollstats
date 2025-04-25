@@ -1,42 +1,42 @@
-from typing import Callable, Tuple, Dict
-from functools import partial
-from pathlib import Path
-from inspect import signature
+from __future__ import annotations
 
+from functools import partial
+from inspect import signature
+from pathlib import Path
+from typing import Callable, Dict, Tuple
+
+import geopandas as gpd
 import numpy as np
 import rasterio
 import rasterio.mask
-import geopandas as gpd
 from shapely.geometry import Polygon
 
 from .array_types import (
-    Array2D, 
-    ElevationArray2D, 
+    Array2D,
     BinaryArray2D,
     BinaryClassifierFn,
-    BinaryDenoiserFn
+    BinaryDenoiserFn,
+    ElevationArray2D,
 )
-
 from .raster_classifiers import DEFAULT_CLASSIFIERS
 from .raster_denoisers import DEFAULT_DENOISERS
 
 
-def clip_raster(ds:rasterio.DatasetReader, geometry:Polygon, array=None, no_data=None) -> Tuple[ElevationArray2D, BinaryArray2D, Dict]:
-
+def clip_raster(
+    ds: rasterio.DatasetReader, geometry: Polygon, array=None, no_data=None
+) -> Tuple[ElevationArray2D, BinaryArray2D, Dict]:
     # Replace optional values
     if isinstance(array, np.ndarray):
         array_copy = array.copy()
     else:
         array_copy = ds.read(1)
-    
+
     if not no_data:
         no_data = ds.nodata
 
     # For cropped_mask, True is area outside of geometry
-    clipped_mask, transform, window= rasterio.mask.raster_geometry_mask(
-        dataset=ds,
-        shapes=[geometry],
-        crop=True
+    clipped_mask, transform, window = rasterio.mask.raster_geometry_mask(
+        dataset=ds, shapes=[geometry], crop=True
     )
 
     # Update size, transform, and nodata value for output raster
@@ -53,7 +53,7 @@ def clip_raster(ds:rasterio.DatasetReader, geometry:Polygon, array=None, no_data
 
     # Crop array
     array_clip = array_copy[window.toslices()]
-    
+
     # Fill no_data values for output array
     # Only 0s are falsy, so any other number (including np.nan) will evaluate to True in boolean arrays.
     # So, we need to explicitly set the fill value as False for boolean arrays.
@@ -66,53 +66,55 @@ def clip_raster(ds:rasterio.DatasetReader, geometry:Polygon, array=None, no_data
     return array_clip, clipped_mask, clipped_meta
 
 
-def partial_from_kwargs(func:Callable, **kwargs) -> Callable:
-    """Create a partial function from all of the kwargs that are found in the function's signature """
+def partial_from_kwargs(func: Callable, **kwargs) -> Callable:
+    """Create a partial function from all of the kwargs that are found in the function's signature"""
     sig = signature(func)
-    args = {p:kwargs.get(p) for p in sig.parameters if kwargs.get(p)}
+    args = {p: kwargs.get(p) for p in sig.parameters if kwargs.get(p)}
     return partial(func, **args)
 
 
-def create_ridge_area_raster(dem_ds:rasterio.DatasetReader, 
-                             geometry:Polygon, 
-                             classifier_funcs:Tuple[BinaryClassifierFn] = DEFAULT_CLASSIFIERS,
-                             denoiser_funcs:Tuple[BinaryDenoiserFn] = DEFAULT_DENOISERS,
-                             no_data_value = None,
-                             **kwargs) -> tuple[Array2D, ElevationArray2D, Dict]:
+def create_ridge_area_raster(
+    dem_ds: rasterio.DatasetReader,
+    geometry: Polygon,
+    classifier_funcs: Tuple[BinaryClassifierFn] = DEFAULT_CLASSIFIERS,
+    denoiser_funcs: Tuple[BinaryDenoiserFn] = DEFAULT_DENOISERS,
+    no_data_value=None,
+    **kwargs,
+) -> tuple[Array2D, ElevationArray2D, Dict]:
     """
     Main processing function to create the ridge area raster.
 
     This function uses the provided classifier_funcs and denoiser_funcs to classify the ridge and swale areas within the input DEM.
-    
+
     Ridge Area Classification:
     --------------------------
     By default, scrollstats uses profile curvature (a measure of ridge convexity) and residual topography (a measure of ridge prominence) to classify ridge areas.
     Each classifier function is applied to the DEM, then the union of all the resulting binary arrays will be used for denoising.
     This means that the more classifier functions you use, the more conservative, but ideally more accurate, your ridge areas will be.
-    
+
     If the user desires, they can provide thier own classifier functions so long as the functions follow the pattern below
 
         classifier_func(ElevationArray2D, **kwargs) -> BinaryArray2D
-    
+
     See scrollstats/delineation/raster_classifiers.py for the DEFAULT_CLASSIFIERS list of functions and their definitions.
-        
+
     Clip Ridge and Swale Topography:
     --------------------------------
     In order to avoid edge-effects from the classifier functions, the area corresponding to the ridge and swale topography will be clipped from a larger DEM.
     The nodata value for the input DEM will be used unless no_data_value is specified.
-    
+
     Image Denoising:
     ----------------
-    Once the ridge areas are classified within the DEM as a binary array (1=ridge, 0=swale), scrollstats uses a series of denoising algorithms to clean up the result. 
+    Once the ridge areas are classified within the DEM as a binary array (1=ridge, 0=swale), scrollstats uses a series of denoising algorithms to clean up the result.
     By default, scrollstats uses binary closing and binary opening operations to efficiently remove small objects from the binary image, then it uses another filter to remove of any remaining image object smaller than a certian size (measured in px).
     Each classifier function is applied to the binary array in sequence, meaning that the output of the first classifier function is the input of the second, and so on.
     Therefore, a different ordering of the same list of denoiser functions may yeild a different result.
-    
+
     If the user desires, they can provide their own denoiser functions so long as the functions follow the pattern below
-    
+
         denoiser_func(BinarryArray2D, **kwargs) -> BinaryArray2D
-    
-    See scrollstats/delineation/raster_denoisers.py for the DEFAULT_DENOISERS list of functions their definitions. 
+
+    See scrollstats/delineation/raster_denoisers.py for the DEFAULT_DENOISERS list of functions their definitions.
 
     Keyword Arguments for Image Processing Functions:
     -------------------------------------------------
@@ -128,14 +130,14 @@ def create_ridge_area_raster(dem_ds:rasterio.DatasetReader,
     if not no_data_value:
         no_data_value = dem_ds.nodata
 
-    # Set temporary nodata values to absurd real number value for classifier functions which 
+    # Set temporary nodata values to absurd real number value for classifier functions which
     # may have mathematical errors with infinite values (np.nan)
     if np.isnan(dem_ds.nodata):
         no_data_mask = np.isnan(dem_ds.read(1))
     else:
         no_data_mask = dem == dem_ds.nodata
     dem[no_data_mask] = -99999
-    
+
     # Classify the ridge and swale areas within the DEM with the provided classifier functions
     ## `partial_from_kwargs` creates a partial function which fills the parameters of each classifier function (except for the dem) from kwargs.
     ## This allows for us to simply loop over all of the classifier functions (which must return a BinarryArray2D) and apply them to the DEM
@@ -147,8 +149,12 @@ def create_ridge_area_raster(dem_ds:rasterio.DatasetReader,
         binary_array = transform & binary_array
 
     # Clip the DEM and Binary array to the bounds of the ridge and swale area
-    dem_clip, _dem_mask, _dem_meta = clip_raster(dem_ds, geometry, no_data=no_data_value)
-    binary_clip, binary_mask, binary_meta = clip_raster(dem_ds, geometry, array=binary_array, no_data=no_data_value)
+    dem_clip, _dem_mask, _dem_meta = clip_raster(
+        dem_ds, geometry, no_data=no_data_value
+    )
+    binary_clip, binary_mask, binary_meta = clip_raster(
+        dem_ds, geometry, array=binary_array, no_data=no_data_value
+    )
 
     # Denoise the clipped binary array with the provided denoiser functions
     ## The denoiser functions are chained so that the output of the first is the input of the second and so on, so their order is important
@@ -156,16 +162,21 @@ def create_ridge_area_raster(dem_ds:rasterio.DatasetReader,
         partial_func = partial_from_kwargs(func, **kwargs)
         binary_clip = partial_func(binary_clip)
 
-    # Cast to float so that np.nan (or other floating point value) can be assigned as nodata value 
+    # Cast to float so that np.nan (or other floating point value) can be assigned as nodata value
     binary_clip = binary_clip.astype(float)
     binary_clip[binary_mask] = binary_meta["nodata"]
 
     return binary_clip, dem_clip, binary_meta
 
 
-def create_ridge_area_raster_fs(dem_path:Path, geometry_path:Path, out_dir:Path, bend_id_dict:Dict = None, **kwargs) -> Tuple[Path, Path]:
+def create_ridge_area_raster_fs(
+    dem_path: Path,
+    geometry_path: Path,
+    out_dir: Path,
+    bend_id_dict: Dict = None,
+    **kwargs,
+) -> Tuple[Path, Path]:
     """File system interface for create_ridge_area_raster"""
-
 
     # create output folder if not exists
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -178,12 +189,10 @@ def create_ridge_area_raster_fs(dem_path:Path, geometry_path:Path, out_dir:Path,
         geometry = gdf.set_index(col).loc[bend_id, "geometry"]
     else:
         geometry = gdf.loc[0, "geometry"]
-    
+
     with rasterio.open(dem_path) as src:
         ridge_area_raster, cropped_dem, cropped_meta = create_ridge_area_raster(
-            dem_ds = src,
-            geometry=geometry,
-            **kwargs
+            dem_ds=src, geometry=geometry, **kwargs
         )
 
         # Write arrays to disk

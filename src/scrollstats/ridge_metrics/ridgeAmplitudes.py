@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 from typing import List
 
 import numpy as np
 from scipy import ndimage
-import geopandas as gpd
 
 
 def calc_ridge_maxes(dem_sig, mask):

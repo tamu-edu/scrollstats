@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import geopandas as gpd
 import rasterio
+
 from .data_extractors import BendDataExtractor
 
 

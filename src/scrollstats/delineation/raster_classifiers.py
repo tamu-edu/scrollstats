@@ -7,16 +7,17 @@ Classifier functions take an ElevationArray2D and any other kwargs as input and 
     classifier_func(ElevationArray2D, **kwargs) -> BinaryArray2D
 """
 
+from __future__ import annotations
+
 import time
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import scipy
 from numba import jit
 from tqdm import tqdm
 
-from .array_types import Array2D, ElevationArray2D, BinaryArray2D
-
+from .array_types import Array2D, BinaryArray2D, ElevationArray2D
 
 ########
 ##
@@ -214,8 +215,7 @@ def quadratic_planform_curvature(
 
     if return_coefficients_matrix:
         return domain_plan_curv, coefficients_matrix
-    else:
-        return domain_plan_curv
+    return domain_plan_curv
 
 
 def quadratic_profile_curvature(
@@ -285,8 +285,7 @@ def quadratic_profile_curvature(
 
     if return_coefficients_matrix:
         return domain_prof_curv, coefficients_matrix
-    else:
-        return domain_prof_curv
+    return domain_prof_curv
 
 
 def _find_weight(wsize, exponent):
@@ -488,7 +487,7 @@ def residual_topography(dem: ElevationArray2D, w: int) -> Array2D:
     rt = dem - padded_means
 
     t2 = time.time()
-    print(f"Residual Topography: Complete ({round(t2-t1, 1)}s elapsed)")
+    print(f"Residual Topography: Complete ({round(t2 - t1, 1)}s elapsed)")
 
     return rt
 

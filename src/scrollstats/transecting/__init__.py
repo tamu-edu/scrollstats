@@ -1,3 +1,3 @@
-from .transect import create_transects
-from .transect import MultiTransect
+from __future__ import annotations
 
+from .transect import MultiTransect, create_transects

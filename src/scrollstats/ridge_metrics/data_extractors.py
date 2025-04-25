@@ -9,13 +9,13 @@ Rules:
 
 """
 
-from typing import List
+from __future__ import annotations
 
+import geopandas as gpd
 import numpy as np
 import pandas as pd
-import geopandas as gpd
 from scipy import ndimage
-from shapely.geometry import Point, LineString
+from shapely.geometry import LineString, Point
 from tqdm import tqdm
 
 from .ridgeAmplitudes import calc_ridge_amps
@@ -64,7 +64,6 @@ def densify_line(line):
 
     # Break each line into its straight segments
     for seg in explode(line):
-
         # Densify segment and get coords
         coords = densify_segment(seg).coords
 
@@ -143,14 +142,12 @@ class RidgeDataExtractor:
         self.ridge_amp = self.determine_ridge_amp()
 
         self.gdf = self.coerce_dtypes(self.gdf)
-        pass
 
     def determine_signal_length(self):
         """Return length of dem/bin signal if provided"""
         if isinstance(self.bin_signal, np.ndarray):
             return self.dem_signal.size
-        else:
-            return np.nan
+        return np.nan
 
     def create_point_gdf(self):
         """Create a 3 point GeoDataFrame to contain all relevant info for other methods."""
@@ -420,7 +417,6 @@ class TransectDataExtractor:
     def __init__(
         self, transect_id, geometry, dem_signal=None, bin_signal=None, ridges=None
     ) -> None:
-
         # Inputs
         self.transect_id = transect_id
         self.geometry = geometry
@@ -597,7 +593,6 @@ class TransectDataExtractor:
         """
 
         for i, row in self.itx_gdf.iterrows():
-
             row[row.isna()] = None
             rde = RidgeDataExtractor(
                 row["substring_geometry"],
@@ -756,9 +751,7 @@ class BendDataExtractor:
 
         return dom_wav
 
-
     def calc_transect_metrics(self):
-
         rich_transects = self.transects.copy()
 
         if self.dem is not None:
@@ -780,9 +773,7 @@ class BendDataExtractor:
 
             rich_transects["fft_spacing"] = rich_transects[
                 ["ridge_count_raster", "bin_signal"]
-            ].apply(
-                lambda x: self.dominant_wavelength(*x), axis=1
-            )
+            ].apply(lambda x: self.dominant_wavelength(*x), axis=1)
 
         return rich_transects.sort_index()
 

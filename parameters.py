@@ -1,6 +1,8 @@
 # Contains global variables for convenient batch processing
 
 # Raster Processing Constants
+from __future__ import annotations
+
 RASTER_WINDOW_SIZE = 45  # Measured in img px
 SMALL_FEATS_SIZE = 500  # Measured in img px
 
