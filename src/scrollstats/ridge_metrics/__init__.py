@@ -6,4 +6,4 @@ from .data_extractors import (
     RidgeDataExtractor,
     TransectDataExtractor,
 )
-from .ridgeAmplitudes import calc_ridge_amps, map_amp_values
+from .ridge_amplitude import calc_ridge_amps, map_amp_values

@@ -18,7 +18,7 @@ from scipy import ndimage
 from shapely.geometry import LineString, Point
 from tqdm import tqdm
 
-from .ridgeAmplitudes import calc_ridge_amps
+from .ridge_amplitude import calc_ridge_amps
 
 
 def calc_dist(p1: np.array, p2: np.array) -> np.array:
