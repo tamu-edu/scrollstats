@@ -10,9 +10,9 @@ def calculate_ridge_metrics(
     in_transects, in_ridges, in_bin_raster=None, in_dem=None, in_packets=None
 ):
     """
-    Main funtion to calculate scroll metrics.
+    Main function to calculate scroll metrics.
 
-    If in_packets is specified, then all metrics for the rich_transects will be calcualted for the transect fragement within each packet.
+    If in_packets is specified, then all metrics for the rich_transects will be calculated for the transect fragment within each packet.
 
     All arguments can be provided as a file path or in-memory object (vector: GeoDataFrame, raster: rasterio dataset)
     """
