@@ -22,7 +22,7 @@ def curvature(line: LineString) -> Tuple[np.ndarray, np.ndarray]:
     dx = np.ediff1d(x)
     dy = np.ediff1d(y)
 
-    # Calcualte angle between the origin and the point (alpha)
+    # Calculate angle between the origin and the point (alpha)
     a = np.arctan2(dy, dx)
 
     # Calc change in alpha
@@ -585,7 +585,7 @@ class H74TransectConstructor:
                 self.transect.termination_reason = "Unknown"
                 if self.verbose == 2:
                     print(
-                        f"TRANSECT TERMINATED: The following error occured: `{type(error).__name__}: {error}`"
+                        f"TRANSECT TERMINATED: The following error occurred: `{type(error).__name__}: {error}`"
                     )
 
         # Replace linestring coordinates if transect does leave the centerline
@@ -817,7 +817,7 @@ def create_transects(
     centerline, ridges, step, shoot_distance, search_distance, dev_from_90
 ):
     """
-    Convenience function to create a series of transects from a given centerline, set of ridges, and the necessarry parameters.
+    Convenience function to create a series of transects from a given centerline, set of ridges, and the necessary parameters.
 
     Transects are created at the `step` provided by the user (ex. every nth vertex along the centerline).
     Centerline is assumed to have a vertex spacing of ~1m.
