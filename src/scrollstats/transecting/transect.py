@@ -175,6 +175,7 @@ class H74Transect:
     Instances of this class are used to retain information (ID, intermediate values, vertex coordinates, etc.) about a transect being created following the geometric methods described in Hickin 1974.
     Instances of this class are modified by the `H74TransectConstructor` class
     """
+
     def __init__(self, origin: Point, id=None) -> None:
         # Initial information for the transect
         self.origin = Point(origin)
@@ -494,7 +495,7 @@ class H74TransectConstructor:
         the centerline and point on the centerline, respectively.
         """
         if self.verbose == 2:
-            print(f"\n--- Walking Transect {self.transect.ID} ---")
+            print(f"\n--- Walking Transect {self.transect.id} ---")
         # Walk state controls the iteration - when false, stop iterating the transect
         while self.walk_state:
             # TODO: develop more robust error handling
@@ -602,9 +603,8 @@ class MultiTransect:
     The `create_transects` method is used to generate a GeoDataframe of transects.
     The `return_all_geometries` method returns the transects from `create_transects` as well as other intermediate geometries used in the creation of the transects. Useful for deubgging and plotting.
 
-    This class is used in the `create_transects` convenience function in the public API. 
+    This class is used in the `create_transects` convenience function in the public API.
     """
-
 
     def __init__(
         self,
@@ -722,7 +722,7 @@ class MultiTransect:
                 "p2_coords": MultiPoint(transect.p2_coord_list),
             }
 
-            for geom_type in geom_dict.keys():
+            for geom_type in geom_dict:
                 row = (
                     transect.ID,
                     geom_type,
