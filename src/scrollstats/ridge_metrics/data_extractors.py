@@ -630,7 +630,7 @@ class BendDataExtractor:
     def disqualify_coords(self, coord_array, raster):
         """
         Some coordinates may be out of the in_bin_raster.
-        This function disqualifies these coordinates and returns a boolean arry showing the location of all disqualified coordinates.
+        This function disqualifies these coordinates and returns a boolean array showing the location of all disqualified coordinates.
 
         Coordinates are checked to see if they are 1) negative, 2) too large in x, or 3) too large in y
         """
@@ -650,7 +650,7 @@ class BendDataExtractor:
 
     def sample_array(self, coord_array, raster):
         """
-        Takes in an array of image coordinats, samples the image, and returns the sampled values.
+        Takes in an array of image coordinates, samples the image, and returns the sampled values.
         Assumes that the coord array and in_bin_raster dataset share the same crs.
         """
         # Prep the coords
@@ -738,7 +738,7 @@ class BendDataExtractor:
         # Remove nans and zero values from signal
         real_signal = signal[~np.isnan(signal)] - 0.5
 
-        # Calcualte the fft
+        # Calculate the fft
         ## To see the power spectra, plot freq x amps as a line
         freq, amp = self.trans_fft(real_signal)
 
