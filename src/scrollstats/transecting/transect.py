@@ -172,14 +172,14 @@ def direction_alpha_at_point(point: Point, line: LineString) -> tuple:
 
 class H74Transect:
     """
-    Instances of this class are used to retain information (ID, intermediate values, vertex coordinates, etc.) about a transect being created following the geometric methods described in Hickin 1974.
+    Instances of this class are used to retain information (point ID, intermediate values, vertex coordinates, etc.) about a transect being created following the geometric methods described in Hickin 1974.
     Instances of this class are modified by the `H74TransectConstructor` class
     """
 
-    def __init__(self, origin: Point, id=None) -> None:
+    def __init__(self, origin: Point, point_id=None) -> None:
         # Initial information for the transect
         self.origin = Point(origin)
-        self.id = id
+        self.point_id = point_id
 
         # Coordinate lists as the transect walks up the floodplain
         self.coord_list = []
@@ -495,7 +495,7 @@ class H74TransectConstructor:
         the centerline and point on the centerline, respectively.
         """
         if self.verbose == 2:
-            print(f"\n--- Walking Transect {self.transect.id} ---")
+            print(f"\n--- Walking Transect {self.transect.point_id} ---")
         # Walk state controls the iteration - when false, stop iterating the transect
         while self.walk_state:
             # TODO: develop more robust error handling
@@ -680,7 +680,7 @@ class MultiTransect:
         for transect in self.transect_list:
             if transect.linestring:
                 row = (
-                    transect.ID,
+                    transect.point_id,
                     transect.distance_along_cl,
                     transect.linestring.length,
                     len(transect.linestring.coords),
@@ -724,7 +724,7 @@ class MultiTransect:
 
             for geom_type in geom_dict:
                 row = (
-                    transect.ID,
+                    transect.point_id,
                     geom_type,
                     self.shoot_distance,
                     self.search_distance,
@@ -755,7 +755,7 @@ class MultiTransect:
         for transect in self.transect_list:
             polys = MultiPolygon(transect.search_area_list)
             row = (
-                transect.ID,
+                transect.point_id,
                 "n2_search_area",
                 self.shoot_distance,
                 self.search_distance,
@@ -785,7 +785,7 @@ class MultiTransect:
         for transect in self.transect_list:
             lines = MultiLineString(transect.ridge_clip_list)
             row = (
-                transect.ID,
+                transect.point_id,
                 "ridge_clip",
                 self.shoot_distance,
                 self.search_distance,
