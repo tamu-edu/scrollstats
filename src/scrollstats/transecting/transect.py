@@ -170,11 +170,15 @@ def direction_alpha_at_point(point: Point, line: LineString) -> tuple:
 ########################################################################################################################
 
 
-class h74_transect:
-    def __init__(self, origin: Point, ID=None) -> None:
+class H74Transect:
+    """
+    Instances of this class are used to retain information (ID, intermediate values, vertex coordinates, etc.) about a transect being created following the geometric methods described in Hickin 1974.
+    Instances of this class are modified by the `H74TransectConstructor` class
+    """
+    def __init__(self, origin: Point, id=None) -> None:
         # Initial information for the transect
         self.origin = Point(origin)
-        self.ID = ID
+        self.id = id
 
         # Coordinate lists as the transect walks up the floodplain
         self.coord_list = []
@@ -191,10 +195,11 @@ class h74_transect:
         self.ridge_clip_list = []
 
         self.termination_point = None
+        self.termination_reason = None
         self.distance_along_cl = None
 
 
-class h74_transect_constructor:
+class H74TransectConstructor:
     """
     Takes a transect instance and builds the transect out with a given set of ridges and geometric parameters.
 
@@ -203,7 +208,7 @@ class h74_transect_constructor:
 
     def __init__(
         self,
-        origin: h74_transect,
+        origin: H74Transect,
         transect_id: str,
         centerline: LineString,
         ridges: MultiLineString,
@@ -214,7 +219,7 @@ class h74_transect_constructor:
         verbose: int = 1,
     ):
         # Transect values
-        self.transect = h74_transect(origin, transect_id)
+        self.transect = H74Transect(origin, transect_id)
         self.origin = Point(origin)
         self.centerline = centerline
         self.user_direction = user_direction
@@ -228,6 +233,8 @@ class h74_transect_constructor:
         self.p2 = None
         self.r1 = self.centerline
         self.r2 = None
+        self.n1 = None
+        self.n2 = None
 
         # State Variables
         self.walk_state = True
@@ -328,10 +335,10 @@ class h74_transect_constructor:
                 itx = MultiPoint(_points)
 
             # Find point nearest the start point
-            itx = sorted([p for p in itx.geoms], key=p1.distance)[0]
+            itx = sorted(list(itx.geoms), key=p1.distance)[0]
 
             # Isolate ridge closest to itx
-            iso_ridge = sorted([ridge for ridge in ridges.geoms], key=itx.distance)[0]
+            iso_ridge = sorted(list(ridges.geoms), key=itx.distance)[0]
 
             # Intersect ridge with itx buffered by the search distance
             search_area = itx.buffer(self.search_distance)
@@ -342,9 +349,7 @@ class h74_transect_constructor:
 
             # Isolate ridge piece that is closest to itx - assumes non-LineSting geoms are geometry collections
             if ridge_clip.geom_type != "LineString":
-                ridge_clip = sorted(
-                    [ridge for ridge in ridge_clip.geoms], key=itx.distance
-                )[0]
+                ridge_clip = sorted(list(ridge_clip.geoms), key=itx.distance)[0]
 
             return ridge_clip
 
@@ -383,7 +388,7 @@ class h74_transect_constructor:
         """
 
         # Determine alpha value of r1 nearest p1
-        direction, alpha = direction_alpha_at_point(p1, r1)
+        _direction, alpha = direction_alpha_at_point(p1, r1)
 
         # Calculate the next shot point
         shoot = add_sub_90(p0, p1, alpha, dist)
@@ -419,7 +424,7 @@ class h74_transect_constructor:
         """
 
         # Calc alpha for every midpoint
-        curv, alpha = curvature(r2)
+        _curv, alpha = curvature(r2)
         dxdy = calc_dxdy(alpha)
         endpoints = r2.xy + dxdy
 
@@ -483,7 +488,7 @@ class h74_transect_constructor:
             print(f"Result_coord: {itx.wkt}")
         return Point()
 
-    def walk_transect(self) -> h74_transect:
+    def walk_transect(self) -> H74Transect:
         """
         Iteratively walk the transect up the ridge field. Objects `self.r1` and `self.p1` are set in __init__ as
         the centerline and point on the centerline, respectively.
@@ -591,6 +596,16 @@ class h74_transect_constructor:
 
 
 class MultiTransect:
+    """
+    Creates multiple instances of `H74Transect` from a given centerline, ridge dataset, and other parameters.
+
+    The `create_transects` method is used to generate a GeoDataframe of transects.
+    The `return_all_geometries` method returns the transects from `create_transects` as well as other intermediate geometries used in the creation of the transects. Useful for deubgging and plotting.
+
+    This class is used in the `create_transects` convenience function in the public API. 
+    """
+
+
     def __init__(
         self,
         coord_list,
@@ -641,7 +656,7 @@ class MultiTransect:
                 disable=(self.verbose != 1),
             )
         ):
-            const = h74_transect_constructor(
+            const = H74TransectConstructor(
                 coord,
                 f"t_{i:03}",
                 centerline_ls,
@@ -707,14 +722,14 @@ class MultiTransect:
                 "p2_coords": MultiPoint(transect.p2_coord_list),
             }
 
-            for geom in geom_dict:
+            for geom_type in geom_dict.keys():
                 row = (
                     transect.ID,
-                    geom,
+                    geom_type,
                     self.shoot_distance,
                     self.search_distance,
                     self.dev_from_90,
-                    geom_dict[geom],
+                    geom_dict[geom_type],
                 )
                 row_list.append(row)
 
