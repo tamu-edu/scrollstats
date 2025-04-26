@@ -331,7 +331,7 @@ def _find_normal(weights, wsize, resoln):
     xy3, x3y = 0, 0
     x2y2 = 0
     xy = 0
-    N = 0
+    n = 0
 
     # Initialise sums-of-squares and cross products matrix
     normal = np.zeros((6, 6))
@@ -363,7 +363,7 @@ def _find_normal(weights, wsize, resoln):
             x1 += (x) * w
             y1 += (y) * w
 
-            N += cnt * w
+            n += cnt * w
             cnt += 1
 
     # store cross-product matrix elements
@@ -392,7 +392,7 @@ def _find_normal(weights, wsize, resoln):
     normal[4][4] = y2
     normal[4][5] = normal[5][4] = y1
 
-    normal[5][5] = N
+    normal[5][5] = n
 
     return normal
 
