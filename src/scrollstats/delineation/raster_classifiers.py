@@ -33,7 +33,7 @@ def _quadratic_coefficients_least_squares(
     Find the quadratic surface that fits the observations at all points in the domain.
 
     This is the real workhorse of the code, and it is separated out so that
-    the coefficients can be resued for different curvature metric
+    the coefficients can be reused for different curvature metric
     calculations, if desired.
     """
 
@@ -181,7 +181,7 @@ def quadratic_planform_curvature(
 
     coefficients_matrix : np.ndarray
         An array of same dimensions as elevation M x N x 6 (coefficients), which can
-        be reused for the various metric caclulations, rather than needting to
+        be reused for the various metric calculations, rather than needting to
         recalculate the coefficients each time.
 
     return_coefficients_matrix : bool
@@ -251,7 +251,7 @@ def quadratic_profile_curvature(
 
     coefficients_matrix : np.ndarray
         An array of same dimensions as elevation M x N x 6 (coefficients), which can
-        be reused for the various metric caclulations, rather than needting to
+        be reused for the various metric calculations, rather than needting to
         recalculate the coefficients each time.
 
     return_coefficients_matrix : bool
@@ -475,12 +475,12 @@ def residual_topography(dem: ElevationArray2D, w: int) -> Array2D:
     t1 = time.time()
 
     # Construct an array of processing windows from the input elevation array
-    kernal = np.lib.stride_tricks.sliding_window_view(dem, (w, w))
+    kernel = np.lib.stride_tricks.sliding_window_view(dem, (w, w))
 
     # Take the mean of each window
-    means = kernal.mean(axis=(2, 3))
+    means = kernel.mean(axis=(2, 3))
 
-    # `kernal` above only has the valid inner windows from the array, so `means` needs to be padded by w//2 all the way around
+    # `kernel` above only has the valid inner windows from the array, so `means` needs to be padded by w//2 all the way around
     padded_means = np.ones(dem.shape) * np.nan
     padded_means[w // 2 : -(w // 2), w // 2 : -(w // 2)] = means
 
