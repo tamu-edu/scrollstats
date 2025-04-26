@@ -49,10 +49,10 @@ def _quadratic_coefficients_least_squares(
     # perform the factorization that only needs to happen once
     if constrained:
         # perform LU decomp only using the first 5 coefficients
-        lu_A = scipy.linalg.lu_factor(normal[:-1, :-1])
+        lu_a = scipy.linalg.lu_factor(normal[:-1, :-1])
     else:
         # perform LU decomp using all 6 coefficients
-        lu_A = scipy.linalg.lu_factor(normal)
+        lu_a = scipy.linalg.lu_factor(normal)
 
     # preallocate the output coefficients array
     ncoeff = 5 if constrained else 6
@@ -72,7 +72,7 @@ def _quadratic_coefficients_least_squares(
             # solve system for quadratic
             if constrained:
                 ij_obs = ij_obs[:-1]
-            ij_coeff = scipy.linalg.lu_solve(lu_A, ij_obs)
+            ij_coeff = scipy.linalg.lu_solve(lu_a, ij_obs)
 
             coefficients_matrix[i, j, :] = ij_coeff
 
