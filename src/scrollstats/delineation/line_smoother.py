@@ -24,12 +24,12 @@ class LineSmoother:
         self.spacing = spacing
         self.window = window
 
-        # Preform checks on inputs
+        # Perform checks on inputs
         self.check_geometry_type()
         self.check_vertex_count()
 
     def check_geometry_type(self):
-        """Check that all geomerties are of type LineString"""
+        """Check that all geometries are of type LineString"""
         if any(self.lines.geom_type != "LineString"):
             raise ValueError(
                 "Not all geometries are of type LineString. Remove the non-LineString geometry from `lines`"
