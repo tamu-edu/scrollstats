@@ -28,7 +28,7 @@ def binary_flipper(
 
 def remove_small_feats(img: BinaryArray2D, size: int) -> BinaryArray2D:
     """
-    Removes any patch/feature in a binary image that is below a certian size (measured in px)
+    Removes any patch/feature in a binary image that is below a certain size (measured in px)
     """
     # Label all unique features in binary image
     label, _ = ndimage.label(img)
