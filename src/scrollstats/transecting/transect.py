@@ -817,7 +817,7 @@ def create_transects(
     centerline, ridges, step, shoot_distance, search_distance, dev_from_90
 ):
     """
-    Master function to create a series of transects from a given centerline, set of ridges, and the necessarry parameters.
+    Convenience function to create a series of transects from a given centerline, set of ridges, and the necessarry parameters.
 
     Transects are created at the `step` provided by the user (ex. every nth vertex along the centerline).
     Centerline is assumed to have a vertex spacing of ~1m.
@@ -831,7 +831,7 @@ def create_transects(
     )
 
     # Create all output geometries created during transect creation
-    transect_df, point_df, search_area_df, ridge_clip_df = (
+    transect_df, _point_df, _search_area_df, _ridge_clip_df = (
         transects.return_all_geometries()
     )
 
