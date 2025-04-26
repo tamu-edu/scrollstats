@@ -92,7 +92,7 @@ def create_ridge_area_raster(
     Each classifier function is applied to the DEM, then the union of all the resulting binary arrays will be used for denoising.
     This means that the more classifier functions you use, the more conservative, but ideally more accurate, your ridge areas will be.
 
-    If the user desires, they can provide thier own classifier functions so long as the functions follow the pattern below
+    If the user desires, they can provide their own classifier functions so long as the functions follow the pattern below
 
         classifier_func(ElevationArray2D, **kwargs) -> BinaryArray2D
 
@@ -106,9 +106,9 @@ def create_ridge_area_raster(
     Image Denoising:
     ----------------
     Once the ridge areas are classified within the DEM as a binary array (1=ridge, 0=swale), scrollstats uses a series of denoising algorithms to clean up the result.
-    By default, scrollstats uses binary closing and binary opening operations to efficiently remove small objects from the binary image, then it uses another filter to remove of any remaining image object smaller than a certian size (measured in px).
+    By default, scrollstats uses binary closing and binary opening operations to efficiently remove small objects from the binary image, then it uses another filter to remove of any remaining image object smaller than a certain size (measured in px).
     Each classifier function is applied to the binary array in sequence, meaning that the output of the first classifier function is the input of the second, and so on.
-    Therefore, a different ordering of the same list of denoiser functions may yeild a different result.
+    Therefore, a different ordering of the same list of denoiser functions may yield a different result.
 
     If the user desires, they can provide their own denoiser functions so long as the functions follow the pattern below
 
