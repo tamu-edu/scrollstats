@@ -60,7 +60,7 @@ class LineSmoother:
         ym = np.insert(ym, 0, y[0])
         ym = np.append(ym, y[-1])
 
-        return LineString([(x, y) for x, y in zip(xm, ym)])
+        return LineString(zip(xm, ym))
 
     def calc_dist(self, x, y):
         """Calc distance along the line"""
