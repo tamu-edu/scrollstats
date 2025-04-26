@@ -37,11 +37,11 @@ def remove_small_feats(img: BinaryArray2D, size: int) -> BinaryArray2D:
     feats, counts = np.unique(label, return_counts=True)
 
     # list of feat ids that are too small
-    ids = feats[counts < size]
+    feat_ids = feats[counts < size]
 
     # Wipe out patches with id that is in `ids` list
-    for id in ids:
-        label[label == id] = 0
+    for feat_id in feat_ids:
+        label[label == feat_id] = 0
 
     # Convert all labels to 1
     label[label != 0] = 1
