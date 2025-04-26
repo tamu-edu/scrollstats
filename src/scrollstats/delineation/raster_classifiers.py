@@ -136,7 +136,7 @@ def parameter_quadratic_profile_curvature(_coeff):
     -------
     Single parameter for local profile curvature.
     """
-    a, b, c, d, e, f = _unpack_coeff(_coeff)
+    a, b, c, d, e, _f = _unpack_coeff(_coeff)
 
     if (d == 0) and (e == 0):
         _curv_param = 0.0
