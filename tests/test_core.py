@@ -337,7 +337,7 @@ def test_ridge_data_extractor():
     ridges = data.generate_ridges()
 
     # RidgeDataExtractor calculates ridge metrics at the intersection of a single transect_substring and the ridge it intersects
-    ## Take the first 3 verticies of the first transect to form the transect_substring
+    ## Take the first 3 vertices of the first transect to form the transect_substring
     transect_substring = LineString(transects.loc[0, "geometry"].coords[:3])
     position = 1
 
