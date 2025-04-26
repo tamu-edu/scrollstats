@@ -170,4 +170,5 @@ messages_control.disable = [
 ]
 
 [tool.codespell]
-ignore-words-list = "FLUD" # lab acronym 
+skip = "*.ipynb" # notebook output cells have text fragments and images
+ignore-words-list = "FLUD" # lab acronym
