@@ -7,6 +7,7 @@ from pathlib import Path
 import geopandas as gpd
 import numpy as np
 import rasterio
+from rasterio.io import DatasetReader
 from shapely.geometry import LineString, Point
 
 from scrollstats import (
@@ -64,7 +65,7 @@ class MockRidgeData:
 
         return dem_2d
 
-    def generate_ridges(self):
+    def generate_ridges(self) -> gpd.GeoDataFrame:
         """Generate mock ridge lines with known spacing for testing"""
 
         r = {
@@ -80,7 +81,7 @@ class MockRidgeData:
         }
         return gpd.GeoDataFrame(data=r, geometry="geometry", crs=self.crs)
 
-    def generate_transects(self):
+    def generate_transects(self) -> gpd.GeoDataFrame:
         """Generate mock transects with known spacing for testing"""
 
         t = {
@@ -100,7 +101,7 @@ class MockRidgeData:
         }
         return gpd.GeoDataFrame(data=t, geometry="geometry", crs=self.crs)
 
-    def generate_bend_area(self):
+    def generate_bend_area(self) -> gpd.GeoDataFrame:
         """
         Generate a mock bend area polygon of a known area in the middle of the wave array.
         Return the bend area polygon as a GeoDataFrame
@@ -116,7 +117,7 @@ class MockRidgeData:
         b = {"bend_id": ["LBR_999"], "geometry": [circle]}
         return gpd.GeoDataFrame(data=b, geometry="geometry", crs=self.crs)
 
-    def generate_raster(self, array, no_data=None):
+    def generate_raster(self, array: np.ndarray, no_data=None) -> DatasetReader:
         """Create a rasterio.DatasetReader object from a 2D array"""
 
         # Write DEM to disk
@@ -139,7 +140,7 @@ class MockRidgeData:
         return out_ds
 
 
-def test_line_smoother_density():
+def test_line_smoother_density() -> None:
     """Ensure that LineSmoother generates LineStrings with a sufficient point density"""
 
     manual_ridges = gpd.read_file(MANUAL_RIDGE_PATH)
@@ -156,7 +157,7 @@ def test_line_smoother_density():
     assert all(deviance < tolerance)
 
 
-def test_quadratic_profile_curvature():
+def test_quadratic_profile_curvature() -> None:
     """Check that the profile curvature transformation accurately identifies ridge areas"""
     # Generate 2D cosine waves with known properties
     data = MockRidgeData()
@@ -177,7 +178,7 @@ def test_quadratic_profile_curvature():
     assert np.sum(accurate_swales) > 0.9 * accurate_swales.size
 
 
-def test_residual_topography():
+def test_residual_topography() -> None:
     """Check that the residual topography transformation accurately identifies ridge areas"""
     # Generate 2D cosine waves with known properties
     data = MockRidgeData()
@@ -199,7 +200,7 @@ def test_residual_topography():
     assert np.sum(accurate_swales) > 0.9 * accurate_swales.size
 
 
-def test_clip_raster():
+def test_clip_raster() -> None:
     """Test if the array window shrunk as a result of the clip and if all values outside to the geometry are cast to np.nan"""
     dem_ds = rasterio.open(DEM_PATH)
     gdf = gpd.read_file(BEND_PATH)
@@ -211,7 +212,7 @@ def test_clip_raster():
     assert np.all(np.isnan(array_clip[clipped_mask]))
 
 
-def test_create_ridge_area_raster():
+def test_create_ridge_area_raster() -> None:
     """
     Test the following aspects of the create_ridge_area_raster function:
         1. no data is set correctly
@@ -252,7 +253,7 @@ def test_create_ridge_area_raster():
         assert (binary_clip[no_data_area] == no_data_value).all()
 
 
-def test_create_ridge_area_raster_fs():
+def test_create_ridge_area_raster_fs() -> None:
     """
     Test that the file system interface for the create_ridge_area_raster function can matches the output from create_ridge_area_raster
     """
@@ -309,7 +310,7 @@ def test_create_ridge_area_raster_fs():
     assert np.array_equal(dem_from_disk, dem_from_mem, equal_nan=True)
 
 
-def test_create_transects():
+def test_create_transects() -> None:
     """Test that the transects intersect all of the ridges"""
 
     centerline = gpd.read_file(CENTERLINE_PATH)
@@ -327,7 +328,7 @@ def test_create_transects():
     assert [i for i in ridge_ids if i not in ridge_ids_from_itx] == []
 
 
-def test_ridge_data_extractor():
+def test_ridge_data_extractor() -> None:
     """Test that the RidgeDataExtractor calculates expected ridge width, amplitude, and spacing"""
 
     # Generate a 1D cosine wave with known properties
@@ -359,7 +360,7 @@ def test_ridge_data_extractor():
     assert rde_data["pre_mig_dist"] == data.wavelength
 
 
-def test_transect_data_extractor():
+def test_transect_data_extractor() -> None:
     """
     Test that the TransectDataExtractor calculates expected ridge width, amplitude, and spacing for an entire transect
 
@@ -387,7 +388,7 @@ def test_transect_data_extractor():
     assert all(transect_metrics["pre_mig_dist"] == data.wavelength)
 
 
-def test_bend_data_extractor():
+def test_bend_data_extractor() -> None:
     """
     Test that the BendDataExtractor calculates expected ridge width, amplitude, and spacing for an entire bend.
 
