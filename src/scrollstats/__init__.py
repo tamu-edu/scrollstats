@@ -8,7 +8,20 @@ from __future__ import annotations
 
 from ._version import version as __version__
 
-__all__ = ["__version__"]
+__all__ = [
+    "BendDataExtractor",
+    "LineSmoother",
+    "MultiTransect",
+    "RidgeDataExtractor",
+    "TransectDataExtractor",
+    "__version__",
+    "calc_ridge_amps",
+    "calculate_ridge_metrics",
+    "create_ridge_area_raster",
+    "create_ridge_area_raster_fs",
+    "create_transects",
+    "map_amp_values",
+]
 
 from .delineation import (
     LineSmoother,
