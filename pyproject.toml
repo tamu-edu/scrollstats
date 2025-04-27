@@ -111,9 +111,20 @@ disallow_untyped_defs = false
 disallow_incomplete_defs = false
 
 [[tool.mypy.overrides]]
-module = "scrollstats.*"
+module = [
+  "scrollstats.*",
+  "geopandas.*",
+  "numpy.*",
+  "shapely.geometry.*",
+  "tqdm.*",
+  "scipy.*",
+  "matplotlib.*",
+  "rasterio.*",
+  "numba.*"
+  ]
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
+ignore_missing_imports = true  # see https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports
 
 
 [tool.ruff]
