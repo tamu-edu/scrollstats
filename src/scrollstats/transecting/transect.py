@@ -722,14 +722,14 @@ class MultiTransect:
                 "p2_coords": MultiPoint(transect.p2_coord_list),
             }
 
-            for geom_type in geom_dict:
+            for geom_type, geom in geom_dict.items():
                 row = (
                     transect.point_id,
                     geom_type,
                     self.shoot_distance,
                     self.search_distance,
                     self.dev_from_90,
-                    geom_dict[geom_type],
+                    geom,
                 )
                 row_list.append(row)
 
