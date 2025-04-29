@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import geopandas as gpd
 import rasterio
 
@@ -7,8 +9,12 @@ from .data_extractors import BendDataExtractor
 
 
 def calculate_ridge_metrics(
-    in_transects, in_ridges, in_bin_raster=None, in_dem=None, in_packets=None
-):
+    in_transects: gpd.GeoDataFrame | Path,
+    in_ridges: gpd.GeoDataFrame | Path,
+    in_bin_raster: rasterio.io.DatasetReader | Path | None = None,
+    in_dem: rasterio.io.DatasetReader | Path | None = None,
+    in_packets: gpd.GeoDataFrame | Path | None = None,
+) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]:
     """
     Main function to calculate scroll metrics.
 
