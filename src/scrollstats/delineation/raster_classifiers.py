@@ -10,6 +10,7 @@ Classifier functions take an ElevationArray2D and any other kwargs as input and 
 from __future__ import annotations
 
 import time
+from collections.abc import Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -27,7 +28,11 @@ from .array_types import Array2D, BinaryArray2D, ElevationArray2D
 
 
 def _quadratic_coefficients_least_squares(
-    elevation, window, weighting_exponent, constrained, dx
+    elevation: np.ndarray,
+    window: float,
+    weighting_exponent: float,
+    constrained: bool,
+    dx: float,
 ) -> np.ndarray:
     """
     Find the quadratic surface that fits the observations at all points in the domain.
@@ -86,7 +91,7 @@ def _quadratic_coefficients_least_squares(
     return coefficients_matrix
 
 
-def _unpack_coeff(_coeff) -> tuple[float, ...]:
+def _unpack_coeff(_coeff: Sequence[float]) -> tuple[float, ...]:
     """
     Helper for handling constrained and unconstrained least squares coefficients.
     """
@@ -98,7 +103,7 @@ def _unpack_coeff(_coeff) -> tuple[float, ...]:
     return a, b, c, d, e, f
 
 
-def parameter_quadratic_planform_curvature(_coeff) -> float:
+def parameter_quadratic_planform_curvature(_coeff: Sequence[float]) -> float:
     """
     Planform curvature from quadratic coefficients.
 
@@ -123,7 +128,7 @@ def parameter_quadratic_planform_curvature(_coeff) -> float:
     return _curv_param
 
 
-def parameter_quadratic_profile_curvature(_coeff) -> float:
+def parameter_quadratic_profile_curvature(_coeff: Sequence[float]) -> float:
     """
     Profile curvature from quadratic coefficients.
 
@@ -149,13 +154,13 @@ def parameter_quadratic_profile_curvature(_coeff) -> float:
 
 
 def quadratic_planform_curvature(
-    elevation,
-    window=3,
-    weighting_exponent=1,
-    constrained=True,
-    dx=1,
-    coefficients_matrix=None,
-    return_coefficients_matrix=False,
+    elevation: np.ndarray,
+    window: float = 3,
+    weighting_exponent: float = 1,
+    constrained: bool = True,
+    dx: float = 1,
+    coefficients_matrix: np.ndarray | None = None,
+    return_coefficients_matrix: bool = False,
 ) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
     """
     Calculate the planform curvature for a digital elevation model.
@@ -219,13 +224,13 @@ def quadratic_planform_curvature(
 
 
 def quadratic_profile_curvature(
-    elevation,
-    window=3,
-    dx=1,
-    weighting_exponent=0,
-    constrained=False,
-    coefficients_matrix=None,
-    return_coefficients_matrix=False,
+    elevation: np.ndarray,
+    window: float = 3,
+    dx: float = 1,
+    weighting_exponent: float = 0,
+    constrained: bool = False,
+    coefficients_matrix: np.ndarray | None = None,
+    return_coefficients_matrix: bool = False,
 ) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
     """
     Calculate the profile curvature for a digital elevation model.
@@ -288,7 +293,7 @@ def quadratic_profile_curvature(
     return domain_prof_curv
 
 
-def _find_weight(wsize, exponent) -> np.ndarray:
+def _find_weight(wsize: float, exponent: float) -> np.ndarray:
     """
     Function to find the weightings matrix for the observed cell values. Uses
     an inverse distance function that can be calibrated with an exponent
@@ -309,7 +314,7 @@ def _find_weight(wsize, exponent) -> np.ndarray:
     return _weight
 
 
-def _find_normal(weights, wsize, resoln) -> np.ndarray:
+def _find_normal(weights: np.ndarray, wsize: float, resoln: float) -> np.ndarray:
     """
     Function to find the set of normal equations that allow a quadratic trend
     surface to be fitted through N points using least squares.
@@ -398,7 +403,13 @@ def _find_normal(weights, wsize, resoln) -> np.ndarray:
 
 
 @jit
-def _find_obs(elevations, weights, wsize, resoln, constrained) -> np.ndarray:
+def _find_obs(
+    elevations: np.ndarray,
+    weights: np.ndarray,
+    wsize: float,
+    resoln: float,
+    constrained: bool,
+) -> np.ndarray:
     """
     Function to find the observed vector as part of the set of normal
     equations for least squares.
@@ -435,7 +446,9 @@ def _find_obs(elevations, weights, wsize, resoln, constrained) -> np.ndarray:
     return obs
 
 
-def __realize_quadratic_surface(_elev, _coeff, wsize, dx) -> None:
+def __realize_quadratic_surface(
+    _elev: np.ndarray, _coeff: Sequence[float], wsize: float, dx: float
+) -> None:
     """Make a plot.
 
     Helpful for testing.
