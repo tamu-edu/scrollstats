@@ -23,8 +23,11 @@ from .raster_denoisers import DEFAULT_DENOISERS
 
 
 def clip_raster(
-    ds: rasterio.DatasetReader, geometry: Polygon, array=None, no_data=None
-) -> tuple[ElevationArray2D, BinaryArray2D, dict]:
+    ds: rasterio.DatasetReader,
+    geometry: Polygon,
+    array: np.ndarray | None = None,
+    no_data: Any | None = None,
+) -> tuple[ElevationArray2D, BinaryArray2D, dict[Any, Any]]:
     # Replace optional values
     if isinstance(array, np.ndarray):
         array_copy = array.copy()
@@ -66,7 +69,7 @@ def clip_raster(
     return array_clip, clipped_mask, clipped_meta
 
 
-def partial_from_kwargs(func: Callable, **kwargs) -> Callable:
+def partial_from_kwargs(func: Callable[..., Any], **kwargs: Any) -> Callable[..., Any]:
     """Create a partial function from all of the kwargs that are found in the function's signature"""
     sig = signature(func)
     args = {p: kwargs.get(p) for p in sig.parameters if kwargs.get(p)}
@@ -78,8 +81,8 @@ def create_ridge_area_raster(
     geometry: Polygon,
     classifier_funcs: tuple[BinaryClassifierFn] = DEFAULT_CLASSIFIERS,
     denoiser_funcs: tuple[BinaryDenoiserFn] = DEFAULT_DENOISERS,
-    no_data_value=None,
-    **kwargs,
+    no_data_value: Any | None = None,
+    **kwargs: Any,
 ) -> tuple[Array2D, ElevationArray2D, dict[Any, Any]]:
     """
     Main processing function to create the ridge area raster.
@@ -174,7 +177,7 @@ def create_ridge_area_raster_fs(
     geometry_path: Path,
     out_dir: Path,
     bend_id_dict: dict[str, str] | None = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> tuple[Path, Path]:
     """File system interface for create_ridge_area_raster"""
 
