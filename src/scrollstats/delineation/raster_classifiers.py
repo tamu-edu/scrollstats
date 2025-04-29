@@ -503,6 +503,9 @@ def profile_curvature_classifier(
     """
     profc = quadratic_profile_curvature(elevation=dem, window=window, dx=dx)
 
+    if isinstance(profc, tuple):  # function can optionally return a second matrix
+        profc, _ = profc
+
     return profc > threshold
 
 
