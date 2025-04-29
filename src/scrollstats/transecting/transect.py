@@ -815,7 +815,7 @@ class MultiTransect:
 
 def create_transects(
     centerline, ridges, step, shoot_distance, search_distance, dev_from_90
-):
+) -> gpd.GeoDataFrame:
     """
     Convenience function to create a series of transects from a given centerline, set of ridges, and the necessary parameters.
 

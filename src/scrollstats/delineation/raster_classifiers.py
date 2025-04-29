@@ -226,7 +226,7 @@ def quadratic_profile_curvature(
     constrained=False,
     coefficients_matrix=None,
     return_coefficients_matrix=False,
-):
+) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
     """
     Calculate the profile curvature for a digital elevation model.
 

@@ -379,7 +379,7 @@ class RidgeDataExtractor:
         gdf = gdf.set_index("p_id")
         return gdf
 
-    def dump_data(self):
+    def dump_data(self) -> dict:
         """Dump all the relevant info for the middle point."""
         d = {}
 
@@ -586,7 +586,7 @@ class TransectDataExtractor:
 
         return gdf
 
-    def calc_ridge_metrics(self):
+    def calc_ridge_metrics(self) -> gpd.GeoDataFrame:
         """
         Calculate ridge width and amplitude at every transect-ridge intersection.
         Return a GeoDataFrame with Point geometries.
