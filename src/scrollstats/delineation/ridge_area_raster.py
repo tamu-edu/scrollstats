@@ -3,7 +3,7 @@ from __future__ import annotations
 from functools import partial
 from inspect import signature
 from pathlib import Path
-from typing import Callable, Dict, Tuple
+from typing import Any, Callable
 
 import geopandas as gpd
 import numpy as np
@@ -24,7 +24,7 @@ from .raster_denoisers import DEFAULT_DENOISERS
 
 def clip_raster(
     ds: rasterio.DatasetReader, geometry: Polygon, array=None, no_data=None
-) -> Tuple[ElevationArray2D, BinaryArray2D, Dict]:
+) -> tuple[ElevationArray2D, BinaryArray2D, dict]:
     # Replace optional values
     if isinstance(array, np.ndarray):
         array_copy = array.copy()
@@ -76,11 +76,11 @@ def partial_from_kwargs(func: Callable, **kwargs) -> Callable:
 def create_ridge_area_raster(
     dem_ds: rasterio.DatasetReader,
     geometry: Polygon,
-    classifier_funcs: Tuple[BinaryClassifierFn] = DEFAULT_CLASSIFIERS,
-    denoiser_funcs: Tuple[BinaryDenoiserFn] = DEFAULT_DENOISERS,
+    classifier_funcs: tuple[BinaryClassifierFn] = DEFAULT_CLASSIFIERS,
+    denoiser_funcs: tuple[BinaryDenoiserFn] = DEFAULT_DENOISERS,
     no_data_value=None,
     **kwargs,
-) -> tuple[Array2D, ElevationArray2D, Dict]:
+) -> tuple[Array2D, ElevationArray2D, dict[Any, Any]]:
     """
     Main processing function to create the ridge area raster.
 
@@ -173,9 +173,9 @@ def create_ridge_area_raster_fs(
     dem_path: Path,
     geometry_path: Path,
     out_dir: Path,
-    bend_id_dict: Dict = None,
+    bend_id_dict: dict[str, str] | None = None,
     **kwargs,
-) -> Tuple[Path, Path]:
+) -> tuple[Path, Path]:
     """File system interface for create_ridge_area_raster"""
 
     # create output folder if not exists
