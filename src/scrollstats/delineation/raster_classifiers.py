@@ -28,7 +28,7 @@ from .array_types import Array2D, BinaryArray2D, ElevationArray2D
 
 def _quadratic_coefficients_least_squares(
     elevation, window, weighting_exponent, constrained, dx
-):
+) -> np.ndarray:
     """
     Find the quadratic surface that fits the observations at all points in the domain.
 
@@ -86,7 +86,7 @@ def _quadratic_coefficients_least_squares(
     return coefficients_matrix
 
 
-def _unpack_coeff(_coeff):
+def _unpack_coeff(_coeff) -> tuple[float, ...]:
     """
     Helper for handling constrained and unconstrained least squares coefficients.
     """
@@ -98,7 +98,7 @@ def _unpack_coeff(_coeff):
     return a, b, c, d, e, f
 
 
-def parameter_quadratic_planform_curvature(_coeff):
+def parameter_quadratic_planform_curvature(_coeff) -> float:
     """
     Planform curvature from quadratic coefficients.
 
@@ -123,7 +123,7 @@ def parameter_quadratic_planform_curvature(_coeff):
     return _curv_param
 
 
-def parameter_quadratic_profile_curvature(_coeff):
+def parameter_quadratic_profile_curvature(_coeff) -> float:
     """
     Profile curvature from quadratic coefficients.
 
@@ -156,7 +156,7 @@ def quadratic_planform_curvature(
     dx=1,
     coefficients_matrix=None,
     return_coefficients_matrix=False,
-):
+) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
     """
     Calculate the planform curvature for a digital elevation model.
 
@@ -288,7 +288,7 @@ def quadratic_profile_curvature(
     return domain_prof_curv
 
 
-def _find_weight(wsize, exponent):
+def _find_weight(wsize, exponent) -> np.ndarray:
     """
     Function to find the weightings matrix for the observed cell values. Uses
     an inverse distance function that can be calibrated with an exponent
@@ -309,7 +309,7 @@ def _find_weight(wsize, exponent):
     return _weight
 
 
-def _find_normal(weights, wsize, resoln):
+def _find_normal(weights, wsize, resoln) -> np.ndarray:
     """
     Function to find the set of normal equations that allow a quadratic trend
     surface to be fitted through N points using least squares.
@@ -398,7 +398,7 @@ def _find_normal(weights, wsize, resoln):
 
 
 @jit
-def _find_obs(elevations, weights, wsize, resoln, constrained):
+def _find_obs(elevations, weights, wsize, resoln, constrained) -> np.ndarray:
     """
     Function to find the observed vector as part of the set of normal
     equations for least squares.
@@ -435,7 +435,7 @@ def _find_obs(elevations, weights, wsize, resoln, constrained):
     return obs
 
 
-def __realize_quadratic_surface(_elev, _coeff, wsize, dx):
+def __realize_quadratic_surface(_elev, _coeff, wsize, dx) -> None:
     """Make a plot.
 
     Helpful for testing.
