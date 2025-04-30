@@ -114,6 +114,7 @@ disallow_incomplete_defs = false
 module = [
   "scrollstats.*",
   "geopandas.*",
+  "pandas.*",
   "numpy.*",
   "shapely.geometry.*",
   "tqdm.*",
