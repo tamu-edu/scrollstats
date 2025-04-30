@@ -11,9 +11,13 @@ Rules:
 
 from __future__ import annotations
 
+from collections.abc import Iterable
+from typing import Any
+
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+from rasterio.io import DatasetReader as RasterioDatasetReader
 from scipy import ndimage
 from shapely.geometry import LineString, Point
 from tqdm import tqdm
@@ -21,12 +25,12 @@ from tqdm import tqdm
 from .ridge_amplitude import calc_ridge_amps
 
 
-def calc_dist(p1: np.array, p2: np.array) -> np.array:
+def calc_dist(p1: np.ndarray, p2: np.ndarray) -> np.ndarray:
     """p1 and p2 are both (n,2) arrays of coordinates"""
     return np.sqrt((p1[:, 0] - p2[:, 0]) ** 2 + (p1[:, 1] - p2[:, 1]) ** 2)
 
 
-def remove_coincident_points(coord_array: np.array) -> np.array:
+def remove_coincident_points(coord_array: np.ndarray) -> np.ndarray:
     """Removes coincident points that happen to be adjacent"""
 
     # Calc distances between each point
@@ -40,12 +44,12 @@ def remove_coincident_points(coord_array: np.array) -> np.array:
     return coord_array[unique_idx]
 
 
-def explode(line):
+def explode(line: LineString) -> list[LineString]:
     """Return a list of all 2 coordinate line segments in a given LineString"""
     return list(map(LineString, zip(line.coords[:-1], line.coords[1:])))
 
 
-def densify_segment(line):
+def densify_segment(line: LineString) -> LineString:
     """Densify a line segment between two points to 1pt/m. Assumes line coordinates are in meters"""
     x, y = line.xy
 
@@ -57,7 +61,7 @@ def densify_segment(line):
     return LineString(zip(xs, ys))
 
 
-def densify_line(line):
+def densify_line(line: LineString) -> LineString:
     """Return the given LineString densified coordinates. Density = 1pt/unit length"""
 
     all_points = []
@@ -77,7 +81,9 @@ def densify_line(line):
     return LineString(unique_points)
 
 
-def transform_coords(coord_array, bin_raster):
+def transform_coords(
+    coord_array: np.ndarray, bin_raster: RasterioDatasetReader
+) -> np.ndarray:
     """Transform the coordinates from geo to image for indexing a in_bin_raster"""
 
     transform = bin_raster.transform
@@ -93,7 +99,12 @@ class RidgeDataExtractor:
     """
 
     def __init__(
-        self, geometry, position, ridges, dem_signal=None, bin_signal=None
+        self,
+        geometry: LineString,
+        position: int,
+        ridges: gpd.GeoDataFrame,
+        dem_signal: np.ndarray[float] | None = None,
+        bin_signal: np.ndarray[float] | None = None,
     ) -> None:
         # Inputs
         self.id = None
@@ -143,13 +154,13 @@ class RidgeDataExtractor:
 
         self.gdf = self.coerce_dtypes(self.gdf)
 
-    def determine_signal_length(self):
+    def determine_signal_length(self) -> float:
         """Return length of dem/bin signal if provided"""
         if isinstance(self.bin_signal, np.ndarray):
             return self.dem_signal.size
         return np.nan
 
-    def create_point_gdf(self):
+    def create_point_gdf(self) -> gpd.GeoDataFrame:
         """Create a 3 point GeoDataFrame to contain all relevant info for other methods."""
         gdf = gpd.GeoDataFrame(
             columns=self.data_columns, geometry="geometry", crs=self.ridges.crs
@@ -157,7 +168,7 @@ class RidgeDataExtractor:
         gdf = gdf.set_index("p_id")
         return gdf
 
-    def add_point_geometries(self, gdf, line):
+    def add_point_geometries(self, gdf, line: LineString) -> gpd.GeoDataFrame:
         """Add the vertices from the 3vertex line as point geometries"""
         # Add geometry info
         id_list = []
@@ -174,7 +185,9 @@ class RidgeDataExtractor:
 
         return gdf
 
-    def join_ridge_info(self, gdf, ridges):
+    def join_ridge_info(
+        self, gdf: gpd.GeoDataFrame, ridges: gpd.GeoDataFrame
+    ) -> gpd.GeoDataFrame:
         """Get ridge ids, time, distance, and migration rates via spatial join from the ridge features"""
 
         # Use slight buffer to ensure intersection on spatial join
@@ -191,7 +204,7 @@ class RidgeDataExtractor:
 
         return gdf
 
-    def calc_values_from_ridge_info(self, gdf):
+    def calc_values_from_ridge_info(self, gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         """
         Calculates the migration time, distance, and rate both before and after the center ridge.
         If the ridge does not have values for the deposit year, then mig_rate will be NaN.
@@ -204,14 +217,18 @@ class RidgeDataExtractor:
 
         return gdf
 
-    def calc_relative_vertex_distance(self, gdf, line):
+    def calc_relative_vertex_distance(
+        self, gdf: gpd.GeoDataFrame, line: LineString
+    ) -> gpd.GeoDataFrame:
         """Calculate the relative distance of each vertex along the transect."""
 
         gdf["relative_distance"] = np.cumsum(gdf["mig_dist"]) / line.length
 
         return gdf
 
-    def calc_vertex_indices(self, gdf, signal_length):
+    def calc_vertex_indices(
+        self, gdf: gpd.GeoDataFrame, signal_length: float
+    ) -> gpd.GeoDataFrame:
         """
         Calculate the array index of all vertices.
         If `self.signal_length` is nan, then return array of nans
@@ -225,7 +242,7 @@ class RidgeDataExtractor:
 
         return gdf
 
-    def boolify_mask(self):
+    def boolify_mask(self) -> np.ndarray[bool] | None:
         """Simplifies the bin_sig (which may contain nans) to a pure boolean array"""
 
         if self.bin_signal is None:
@@ -233,7 +250,7 @@ class RidgeDataExtractor:
 
         return np.where(np.isnan(self.bin_signal), 0, self.bin_signal).astype(bool)
 
-    def determine_metric_confidence(self):
+    def determine_metric_confidence(self) -> int:
         """
         Assign a metric confidence score based on the boolean mask.
         """
@@ -268,7 +285,7 @@ class RidgeDataExtractor:
 
         return metric_confidence
 
-    def dq_first_swale(self):
+    def dq_first_swale(self) -> np.ndarray[bool] | None:
         """If the ridge position of the signal is 0, then remove the first chunk of false values"""
         if self.bin_signal is None:
             return None
@@ -284,7 +301,7 @@ class RidgeDataExtractor:
             self.swale_dq_adjustment = len(self.bin_signal) - len(self.bool_mask)
         return self.bool_mask
 
-    def calc_ridge_coms(self):
+    def calc_ridge_coms(self) -> np.ndarray[bool] | None:
         """Find the center of mass for each ridge in the input binary signal."""
 
         if self.bin_signal is None:
@@ -306,7 +323,7 @@ class RidgeDataExtractor:
 
         return coms_signal
 
-    def find_closest_ridge(self):
+    def find_closest_ridge(self) -> np.ndarray[float]:
         """
         The bin_signal may have more than two ridges present.
         This method identifies which ridge is closest to the transect-ridge intersection point.
@@ -338,7 +355,7 @@ class RidgeDataExtractor:
 
         return single_ridge
 
-    def calc_ridge_width_px(self) -> int:
+    def calc_ridge_width_px(self) -> float | None:
         """
         Calculate the width of the single ridge in pixels
         """
@@ -350,7 +367,7 @@ class RidgeDataExtractor:
 
         return np.nansum(self.single_ridge_bin_signal)
 
-    def calc_every_ridge_amp(self):
+    def calc_every_ridge_amp(self) -> np.ndarray[float] | list[None]:
         """
         Calculates the average amplitude of each observed ridges in the units of the DEM.
         """
@@ -359,7 +376,10 @@ class RidgeDataExtractor:
 
         return calc_ridge_amps(self.dem_signal_selection, self.bool_mask)
 
-    def determine_ridge_amp(self):
+    def determine_ridge_amp(self) -> float:
+        """
+        Select the correct ridge amplitude calculated by `calc_every_ridge_amp()` based on the number of ridges present
+        """
         if self.bin_signal is None:
             return None
 
@@ -372,14 +392,14 @@ class RidgeDataExtractor:
 
         return amp
 
-    def coerce_dtypes(self, gdf):
+    def coerce_dtypes(self, gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         """Coerce the the 'object' dtypes into their proper numeric types"""
 
         gdf = gdf.reset_index().astype(self.data_columns)
         gdf = gdf.set_index("p_id")
         return gdf
 
-    def dump_data(self) -> dict:
+    def dump_data(self) -> dict[str, Any]:
         """Dump all the relevant info for the middle point."""
         d = {}
 
@@ -415,7 +435,12 @@ class TransectDataExtractor:
     """
 
     def __init__(
-        self, transect_id, geometry, dem_signal=None, bin_signal=None, ridges=None
+        self,
+        transect_id: str,
+        geometry: LineString,
+        dem_signal: np.ndarray[float] | None = None,
+        bin_signal: np.ndarray[float] | None = None,
+        ridges: gpd.GeoDataFrame | None = None,
     ) -> None:
         # Inputs
         self.transect_id = transect_id
@@ -467,7 +492,7 @@ class TransectDataExtractor:
         self.itx_gdf = self.slice_bin_signal(self.itx_gdf)
         self.itx_gdf = self.slice_dem_signal(self.itx_gdf)
 
-    def create_itx_gdf(self):
+    def create_itx_gdf(self) -> gpd.GeoDataFrame:
         """Create the gdf that will contain all the ridge data for each intersection."""
         gdf = gpd.GeoDataFrame(columns=self.data_columns, geometry="geometry").set_crs(
             self.ridges.crs
@@ -475,7 +500,7 @@ class TransectDataExtractor:
 
         return gdf
 
-    def determine_eligible_coords(self, ls):
+    def determine_eligible_coords(self, ls: LineString) -> list[tuple[float, float]]:
         """
         Determine coordinates in the transect linestring that are eligible to be a start of a substring.
         Because the substrings are all 3 vertices long, the last two are not eligible.
@@ -484,7 +509,7 @@ class TransectDataExtractor:
 
         return ls.coords[:-2]
 
-    def create_substrings(self, ls):
+    def create_substrings(self, ls: LineString) -> list[LineString]:
         """Create substrings starting from the eligible coordinates of the given linestring"""
 
         eligible_coords = self.determine_eligible_coords(ls)
@@ -494,28 +519,28 @@ class TransectDataExtractor:
 
         return substrings
 
-    def add_substring_geometry(self, gdf):
+    def add_substring_geometry(self, gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         """Adds the 3 vertex substring that corresponds to each itx."""
 
         gdf["substring_geometry"] = self.create_substrings(self.geometry)
 
         return gdf
 
-    def add_point_geometry(self, gdf):
+    def add_point_geometry(self, gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         """Add the intersection (middle) point of the 3 vertex substring as its own point"""
 
         gdf["geometry"] = gdf["substring_geometry"].apply(lambda x: Point(x.coords[1]))
 
         return gdf
 
-    def add_transect_id(self, gdf):
+    def add_transect_id(self, gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         """Add the transect id as a column"""
 
         gdf["transect_id"] = self.transect_id
 
         return gdf
 
-    def calc_cumulative_dist(self, coords):
+    def calc_cumulative_dist(self, coords: Iterable[float]) -> np.ndarray[float]:
         """Calculate the cumulative distances along a coordinate series"""
 
         coords = np.asarray(coords)
@@ -524,7 +549,7 @@ class TransectDataExtractor:
 
         return cumdists
 
-    def determine_substring_starts(self, gdf):
+    def determine_substring_starts(self, gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         """Determine the along-transect distance of the points of each substring"""
 
         eligible_coords = self.determine_eligible_coords(self.geometry)
@@ -538,7 +563,9 @@ class TransectDataExtractor:
 
         return gdf
 
-    def calc_relative_vertex_distances(self, ls, start_dist):
+    def calc_relative_vertex_distances(
+        self, ls: LineString, start_dist: float
+    ) -> np.ndarray[float]:
         """Calculate the relative distance of each vertex along the transect."""
 
         sub_dists = self.calc_cumulative_dist(ls.coords)
@@ -547,7 +574,7 @@ class TransectDataExtractor:
 
         return rel_dists
 
-    def add_relative_vertex_distances(self, gdf):
+    def add_relative_vertex_distances(self, gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         """Calculate the distance between the substring coordinates relative to the length of the whole line."""
         bucket = []
 
@@ -559,7 +586,7 @@ class TransectDataExtractor:
         gdf["relative_vertex_distances"] = bucket
         return gdf
 
-    def calc_vertex_indices(self, gdf):
+    def calc_vertex_indices(self, gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         """Calculates the corresponding signal index of each of the substring vertices"""
 
         if self.raw_bin_signal is not None:
@@ -568,7 +595,7 @@ class TransectDataExtractor:
             )
         return gdf
 
-    def slice_dem_signal(self, gdf):
+    def slice_dem_signal(self, gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         """Slice the DEM between the two end vertices of the substrings"""
         if self.raw_bin_signal is not None:
             gdf["dem_signal"] = gdf["vertex_indices"].apply(
@@ -577,7 +604,7 @@ class TransectDataExtractor:
 
         return gdf
 
-    def slice_bin_signal(self, gdf):
+    def slice_bin_signal(self, gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         """Slice the binary signal between the two end vertices of the substrings"""
         if self.raw_bin_signal is not None:
             gdf["bin_signal"] = gdf["vertex_indices"].apply(
@@ -615,7 +642,12 @@ class BendDataExtractor:
     """Responsible for extraction of ridge metrics across an entire bend."""
 
     def __init__(
-        self, transects, bin_raster=None, dem=None, ridges=None, packets=None
+        self,
+        transects: gpd.GeoDataFrame,
+        bin_raster: RasterioDatasetReader | None = None,
+        dem: RasterioDatasetReader | None = None,
+        ridges: gpd.GeoDataFrame | None = None,
+        packets: gpd.GeoDataFrame | None = None,
     ) -> None:
         self.transects = transects
         self.bin_raster = bin_raster
@@ -627,7 +659,9 @@ class BendDataExtractor:
         self.rich_transects = self.calc_transect_metrics()
         self.itx_metrics = self.calc_itx_metrics()
 
-    def disqualify_coords(self, coord_array, raster):
+    def disqualify_coords(
+        self, coord_array: np.ndarray[float], raster: RasterioDatasetReader
+    ) -> np.ndarray[bool]:
         """
         Some coordinates may be out of the in_bin_raster.
         This function disqualifies these coordinates and returns a boolean array showing the location of all disqualified coordinates.
@@ -648,7 +682,9 @@ class BendDataExtractor:
         # return true for a coord if that coord failed any test
         return np.any(np.vstack((too_small, too_large_x, too_large_y)), axis=0)
 
-    def sample_array(self, coord_array, raster):
+    def sample_array(
+        self, coord_array: np.ndarray[float], raster: RasterioDatasetReader
+    ) -> np.ndarray[float]:
         """
         Takes in an array of image coordinates, samples the image, and returns the sampled values.
         Assumes that the coord array and in_bin_raster dataset share the same crs.
@@ -671,7 +707,7 @@ class BendDataExtractor:
 
         return out_signal
 
-    def count_ridges(self, signal):
+    def count_ridges(self, signal: np.ndarray[float]) -> int:
         """Counts ridges in binary waves."""
 
         mask = np.isnan(signal)
@@ -679,7 +715,9 @@ class BendDataExtractor:
 
         return numfeats
 
-    def dense_sample(self, line, raster):
+    def dense_sample(
+        self, line: LineString, raster: RasterioDatasetReader
+    ) -> np.ndarray[float]:
         """Sample an underlying in_bin_raster along a given LineString at a frequency of ~1m"""
 
         # Densify points
@@ -695,7 +733,9 @@ class BendDataExtractor:
         ## coords out of in_bin_raster bounds will be returned with np.nan
         return self.sample_array(t_coords, raster)
 
-    def trans_fft(self, signal):
+    def trans_fft(
+        self, signal: np.ndarray[float]
+    ) -> tuple[np.ndarray[float], np.ndarray[float]]:
         """
         Calculates the fast fourier transform for a 1D signal.
 
@@ -726,7 +766,7 @@ class BendDataExtractor:
 
         return (freqs, amps)
 
-    def dominant_wavelength(self, ridge_count, signal):
+    def dominant_wavelength(self, ridge_count: int, signal: np.ndarray) -> float:
         """
         Identifies the dominant wavelength from an input binary signal
         """
@@ -751,7 +791,7 @@ class BendDataExtractor:
 
         return dom_wav
 
-    def calc_transect_metrics(self):
+    def calc_transect_metrics(self) -> gpd.GeoDataFrame:
         rich_transects = self.transects.copy()
 
         if self.dem is not None:
@@ -777,7 +817,7 @@ class BendDataExtractor:
 
         return rich_transects.sort_index()
 
-    def calc_itx_metrics(self):
+    def calc_itx_metrics(self) -> gpd.GeoDataFrame:
         """For each transect found in transects, calculate the itx metrics."""
 
         # Determine input columns
