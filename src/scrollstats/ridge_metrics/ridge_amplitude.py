@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from typing import List
+from collections.abc import Callable
 
 import numpy as np
 from scipy import ndimage
 
 
-def calc_ridge_maxes(dem_sig, mask):
+def calc_ridge_maxes(
+    dem_sig: np.ndarray[float], mask: np.ndarray[bool]
+) -> np.ndarray[float]:
     """Calculate the max value of the dem signal within each of the ridge areas in the mask"""
 
     # Find each unique ridge
@@ -19,7 +21,9 @@ def calc_ridge_maxes(dem_sig, mask):
     return np.array(dem_maxes)
 
 
-def calc_swale_mins(dem_sig, mask):
+def calc_swale_mins(
+    dem_sig: np.ndarray[float], mask: np.ndarray[bool]
+) -> np.ndarray[float]:
     """Calculate the minimum value within each of the swale areas of the mask"""
 
     # Find each unique swale
@@ -32,7 +36,7 @@ def calc_swale_mins(dem_sig, mask):
     return np.array(dem_mins)
 
 
-def s00_amps(maxes, mins):
+def s00_amps(maxes: np.ndarray[float], mins: np.ndarray[float]) -> np.ndarray[float]:
     """
     Amplitude calculation if binary signal is capped with 0s on each end.
           _   _   _
@@ -55,7 +59,7 @@ def s00_amps(maxes, mins):
     return np.vstack([d1, d2]).mean(axis=0)
 
 
-def s11_amps(maxes, mins):
+def s11_amps(maxes: np.ndarray[float], mins: np.ndarray[float]) -> np.ndarray[float]:
     """
     Amplitude calculation if binary signal is capped with 1s on each end.
         _   _   _
@@ -82,7 +86,7 @@ def s11_amps(maxes, mins):
     return np.vstack([d1, d2]).mean(axis=0)
 
 
-def s01_amps(maxes, mins):
+def s01_amps(maxes: np.ndarray[float], mins: np.ndarray[float]) -> np.ndarray[float]:
     """
     Amplitude calculation if binary signal starts with a swale and ends with a ridge.
           _   _   _
@@ -109,7 +113,7 @@ def s01_amps(maxes, mins):
     return np.vstack([d1, d2]).mean(axis=0)
 
 
-def s10_amps(maxes, mins):
+def s10_amps(maxes: np.ndarray[float], mins: np.ndarray[float]) -> np.ndarray[float]:
     """
     Amplitude calculation if binary signal starts with a ridge and ends with a swale.
         _   _   _
@@ -132,7 +136,9 @@ def s10_amps(maxes, mins):
     return np.vstack([d1, d2]).mean(axis=0)
 
 
-def determine_complex_strategy(bool_mask: List[bool]):
+def determine_complex_strategy(
+    bool_mask: np.ndarray[bool],
+) -> Callable[[np.ndarray[float], np.ndarray[float]], np.ndarray[float]]:
     """
     This function determines which multi ridge/swale amplitude calculation strategy to use.
 
@@ -159,7 +165,9 @@ def determine_complex_strategy(bool_mask: List[bool]):
     return strategy
 
 
-def calc_ridge_amps(dem_sig, bin_sig):
+def calc_ridge_amps(
+    dem_sig: np.ndarray[float], bin_sig: np.ndarray[float]
+) -> np.ndarray[float]:
     """
     Calculate the ridge amplitudes from a DEM profile using the boolean mask signal.
 
@@ -203,7 +211,9 @@ def calc_ridge_amps(dem_sig, bin_sig):
     return amps
 
 
-def map_amp_values(amp_series, width_series):
+def map_amp_values(
+    amp_series: np.ndarray[float], width_series: np.ndarray[float]
+) -> np.ndarray[float]:
     """
     Map the ridge amplidute values to their assumed location along the transect.
     Assumed location is the approximate midpoint of the ridge.
