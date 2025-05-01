@@ -28,14 +28,14 @@ class LineSmoother:
         self.check_geometry_type()
         self.check_vertex_count()
 
-    def check_geometry_type(self):
+    def check_geometry_type(self) -> None:
         """Check that all geometries are of type LineString"""
         if any(self.lines.geom_type != "LineString"):
             raise ValueError(
                 "Not all geometries are of type LineString. Remove the non-LineString geometry from `lines`"
             )
 
-    def check_vertex_count(self):
+    def check_vertex_count(self) -> None:
         """Check that all ridges have at least as many vertices as the smoothing window is long"""
         if any(self.lines.geometry.apply(lambda x: len(x.coords)) < self.window):
             raise ValueError(
@@ -62,7 +62,7 @@ class LineSmoother:
 
         return LineString(zip(xm, ym))
 
-    def calc_dist(self, x, y):
+    def calc_dist(self, x: np.ndarray, y: np.ndarray) -> list[float]:
         """Calc distance along the line"""
         xdiff = np.ediff1d(x)
         ydiff = np.ediff1d(y)
