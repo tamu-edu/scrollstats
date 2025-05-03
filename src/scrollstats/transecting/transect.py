@@ -10,12 +10,13 @@ from shapely.geometry import (
     MultiPoint,
     MultiPolygon,
     Point,
+    Polygon,
 )
 from tqdm import tqdm
 
 
 ## Simple Geometric functions: accepts and returns arrays of coordinates
-def curvature(line: LineString) -> Tuple[np.ndarray, np.ndarray]:
+def curvature(line: LineString) -> Tuple[np.ndarray[float], np.ndarray[float]]:
     x, y = line.xy
 
     # Get dx, dy
@@ -48,7 +49,7 @@ def curvature(line: LineString) -> Tuple[np.ndarray, np.ndarray]:
     return curv, a
 
 
-def calc_dist_along_line(line: LineString) -> np.array:
+def calc_dist_along_line(line: LineString) -> np.ndarray[float]:
     """Calculate an array of distance along a given line"""
 
     x, y = line.xy
@@ -61,12 +62,14 @@ def calc_dist_along_line(line: LineString) -> np.array:
     return np.cumsum(arc_length)
 
 
-def calc_dist(p1: np.array, p2: np.array) -> np.array:
+def calc_dist(p1: np.ndarray[float], p2: np.ndarray[float]) -> np.ndarray[float]:
     # p1 and p2 are both (n,2) arrays of coordinates
     return np.sqrt((p1[:, 0] - p2[:, 0]) ** 2 + (p1[:, 1] - p2[:, 1]) ** 2)
 
 
-def law_of_cos(a: np.array, b: np.array, c: np.array) -> np.array:
+def law_of_cos(
+    a: np.ndarray[float], b: np.ndarray[float], c: np.ndarray[float]
+) -> np.ndarray[float]:
     """
     This function uses law of cosines to calc the interior angle formed by two connected lines
     Traveling down the line, vertices are a, b, c (a=beg, b=mid, c=end)
@@ -84,7 +87,7 @@ def law_of_cos(a: np.array, b: np.array, c: np.array) -> np.array:
     return beta
 
 
-def calc_dxdy(angle: np.array, length=100) -> np.array:
+def calc_dxdy(angle: np.ndarray[float], length: float = 100) -> np.ndarray[float]:
     """Calculates the delta x and y given an angle and a length"""
 
     dx = np.cos(angle) * length
@@ -93,7 +96,9 @@ def calc_dxdy(angle: np.array, length=100) -> np.array:
     return np.vstack([dx, dy])
 
 
-def add_sub_90(a: Point, b: Point, alpha: float, length=100) -> np.array:
+def add_sub_90(
+    a: Point, b: Point, alpha: float, length: float = 100
+) -> np.ndarray[float]:
     """
     This function determines which direction to shoot a new transect (+ or - 90°)
     The proper line should have the largest of the interior angles formed by the incoming transect and new shoot being formed
@@ -131,7 +136,7 @@ def add_sub_90(a: Point, b: Point, alpha: float, length=100) -> np.array:
     return coords[max_idx]
 
 
-def vert_res(p0: Point, p1: Point, p2: Point) -> np.array:
+def vert_res(p0: Point, p1: Point, p2: Point) -> np.ndarray[float]:
     """Calculates the vertical resultant of the two vectors (LineStrings) p0->p1 and p0->p2"""
     return np.asarray(p1.xy) + np.asarray(p2.xy) - np.asarray(p0.xy)
 
@@ -149,7 +154,7 @@ def find_closest_idx(point: Point, line: LineString) -> int:
     return s_tups[0][0]
 
 
-def direction_alpha_at_point(point: Point, line: LineString) -> tuple:
+def direction_alpha_at_point(point: Point, line: LineString) -> tuple[int, float]:
     """Calculates both the shot direction and alpha value at the coordinate of `line` closest to `point`"""
     curv, alpha = curvature(line)
     idx = find_closest_idx(point, line)
@@ -176,27 +181,27 @@ class H74Transect:
     Instances of this class are modified by the `H74TransectConstructor` class
     """
 
-    def __init__(self, origin: Point, point_id=None) -> None:
+    def __init__(self, origin: Point, point_id: str | None = None) -> None:
         # Initial information for the transect
         self.origin = Point(origin)
         self.point_id = point_id
 
         # Coordinate lists as the transect walks up the floodplain
-        self.coord_list = []
+        self.coord_list: list[Point]
         self.coord_list.append(self.origin)
-        self.n1_shoot_list = []
-        self.n1_coord_list = []
-        self.n2_coord_list = []
-        self.vr_shoot_list = []
-        self.p2_coord_list = []
+        self.n1_shoot_list: list[Point]
+        self.n1_coord_list: list[Point]
+        self.n2_coord_list: list[Point]
+        self.vr_shoot_list: list[Point]
+        self.p2_coord_list: list[Point]
         self.linestring = LineString()
 
-        # Other geometric information
-        self.search_area_list = []
-        self.ridge_clip_list = []
+        # # Other geometric information
+        self.search_area_list: list[Polygon]
+        self.ridge_clip_list: list[LineString]
 
         self.termination_point = None
-        self.termination_reason = None
+        self.termination_reason: str | None = None
         self.distance_along_cl = None
 
 
@@ -209,16 +214,16 @@ class H74TransectConstructor:
 
     def __init__(
         self,
-        origin: H74Transect,
+        origin: Point,
         transect_id: str,
         centerline: LineString,
         ridges: MultiLineString,
-        shoot_distance: int,
-        search_distance: int,
+        shoot_distance: float,
+        search_distance: float,
         dev_from_90: float,
-        user_direction=None,
+        user_direction: str | None = None,
         verbose: int = 1,
-    ):
+    ) -> None:
         # Transect values
         self.transect = H74Transect(origin, transect_id)
         self.origin = Point(origin)
@@ -298,7 +303,7 @@ class H74TransectConstructor:
         # If no intersection, then return 0 (tangent line)
         return 0
 
-    def calc_dist_along_cl(self):
+    def calc_dist_along_cl(self) -> None:
         # Get distance along centerline at transect origin
         dist = calc_dist_along_line(self.centerline)
         idx = find_closest_idx(self.origin, self.centerline)
@@ -608,15 +613,15 @@ class MultiTransect:
 
     def __init__(
         self,
-        coord_list,
-        centerline,
-        ridges,
-        shoot_distance,
-        search_distance,
-        dev_from_90,
-        user_direction=None,
+        coord_list: list[Point],
+        centerline: gpd.GeoDataFrame,
+        ridges: gpd.GeoDataFrame,
+        shoot_distance: float,
+        search_distance: float,
+        dev_from_90: float,
+        user_direction: str | None = None,
         verbose: int = 1,
-    ):
+    ) -> None:
         self.coord_list = coord_list
         self.centerline = centerline
         self.ridges = ridges
@@ -636,7 +641,7 @@ class MultiTransect:
         self.search_area_df = self.create_search_area_df()
         self.ridge_clip_df = self.create_ridge_clip_df()
 
-    def create_transect_list(self):
+    def create_transect_list(self) -> list[H74Transect]:
         """Creates a set of transects and aux geometries for a bend."""
 
         # Reduce GeoDataFrames to their shapely representations
@@ -674,7 +679,7 @@ class MultiTransect:
 
         return transect_list
 
-    def create_transect_df(self):
+    def create_transect_df(self) -> gpd.GeoDataFrame:
         # Loop through all the transects which left the centerline to create the row
         ls_list = []
         for transect in self.transect_list:
@@ -709,7 +714,7 @@ class MultiTransect:
 
         return df
 
-    def create_point_df(self):
+    def create_point_df(self) -> gpd.GeoDataFrame:
         # Loop through all the transects which left the centerline to create the row
         row_list = []
 
@@ -749,7 +754,7 @@ class MultiTransect:
 
         return df
 
-    def create_search_area_df(self):
+    def create_search_area_df(self) -> gpd.GeoDataFrame:
         row_list = []
 
         for transect in self.transect_list:
@@ -779,7 +784,7 @@ class MultiTransect:
 
         return df
 
-    def create_ridge_clip_df(self):
+    def create_ridge_clip_df(self) -> gpd.GeoDataFrame:
         row_list = []
 
         for transect in self.transect_list:
@@ -809,12 +814,19 @@ class MultiTransect:
 
         return df
 
-    def return_all_geometries(self):
+    def return_all_geometries(
+        self,
+    ) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame, gpd.GeoDataFrame, gpd.GeoDataFrame]:
         return self.transect_df, self.point_df, self.search_area_df, self.ridge_clip_df
 
 
 def create_transects(
-    centerline, ridges, step, shoot_distance, search_distance, dev_from_90
+    centerline: gpd.GeoDataFrame,
+    ridges: gpd.GeoDataFrame,
+    step: int,
+    shoot_distance: float,
+    search_distance: float,
+    dev_from_90: float,
 ) -> gpd.GeoDataFrame:
     """
     Convenience function to create a series of transects from a given centerline, set of ridges, and the necessary parameters.
