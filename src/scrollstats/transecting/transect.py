@@ -187,18 +187,18 @@ class H74Transect:
         self.point_id = point_id
 
         # Coordinate lists as the transect walks up the floodplain
-        self.coord_list: list[Point]
+        self.coord_list: list[Point] = []
         self.coord_list.append(self.origin)
-        self.n1_shoot_list: list[Point]
-        self.n1_coord_list: list[Point]
-        self.n2_coord_list: list[Point]
-        self.vr_shoot_list: list[Point]
-        self.p2_coord_list: list[Point]
+        self.n1_shoot_list: list[Point] = []
+        self.n1_coord_list: list[Point] = []
+        self.n2_coord_list: list[Point] = []
+        self.vr_shoot_list: list[Point] = []
+        self.p2_coord_list: list[Point] = []
         self.linestring = LineString()
 
         # # Other geometric information
-        self.search_area_list: list[Polygon]
-        self.ridge_clip_list: list[LineString]
+        self.search_area_list: list[Polygon] = []
+        self.ridge_clip_list: list[LineString] = []
 
         self.termination_point = None
         self.termination_reason: str | None = None
@@ -221,7 +221,7 @@ class H74TransectConstructor:
         shoot_distance: float,
         search_distance: float,
         dev_from_90: float,
-        user_direction: str | None = None,
+        user_direction: int | None = None,
         verbose: int = 1,
     ) -> None:
         # Transect values
@@ -235,12 +235,12 @@ class H74TransectConstructor:
         # Auxiliary geometry
         self.ridges = ridges
         self.ridges_centroid = self.ridges.centroid
-        self.p1 = self.transect.coord_list[-1]
-        self.p2 = None
-        self.r1 = self.centerline
-        self.r2 = None
-        self.n1 = None
-        self.n2 = None
+        self.p1: Point = self.transect.coord_list[-1]
+        self.p2 = Point()
+        self.r1: LineString = self.centerline
+        self.r2 = LineString()
+        self.n1 = Point()
+        self.n2 = Point()
 
         # State Variables
         self.walk_state = True
@@ -299,7 +299,7 @@ class H74TransectConstructor:
 
         # Return the output_value corresponding to the shortest distance
         if any(itx_result):
-            return output_values[itx_result][0]
+            return output_values[itx_result][0]  # type: ignore[no-any-return]
         # If no intersection, then return 0 (tangent line)
         return 0
 
@@ -619,7 +619,7 @@ class MultiTransect:
         shoot_distance: float,
         search_distance: float,
         dev_from_90: float,
-        user_direction: str | None = None,
+        user_direction: int | None = None,
         verbose: int = 1,
     ) -> None:
         self.coord_list = coord_list
