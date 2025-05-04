@@ -35,7 +35,8 @@ dependencies = [
   "scipy",
   "rasterio",
   "numba",
-  "tqdm"
+  "tqdm",
+  "nptyping",
   ]
 
 [project.optional-dependencies]
@@ -116,12 +117,13 @@ module = [
   "geopandas.*",
   "pandas.*",
   "numpy.*",
+  "nptyping.*",
   "shapely.geometry.*",
   "tqdm.*",
   "scipy.*",
   "matplotlib.*",
   "rasterio.*",
-  "numba.*"
+  "numba.*",
   ]
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
