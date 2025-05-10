@@ -158,9 +158,8 @@ def determine_complex_strategy(
     elif bool_mask[0] and bool_mask[-1]:
         strategy = s11_amps
     else:
-        raise ValueError(
-            f"bool_mask is of unexpected type {type(bool_mask)} or contains unexpected values\n{bool_mask=}"
-        )
+        err_msg = f"bool_mask is of unexpected type {type(bool_mask)} or contains unexpected values\n{bool_mask=}"
+        raise ValueError(err_msg)
 
     return strategy
 
@@ -199,14 +198,13 @@ def calc_ridge_amps(
         amps = strategy(maxes, mins)
 
     else:
-        raise ValueError(
-            f"Unexpected configuration/count of ridge and swales. \
+        err_msg = f"Unexpected configuration/count of ridge and swales. \
                         \n{bin_sig=} \
                         \n{mask=} \
                         \n{dem_sig=} \
                         \n{maxes=} \
                         \n{mins=}"
-        )
+        raise ValueError(err_msg)
 
     return amps
 

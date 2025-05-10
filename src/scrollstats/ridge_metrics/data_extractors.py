@@ -280,12 +280,11 @@ class RidgeDataExtractor:
         elif ridge_count >= 3 and swale_count >= 2:
             metric_confidence = 4
         else:
-            raise ValueError(
-                f"Unexpected ridge-swale configuration in self.bool_mask. \
+            err_msg = f"Unexpected ridge-swale configuration in self.bool_mask. \
                             \n{self.bool_mask=} \
                             \n{ridge_count=} \
                             \n{swale_count=}"
-            )
+            raise ValueError(err_msg)
 
         return metric_confidence
 
@@ -394,9 +393,8 @@ class RidgeDataExtractor:
         elif self.single_ridge_num > 0:
             amp = self.ridge_amp_series[int(self.single_ridge_num)]
         else:
-            raise ValueError(
-                "Multiple ridges identified in signal, but the current ridge position was not set"
-            )
+            err_msg = "Multiple ridges identified in signal, but the current ridge position was not set"
+            raise ValueError(err_msg)
 
         return float(amp)
 
