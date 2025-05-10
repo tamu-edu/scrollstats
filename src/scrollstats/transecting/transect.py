@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Tuple
-
 import geopandas as gpd
 import numpy as np
 from shapely.geometry import (
@@ -16,7 +14,7 @@ from tqdm import tqdm
 
 
 ## Simple Geometric functions: accepts and returns arrays of coordinates
-def curvature(line: LineString) -> Tuple[np.ndarray[float], np.ndarray[float]]:
+def curvature(line: LineString) -> tuple[np.ndarray[float], np.ndarray[float]]:
     x, y = line.xy
 
     # Get dx, dy
