@@ -53,7 +53,7 @@ def densify_segment(line: LineString) -> LineString:
     """Densify a line segment between two points to 1pt/m. Assumes line coordinates are in meters"""
     x, y = line.xy
 
-    num_points = int(round(line.length))
+    num_points = int(round(line.length))  # noqa: RUF046
 
     xs = np.linspace(*x, num_points + 1)
     ys = np.linspace(*y, num_points + 1)
