@@ -29,7 +29,7 @@ def clip_raster(
     no_data: Any | None = None,
 ) -> tuple[ElevationArray2D, BinaryArray2D, dict[Any, Any]]:
     # Replace optional values
-    if isinstance(array, np.ndarray):
+    if isinstance(array, np.ndarray):  # noqa: SIM108
         array_copy = array.copy()
     else:
         array_copy = ds.read(1)
@@ -187,7 +187,7 @@ def create_ridge_area_raster_fs(
     gdf = gpd.read_file(geometry_path)
 
     if bend_id_dict:
-        col = list(bend_id_dict.keys())[0]
+        col = next(iter(bend_id_dict.keys()))
         bend_id = bend_id_dict[col]
         geometry = gdf.set_index(col).loc[bend_id, "geometry"]
     else:
