@@ -293,7 +293,7 @@ class H74TransectConstructor:
         lines = [LineString([origin, point]) for point in new_points]
 
         # Evaluate intersection of the new lines and ridges
-        itx_result = [ridges.intersects(l) for l in lines]
+        itx_result = [ridges.intersects(line) for line in lines]
 
         # Return the output_value corresponding to the shortest distance
         if any(itx_result):
