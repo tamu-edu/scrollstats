@@ -11,7 +11,7 @@ Rules:
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Sequence
 from typing import Any
 
 import geopandas as gpd
@@ -144,7 +144,7 @@ class RidgeDataExtractor:
         self.swale_dq_adjustment = 0
         self.bool_mask = self.dq_first_swale()
         self.ridge_com = self.calc_ridge_coms()
-        self.single_ridge_num = None  # Set by self.find_closest_ridge()
+        self.single_ridge_num = -9999  # Set by self.find_closest_ridge()
         self.single_ridge_bin_signal = self.find_closest_ridge()
 
         # Ridge Metrics
@@ -156,9 +156,11 @@ class RidgeDataExtractor:
 
     def determine_signal_length(self) -> float:
         """Return length of dem/bin signal if provided"""
-        if isinstance(self.bin_signal, np.ndarray):
-            return self.dem_signal.size
-        return np.nan
+        if isinstance(self.bin_signal, np.ndarray) and isinstance(
+            self.dem_signal, np.ndarray
+        ):
+            return self.dem_signal.size  # type: ignore[no-any-return]
+        return np.nan  # type: ignore[no-any-return]
 
     def create_point_gdf(self) -> gpd.GeoDataFrame:
         """Create a 3 point GeoDataFrame to contain all relevant info for other methods."""
@@ -168,7 +170,9 @@ class RidgeDataExtractor:
         gdf = gdf.set_index("p_id")
         return gdf
 
-    def add_point_geometries(self, gdf, line: LineString) -> gpd.GeoDataFrame:
+    def add_point_geometries(
+        self, gdf: gpd.GeoDataFrame, line: LineString
+    ) -> gpd.GeoDataFrame:
         """Add the vertices from the 3vertex line as point geometries"""
         # Add geometry info
         id_list = []
@@ -363,9 +367,9 @@ class RidgeDataExtractor:
             return None
 
         if self.metric_confidence < 2:
-            return np.nan
+            return float(np.nan)
 
-        return np.nansum(self.single_ridge_bin_signal)
+        return float(np.nansum(self.single_ridge_bin_signal))
 
     def calc_every_ridge_amp(self) -> np.ndarray[float] | list[None]:
         """
@@ -376,7 +380,7 @@ class RidgeDataExtractor:
 
         return calc_ridge_amps(self.dem_signal_selection, self.bool_mask)
 
-    def determine_ridge_amp(self) -> float:
+    def determine_ridge_amp(self) -> float | None:
         """
         Select the correct ridge amplitude calculated by `calc_every_ridge_amp()` based on the number of ridges present
         """
@@ -387,10 +391,14 @@ class RidgeDataExtractor:
             amp = np.nan
         elif len(self.ridge_amp_series) == 1:
             amp = self.ridge_amp_series[0]
+        elif self.single_ridge_num > 0:
+            amp = self.ridge_amp_series[int(self.single_ridge_num)]
         else:
-            amp = self.ridge_amp_series[self.single_ridge_num]
+            raise ValueError(
+                "Multiple ridges identified in signal, but the current ridge position was not set"
+            )
 
-        return amp
+        return float(amp)
 
     def coerce_dtypes(self, gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         """Coerce the the 'object' dtypes into their proper numeric types"""
@@ -507,7 +515,7 @@ class TransectDataExtractor:
         These eligible coords are defined because multiple functions need to use these coordinates.
         """
 
-        return ls.coords[:-2]
+        return ls.coords[:-2]  # type: ignore[no-any-return]
 
     def create_substrings(self, ls: LineString) -> list[LineString]:
         """Create substrings starting from the eligible coordinates of the given linestring"""
@@ -540,7 +548,9 @@ class TransectDataExtractor:
 
         return gdf
 
-    def calc_cumulative_dist(self, coords: Iterable[float]) -> np.ndarray[float]:
+    def calc_cumulative_dist(
+        self, coords: Sequence[tuple[float, float]]
+    ) -> np.ndarray[float]:
         """Calculate the cumulative distances along a coordinate series"""
 
         coords = np.asarray(coords)
