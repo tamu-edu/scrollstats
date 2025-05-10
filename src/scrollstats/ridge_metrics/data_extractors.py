@@ -723,7 +723,7 @@ class BendDataExtractor:
         mask = np.isnan(signal)
         _labs, numfeats = ndimage.label(signal[~mask])
 
-        return numfeats
+        return int(numfeats)
 
     def dense_sample(
         self, line: LineString, raster: RasterioDatasetReader
@@ -783,7 +783,7 @@ class BendDataExtractor:
 
         # Test to see if signal has at least 2 ridges
         if ridge_count < 2:
-            return np.nan
+            return float(np.nan)
 
         # Remove nans and zero values from signal
         real_signal = signal[~np.isnan(signal)] - 0.5
@@ -799,7 +799,7 @@ class BendDataExtractor:
         # Convert freq to wavelength
         dom_wav = round(1 / freq[max_amp_loc])
 
-        return dom_wav
+        return float(dom_wav)
 
     def calc_transect_metrics(self) -> gpd.GeoDataFrame:
         rich_transects = self.transects.copy()
