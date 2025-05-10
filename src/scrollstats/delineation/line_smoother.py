@@ -31,16 +31,14 @@ class LineSmoother:
     def check_geometry_type(self) -> None:
         """Check that all geometries are of type LineString"""
         if any(self.lines.geom_type != "LineString"):
-            raise ValueError(
-                "Not all geometries are of type LineString. Remove the non-LineString geometry from `lines`"
-            )
+            err_msg = "Not all geometries are of type LineString. Remove the non-LineString geometry from `lines`"
+            raise ValueError(err_msg)
 
     def check_vertex_count(self) -> None:
         """Check that all ridges have at least as many vertices as the smoothing window is long"""
         if any(self.lines.geometry.apply(lambda x: len(x.coords)) < self.window):
-            raise ValueError(
-                f"One or more ridges have fewer vertices than the smoothing window is long (window={self.window}). Remove these ridges or add more vertices to them."
-            )
+            err_msg = f"One or more ridges have fewer vertices than the smoothing window is long (window={self.window}). Remove these ridges or add more vertices to them."
+            raise ValueError(err_msg)
 
     def meanfilt(self, line: LineString, w: int) -> LineString:
         """
