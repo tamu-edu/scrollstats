@@ -83,13 +83,13 @@ class LineSmoother:
         s = self.calc_dist(x, y)
 
         # Get the total length of the line
-        l = s[-1]
+        length = s[-1]
 
         # Total number of output points
-        n = int(l // spacing)
+        n = int(length // spacing)
 
         # Interpolated distances for each output point
-        interp_dist = np.linspace(0, l, n + 1, endpoint=True)
+        interp_dist = np.linspace(0, length, n + 1, endpoint=True)
 
         # Create spline function of x and y
         cx_func = CubicSpline(s, x)
