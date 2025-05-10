@@ -67,9 +67,11 @@ class LineSmoother:
         xdiff = np.ediff1d(x)
         ydiff = np.ediff1d(y)
 
-        return np.cumsum(
-            np.insert(np.sqrt(np.add(np.power(xdiff, 2), np.power(ydiff, 2))), 0, 0)
-        ).tolist()
+        return list(
+            np.cumsum(
+                np.insert(np.sqrt(np.add(np.power(xdiff, 2), np.power(ydiff, 2))), 0, 0)
+            )
+        )
 
     def calc_cubic_spline(self, line: LineString, spacing: int) -> LineString:
         """
