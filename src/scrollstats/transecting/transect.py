@@ -708,9 +708,8 @@ class MultiTransect:
         df = gpd.GeoDataFrame(
             data=ls_list, columns=col_names, geometry="geometry", crs=self.crs
         )
-        df.set_index("transect_id", inplace=True)
 
-        return df
+        return df.set_index("transect_id")
 
     def create_point_df(self) -> gpd.GeoDataFrame:
         # Loop through all the transects which left the centerline to create the row
@@ -748,9 +747,8 @@ class MultiTransect:
         df = gpd.GeoDataFrame(
             data=row_list, columns=col_names, geometry="geometry", crs=self.crs
         )
-        df.set_index("transect_id", inplace=True)
 
-        return df
+        return df.set_index("transect_id")
 
     def create_search_area_df(self) -> gpd.GeoDataFrame:
         row_list = []
@@ -778,9 +776,8 @@ class MultiTransect:
         df = gpd.GeoDataFrame(
             data=row_list, columns=col_names, geometry="geometry", crs=self.crs
         )
-        df.set_index("transect_id", inplace=True)
 
-        return df
+        return df.set_index("transect_id")
 
     def create_ridge_clip_df(self) -> gpd.GeoDataFrame:
         row_list = []
@@ -808,9 +805,8 @@ class MultiTransect:
         df = gpd.GeoDataFrame(
             data=row_list, columns=col_names, geometry="geometry", crs=self.crs
         )
-        df.set_index("transect_id", inplace=True)
 
-        return df
+        return df.set_index("transect_id")
 
     def return_all_geometries(
         self,
