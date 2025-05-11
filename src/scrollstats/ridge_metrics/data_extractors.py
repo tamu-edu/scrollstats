@@ -46,7 +46,7 @@ def remove_coincident_points(coord_array: np.ndarray) -> np.ndarray:
 
 def explode(line: LineString) -> list[LineString]:
     """Return a list of all 2 coordinate line segments in a given LineString"""
-    return list(map(LineString, zip(line.coords[:-1], line.coords[1:])))
+    return list(map(LineString, zip(line.coords[:-1], line.coords[1:], strict=False)))
 
 
 def densify_segment(line: LineString) -> LineString:
@@ -58,7 +58,7 @@ def densify_segment(line: LineString) -> LineString:
     xs = np.linspace(*x, num_points + 1)
     ys = np.linspace(*y, num_points + 1)
 
-    return LineString(zip(xs, ys))
+    return LineString(zip(xs, ys, strict=False))
 
 
 def densify_line(line: LineString) -> LineString:
@@ -390,7 +390,7 @@ class RidgeDataExtractor:
             amp = np.nan
         elif len(self.ridge_amp_series) == 1:
             amp = self.ridge_amp_series[0]
-        elif self.single_ridge_num > 0:
+        elif self.single_ridge_num >= 0:
             amp = self.ridge_amp_series[int(self.single_ridge_num)]
         else:
             err_msg = "Multiple ridges identified in signal, but the current ridge position was not set"
