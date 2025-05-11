@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from functools import partial
 from inspect import signature
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import geopandas as gpd
 import numpy as np

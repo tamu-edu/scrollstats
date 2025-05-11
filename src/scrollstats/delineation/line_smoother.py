@@ -58,7 +58,7 @@ class LineSmoother:
         ym = np.insert(ym, 0, y[0])
         ym = np.append(ym, y[-1])
 
-        return LineString(zip(xm, ym))
+        return LineString(zip(xm, ym, strict=False))
 
     def calc_dist(self, x: np.ndarray, y: np.ndarray) -> list[float]:
         """Calc distance along the line"""
@@ -99,7 +99,7 @@ class LineSmoother:
         cx = cx_func(interp_dist)
         cy = cy_func(interp_dist)
 
-        return LineString(zip(cx, cy))
+        return LineString(zip(cx, cy, strict=False))
 
     def execute(self) -> GeoDataFrame:
         """
