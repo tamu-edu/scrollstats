@@ -402,7 +402,7 @@ def _find_normal(weights: np.ndarray, wsize: float, resoln: float) -> np.ndarray
     return normal
 
 
-@jit
+@jit  # type: ignore[misc]
 def _find_obs(
     elevations: np.ndarray,
     weights: np.ndarray,
