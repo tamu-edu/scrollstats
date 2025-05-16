@@ -339,10 +339,10 @@ class H74TransectConstructor:
                 itx = MultiPoint(_points)
 
             # Find point nearest the start point
-            itx = sorted(list(itx.geoms), key=p1.distance)[0]
+            itx = sorted(itx.geoms, key=p1.distance)[0]
 
             # Isolate ridge closest to itx
-            iso_ridge = sorted(list(ridges.geoms), key=itx.distance)[0]
+            iso_ridge = sorted(ridges.geoms, key=itx.distance)[0]
 
             # Intersect ridge with itx buffered by the search distance
             search_area = itx.buffer(self.search_distance)
@@ -353,7 +353,7 @@ class H74TransectConstructor:
 
             # Isolate ridge piece that is closest to itx - assumes non-LineSting geoms are geometry collections
             if ridge_clip.geom_type != "LineString":
-                ridge_clip = sorted(list(ridge_clip.geoms), key=itx.distance)[0]
+                ridge_clip = sorted(ridge_clip.geoms, key=itx.distance)[0]
 
             return ridge_clip
 
