@@ -334,7 +334,7 @@ class RidgeDataExtractor:
         if self.bin_signal is None:
             return None
 
-        if not self.ridge_com.any():
+        if not self.ridge_com.any(): # type: ignore[union-attr]
             return np.zeros(self.bin_signal.shape)
 
         # Get index of center vertex
@@ -501,7 +501,7 @@ class TransectDataExtractor:
     def create_itx_gdf(self) -> gpd.GeoDataFrame:
         """Create the gdf that will contain all the ridge data for each intersection."""
         gdf = gpd.GeoDataFrame(columns=self.data_columns, geometry="geometry").set_crs(
-            self.ridges.crs
+            self.ridges.crs # type: ignore[union-attr]
         )
 
         return gdf
