@@ -262,7 +262,7 @@ class RidgeDataExtractor:
             return 0
 
         _labels, ridge_count = ndimage.label(self.bool_mask)
-        _labels, swale_count = ndimage.label(~self.bool_mask)
+        _labels, swale_count = ndimage.label(~self.bool_mask) #type: ignore[operator]
 
         # All swale
         if ridge_count == 0 and swale_count == 1:
@@ -298,8 +298,8 @@ class RidgeDataExtractor:
 
         if self.position == 0:
             first_positive = np.flatnonzero(self.bool_mask)[0]
-            self.bool_mask = self.bool_mask[first_positive:]
-            self.dem_signal_selection = self.dem_signal_selection[first_positive:]
+            self.bool_mask = self.bool_mask[first_positive:] # type: ignore[index] 
+            self.dem_signal_selection = self.dem_signal_selection[first_positive:] # type: ignore[index] 
             self.metric_confidence = self.determine_metric_confidence()
             self.swale_dq_adjustment = len(self.bin_signal) - len(self.bool_mask)
         return self.bool_mask
@@ -311,7 +311,7 @@ class RidgeDataExtractor:
             return None
 
         # Create a copy to not modify the original
-        sig = self.bool_mask.copy()
+        sig = self.bool_mask.copy() # type: ignore[union-attr]
 
         # Find individual ridge areas
         labels, numfeats = ndimage.label(sig)
