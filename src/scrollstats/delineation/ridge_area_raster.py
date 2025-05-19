@@ -80,8 +80,8 @@ def partial_from_kwargs(func: Callable[..., Any], **kwargs: Any) -> Callable[...
 def create_ridge_area_raster(
     dem_ds: rasterio.DatasetReader,
     geometry: Polygon,
-    classifier_funcs: tuple[BinaryClassifierFn] = DEFAULT_CLASSIFIERS,
-    denoiser_funcs: tuple[BinaryDenoiserFn] = DEFAULT_DENOISERS,
+    classifier_funcs: tuple[BinaryClassifierFn, ...] = DEFAULT_CLASSIFIERS,
+    denoiser_funcs: tuple[BinaryDenoiserFn, ...] = DEFAULT_DENOISERS,
     no_data_value: Any | None = None,
     **kwargs: Any,
 ) -> tuple[Array2D, ElevationArray2D, dict[Any, Any]]:
