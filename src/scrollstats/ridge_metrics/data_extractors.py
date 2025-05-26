@@ -262,7 +262,7 @@ class RidgeDataExtractor:
             return 0
 
         _labels, ridge_count = ndimage.label(self.bool_mask)
-        _labels, swale_count = ndimage.label(~self.bool_mask) #type: ignore[operator]
+        _labels, swale_count = ndimage.label(~self.bool_mask)  # type: ignore[operator]
 
         # All swale
         if ridge_count == 0 and swale_count == 1:
@@ -298,8 +298,8 @@ class RidgeDataExtractor:
 
         if self.position == 0:
             first_positive = np.flatnonzero(self.bool_mask)[0]
-            self.bool_mask = self.bool_mask[first_positive:] # type: ignore[index] 
-            self.dem_signal_selection = self.dem_signal_selection[first_positive:] # type: ignore[index] 
+            self.bool_mask = self.bool_mask[first_positive:]  # type: ignore[index]
+            self.dem_signal_selection = self.dem_signal_selection[first_positive:]  # type: ignore[index]
             self.metric_confidence = self.determine_metric_confidence()
             self.swale_dq_adjustment = len(self.bin_signal) - len(self.bool_mask)
         return self.bool_mask
@@ -311,7 +311,7 @@ class RidgeDataExtractor:
             return None
 
         # Create a copy to not modify the original
-        sig = self.bool_mask.copy() # type: ignore[union-attr]
+        sig = self.bool_mask.copy()  # type: ignore[union-attr]
 
         # Find individual ridge areas
         labels, numfeats = ndimage.label(sig)
@@ -334,7 +334,7 @@ class RidgeDataExtractor:
         if self.bin_signal is None:
             return None
 
-        if not self.ridge_com.any(): # type: ignore[union-attr]
+        if not self.ridge_com.any():  # type: ignore[union-attr]
             return np.zeros(self.bin_signal.shape)
 
         # Get index of center vertex
@@ -501,7 +501,7 @@ class TransectDataExtractor:
     def create_itx_gdf(self) -> gpd.GeoDataFrame:
         """Create the gdf that will contain all the ridge data for each intersection."""
         gdf = gpd.GeoDataFrame(columns=self.data_columns, geometry="geometry").set_crs(
-            self.ridges.crs # type: ignore[union-attr]
+            self.ridges.crs  # type: ignore[union-attr]
         )
 
         return gdf
