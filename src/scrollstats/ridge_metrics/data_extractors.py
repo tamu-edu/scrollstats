@@ -843,7 +843,7 @@ class BendDataExtractor:
         tde_list = []
         pbar = tqdm(total=len(self.rich_transects), desc="Ridge Metrics", ascii=True)
         for _i, row in self.rich_transects[input_columns].iterrows():
-            tde = TransectDataExtractor(*row, ridges=self.ridges).calc_ridge_metrics()
+            tde = TransectDataExtractor(**row, ridges=self.ridges).calc_ridge_metrics()
             tde_list.append(tde)
             pbar.update()
         pbar.close()
