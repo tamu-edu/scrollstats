@@ -607,7 +607,7 @@ class TransectDataExtractor:
         """Slice the DEM between the two end vertices of the substrings"""
         if self.raw_bin_signal is not None:
             gdf["dem_signal"] = gdf["vertex_indices"].apply(
-                lambda x: self.raw_dem_signal[x[0] : x[2]]
+                lambda x: self.raw_dem_signal[x[0] : x[2]]  # type: ignore[index]
             )
 
         return gdf
