@@ -20,5 +20,12 @@ BinaryArray2D: TypeAlias = NDArray[Shape["*, *"], Bool]  # noqa: F722
 ## `BinaryClassifierFn`s and `BinaryDenoiserFn`s use the following signature:
 ### They take a 2D array as input and output a binary 2D array
 ### Use partial functions from the `functools` library to create wrapper functions which contain all input arguments other than the input 2D array
-BinaryClassifierFn: TypeAlias = Callable[[ElevationArray2D], BinaryArray2D]
-BinaryDenoiserFn: TypeAlias = Callable[[BinaryArray2D], BinaryArray2D]
+
+# Mypy does not allow for the complex Callable typing that's currently used (a callable with one typed input and any number of other inputs of any type)
+## So, the difference between a BinaryClassifierFn and BinaryDenoiserFn are in name only
+
+# Takes an ElevationArray2D and kwargs as input
+BinaryClassifierFn: TypeAlias = Callable[..., BinaryArray2D]
+
+# Takes a BinaryArray2D and kwargs as input
+BinaryDenoiserFn: TypeAlias = Callable[..., BinaryArray2D]
