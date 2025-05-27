@@ -816,7 +816,7 @@ class BendDataExtractor:
             )
 
             rich_transects["ridge_count_raster"] = rich_transects["bin_signal"].apply(
-                lambda x: self.count_ridges(x)
+                lambda x: self.count_ridges(x)  # pylint: disable=W0108
             )
 
             rich_transects["fft_spacing"] = rich_transects[

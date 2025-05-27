@@ -8,13 +8,13 @@ from nptyping import Bool, Float, NDArray, Shape
 # Define array types
 
 ## Array2D: 2D array of any size of any dtype
-Array2D: TypeAlias = NDArray[Shape["*, *"], Any]  # noqa: F722
+Array2D: TypeAlias = NDArray[Shape["*, *"], Any]  # noqa: F722  pylint: disable=C0103
 
 ## ElevationArray2D: 2D array of any size of dtype float
-ElevationArray2D: TypeAlias = NDArray[Shape["*, *"], Float]  # noqa: F722
+ElevationArray2D: TypeAlias = NDArray[Shape["*, *"], Float]  # noqa: F722  pylint: disable=C0103
 
 ## BinaryArray2D: 2D array of any size of dtype bool
-BinaryArray2D: TypeAlias = NDArray[Shape["*, *"], Bool]  # noqa: F722
+BinaryArray2D: TypeAlias = NDArray[Shape["*, *"], Bool]  # noqa: F722  pylint: disable=C0103
 
 # Define functions as interfaces
 ## `BinaryClassifierFn`s and `BinaryDenoiserFn`s use the following signature:

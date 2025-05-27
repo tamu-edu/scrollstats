@@ -408,9 +408,7 @@ class H74TransectConstructor:
             return itx
         if itx.geom_type == "MultiPoint":
             # Shot may intersect ridge piece more than once within the search buffer
-            return sorted(
-                [Point(i) for i in itx.geoms], key=lambda x: self.p1.distance(x)
-            )[0]
+            return sorted([Point(i) for i in itx.geoms], key=self.p1.distance)[0]
         if self.verbose == 2:
             print(f"Failure at Src90: itx = {itx.wkt}")
             print(f"Shot: {shot.wkt}")
@@ -485,9 +483,7 @@ class H74TransectConstructor:
             return itx
         if itx.geom_type == "MultiPoint":
             # Shot may intersect ridge piece more than once within the search buffer
-            return sorted(
-                [Point(i) for i in itx.geoms], key=lambda x: self.p1.distance(x)
-            )[0]
+            return sorted([Point(i) for i in itx.geoms], key=self.p1.distance)[0]
         if self.verbose == 2:
             print(f"Result_coord: {itx.wkt}")
         return Point()
@@ -583,7 +579,7 @@ class H74TransectConstructor:
                             f"TRANSECT TERMINATED: Iteration counter reached iteration cap (max_iter={self.max_iterations})"
                         )
 
-            except Exception as error:
+            except Exception as error:  # pylint: disable=W0718
                 self.walk_state = False
                 self.transect.termination_reason = "Unknown"
                 if self.verbose == 2:
