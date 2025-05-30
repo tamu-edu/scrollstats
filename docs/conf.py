@@ -55,6 +55,10 @@ myst_enable_extensions = [
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
+    "shapely": ("https://shapely.readthedocs.io/en/stable/", None),
+    "geopandas": ("https://geopandas.org/en/stable/", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "rasterio": ("https://rasterio.readthedocs.io/en/stable/", None),
 }
 
 nitpick_ignore = [
