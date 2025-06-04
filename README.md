@@ -29,9 +29,9 @@
 An open-source python library to calculate and extract morphometrics from
 scrollbar floodplains.
 
-# Getting Started
+## Getting Started
 
-### Create conda environment
+**Create conda environment**
 
 Create a conda environment from the provided `environment.yml` file with the
 following commands
@@ -44,7 +44,7 @@ cd path/to/scrollstats
 conda env create -f environment.yml
 ```
 
-# Using ScrollStats
+## Using ScrollStats
 
 ScrollStats uses interactive jupyter notebooks as the user interface, however
 the underlying [scripting library](src/scrollstats) can also be used on its own.
@@ -109,7 +109,7 @@ all processes for a bend can be completed at once.
   amplitude, width, and migration distance for every intersection of a ridge and
   migration pathway.
 
-# Contributing
+## Contributing
 
 Contribution to ScrollStats is welcome. There will forever be a "frozen" branch
 that contains the code exactly as it was at the time of publication, but it is
