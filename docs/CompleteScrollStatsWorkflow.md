@@ -1,6 +1,10 @@
 # Complete ScrollStats Workflow
 
-This page contains the entire process for creating intersection-scale ridge measurements (ridge amplitude, width, and spacing) from the required input data (dem, manual ridge lines, packets, bend area, centerline). This process is the same process that has been split up across the other 3 pages, but without context and explanation.
+This page contains the entire process for creating intersection-scale ridge
+measurements (ridge amplitude, width, and spacing) from the required input data
+(dem, manual ridge lines, packets, bend area, centerline). This process is the
+same process that has been split up across the other 3 pages, but without
+context and explanation.
 
 ```python
 from __future__ import annotations
@@ -21,11 +25,13 @@ from scrollstats import (
 )
 
 # User defined parameters
-# Ridge Area Raster 
-RASTER_WINDOW_SIZE = 45 # kernal size for image processing; measured in px
-SMALL_FEATS_SIZE = 500  # all features smaller will be removed in denoising process; measured in px^2
+# Ridge Area Raster
+RASTER_WINDOW_SIZE = 45  # kernel size for image processing; measured in px
+SMALL_FEATS_SIZE = (
+    500  # all features smaller will be removed in denoising process; measured in px^2
+)
 
-# LineSmoother 
+# LineSmoother
 SMOOTHING_WINDOW_SIZE = 5  # Measured in vertices
 VERTEX_SPACING = 1  # Distance between densified vertices; Measured in linear unit of dataset (meters for example datasets)
 
@@ -59,7 +65,7 @@ binary_path_out, dem_path_out = create_ridge_area_raster_fs(
     no_data=np.nan,
     window=RASTER_WINDOW_SIZE,
     dx=1,
-    small_feats_size=SMALL_FEATS_SIZE
+    small_feats_size=SMALL_FEATS_SIZE,
 )
 
 ########################################################################################
