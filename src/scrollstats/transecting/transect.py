@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import geopandas as gpd
 import numpy as np
+from geopandas import GeoDataFrame
 from shapely.geometry import (
     LineString,
     MultiLineString,
@@ -1005,8 +1005,8 @@ class MultiTransect:
     def __init__(
         self,
         coord_list: list[Point],
-        centerline: gpd.GeoDataFrame,
-        ridges: gpd.GeoDataFrame,
+        centerline: GeoDataFrame,
+        ridges: GeoDataFrame,
         shoot_distance: float,
         search_distance: float,
         dev_from_90: float,
@@ -1081,7 +1081,7 @@ class MultiTransect:
 
         return transect_list
 
-    def create_transect_df(self) -> gpd.GeoDataFrame:
+    def create_transect_df(self) -> GeoDataFrame:
         """
         Creates a GeoDataFrame of transects from all transects which successfully left the centerline.
 
@@ -1121,13 +1121,13 @@ class MultiTransect:
             "dev_from_90",
             "geometry",
         ]
-        df = gpd.GeoDataFrame(
+        df = GeoDataFrame(
             data=ls_list, columns=col_names, geometry="geometry", crs=self.crs
         )
 
         return df.set_index("transect_id")
 
-    def create_point_df(self) -> gpd.GeoDataFrame:
+    def create_point_df(self) -> GeoDataFrame:
         """
         Creates a GeoDataFrame of all points used to create transects.
 
@@ -1173,13 +1173,13 @@ class MultiTransect:
             "dev_from_90",
             "geometry",
         ]
-        df = gpd.GeoDataFrame(
+        df = GeoDataFrame(
             data=row_list, columns=col_names, geometry="geometry", crs=self.crs
         )
 
         return df.set_index("transect_id")
 
-    def create_search_area_df(self) -> gpd.GeoDataFrame:
+    def create_search_area_df(self) -> GeoDataFrame:
         """
         Creates a GeoDataFrame of all search areas used to create transects.
 
@@ -1215,13 +1215,13 @@ class MultiTransect:
             "dev_from_90",
             "geometry",
         ]
-        df = gpd.GeoDataFrame(
+        df = GeoDataFrame(
             data=row_list, columns=col_names, geometry="geometry", crs=self.crs
         )
 
         return df.set_index("transect_id")
 
-    def create_ridge_clip_df(self) -> gpd.GeoDataFrame:
+    def create_ridge_clip_df(self) -> GeoDataFrame:
         """
         Creates a GeoDataFrame of all ridge sections searched to create transects.
 
@@ -1257,7 +1257,7 @@ class MultiTransect:
             "dev_from_90",
             "geometry",
         ]
-        df = gpd.GeoDataFrame(
+        df = GeoDataFrame(
             data=row_list, columns=col_names, geometry="geometry", crs=self.crs
         )
 
@@ -1265,7 +1265,7 @@ class MultiTransect:
 
     def return_all_geometries(
         self,
-    ) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame, gpd.GeoDataFrame, gpd.GeoDataFrame]:
+    ) -> tuple[GeoDataFrame, GeoDataFrame, GeoDataFrame, GeoDataFrame]:
         """Return all geometries created for a set of transects
 
         Parameters
@@ -1281,13 +1281,13 @@ class MultiTransect:
 
 
 def create_transects(
-    centerline: gpd.GeoDataFrame,
-    ridges: gpd.GeoDataFrame,
+    centerline: GeoDataFrame,
+    ridges: GeoDataFrame,
     step: int,
     shoot_distance: float,
     search_distance: float,
     dev_from_90: float,
-) -> gpd.GeoDataFrame:
+) -> GeoDataFrame:
     """
     Convenience function to create a series of transects from a given centerline, set of ridges, and the necessary parameters.
 
