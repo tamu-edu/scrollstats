@@ -15,6 +15,19 @@ from tqdm import tqdm
 
 ## Simple Geometric functions: accepts and returns arrays of coordinates
 def curvature(line: LineString) -> tuple[np.ndarray[float], np.ndarray[float]]:
+    """
+    Calculates curvature and angle (alpha) along a given line.
+
+    Parameters
+    ----------
+    line : LineString
+        The line for which to calculate curvature and angle.
+
+    Returns
+    -------
+    tuple[np.ndarray[float], np.ndarray[float]]
+        A tuple containing two numpy arrays: curvature and alpha
+    """
     x, y = line.xy
 
     # Get dx, dy
@@ -48,7 +61,19 @@ def curvature(line: LineString) -> tuple[np.ndarray[float], np.ndarray[float]]:
 
 
 def calc_dist_along_line(line: LineString) -> np.ndarray[float]:
-    """Calculate an array of distance along a given line"""
+    """
+    Calculate an array of distance along a given line
+
+    Parameters
+    ----------
+    line : LineString
+        The line for which to calculate distance along.
+
+    Returns
+    -------
+    np.ndarray[float]
+        Array of distance values for each vertex.
+    """
 
     x, y = line.xy
 
@@ -61,6 +86,21 @@ def calc_dist_along_line(line: LineString) -> np.ndarray[float]:
 
 
 def calc_dist(p1: np.ndarray[float], p2: np.ndarray[float]) -> np.ndarray[float]:
+    """
+    Calculates the distance element-wise between two arrays of points
+
+    Parameters
+    ----------
+    p1 : np.ndarray[float]
+        First array of points.
+    p2 : np.ndarray[float]
+        Second array of points.
+
+    Returns
+    -------
+    np.ndarray[float]
+        Array of distances between corresponding points in p1 and p2.
+    """
     # p1 and p2 are both (n,2) arrays of coordinates
     return np.sqrt((p1[:, 0] - p2[:, 0]) ** 2 + (p1[:, 1] - p2[:, 1]) ** 2)
 
@@ -69,9 +109,23 @@ def law_of_cos(
     a: np.ndarray[float], b: np.ndarray[float], c: np.ndarray[float]
 ) -> np.ndarray[float]:
     """
-    This function uses law of cosines to calc the interior angle formed by two connected lines
+    This function uses law of cosines to calculate the interior angle formed by two connected lines
     Traveling down the line, vertices are a, b, c (a=beg, b=mid, c=end)
     Distances between vertices are represented with '_' ex. a_b is the distance between a and b
+
+    Parameters
+    ----------
+    a : np.ndarray[float]
+        Array of coordinates for point a.
+    b : np.ndarray[float]
+        Array of coordinates for point b.
+    c : np.ndarray[float]
+        Array of coordinates for point c.
+
+    Returns
+    -------
+    np.ndarray[float]
+        Array of interior angles at point b formed by lines ab and bc.
     """
 
     # Calculate distances between points
@@ -86,7 +140,21 @@ def law_of_cos(
 
 
 def calc_dxdy(angle: np.ndarray[float], length: float = 100) -> np.ndarray[float]:
-    """Calculates the delta x and y given an angle and a length"""
+    """
+    Calculates the delta x and y given an angle and a length
+
+    Parameters
+    ----------
+    angle : np.ndarray[float]
+        Angle(s) in radians.
+    length : float, optional
+        Length of the vector, by default 100.
+
+    Returns
+    -------
+    np.ndarray[float]
+        A 2D array where the first row contains delta x values and the second row contains delta y values.
+    """
 
     dx = np.cos(angle) * length
     dy = np.sin(angle) * length
@@ -102,10 +170,21 @@ def add_sub_90(
     The proper line should have the largest of the interior angles formed by the incoming transect and new shoot being formed
     This function returns the coordinate representing the end point of the proper line
 
-    Args:
-     - a: coord before itx
-     - b: coord of itx
-     - alpha: alpha of the ridge at itx (float)
+    Parameters
+    ----------
+    a : Point
+        The previous point in the transect (p0).
+    b : Point
+        The current point in the transect (p1).
+    alpha : float
+        The angle of the current transect at b.
+    length : float, optional
+        The length of the new shoot line, by default 100.
+
+    Returns
+    -------
+    np.ndarray[float]
+        The coordinates the point in the correct direction (largest interior angle).
     """
 
     # Plus 90
@@ -135,12 +214,41 @@ def add_sub_90(
 
 
 def vert_res(p0: Point, p1: Point, p2: Point) -> np.ndarray[float]:
-    """Calculates the vertical resultant of the two vectors (LineStrings) p0->p1 and p0->p2"""
+    """
+    Calculates the vertical resultant of the two vectors (LineStrings) p0->p1 and p0->p2
+
+    Parameters
+    ----------
+    p0 : Point
+        The shared starting point of the two vectors.
+    p1 : Point
+        The end point of the first vector.
+    p2 : Point
+        The end point of the second vector.
+
+    Returns
+    -------
+    np.ndarray[float]
+        The coordinates of the vertical resultant point.
+
+    """
     return np.asarray(p1.xy) + np.asarray(p2.xy) - np.asarray(p0.xy)
 
 
 def find_closest_idx(point: Point, line: LineString) -> int:
-    """Loops through the coordinates of `line` and returns the idx of the coord closest to `point`"""
+    """
+    Loops through the coordinates of `line` and returns the idx of the coord closest to `point`
+
+    Parameters
+    ----------
+    point : Point
+    line : LineString
+
+    Returns
+    -------
+    int
+        The index of the coordinate in `line` that is closest to `point`.
+    """
 
     # List the indices and coordinates of the LineString
     tups = [(i, Point(v)) for i, v in enumerate(line.coords)]
@@ -153,7 +261,20 @@ def find_closest_idx(point: Point, line: LineString) -> int:
 
 
 def direction_alpha_at_point(point: Point, line: LineString) -> tuple[int, float]:
-    """Calculates both the shot direction and alpha value at the coordinate of `line` closest to `point`"""
+    """
+    Calculates both the shot direction and alpha value at the coordinate of `line` closest to `point`
+
+    Parameters
+    ----------
+    point : Point
+        The point at which to evaluate direction and alpha.
+    line : LineString
+        The line from which to evaluate direction and alpha.
+    Returns
+    -------
+    tuple[int, float]
+        A tuple of the shot direction (+1, -1, or 0) and the angle (in radians) at the closest point on the line.
+    """
     curv, alpha = curvature(line)
     idx = find_closest_idx(point, line)
 
@@ -175,8 +296,45 @@ def direction_alpha_at_point(point: Point, line: LineString) -> tuple[int, float
 
 class H74Transect:
     """
-    Instances of this class are used to retain information (point ID, intermediate values, vertex coordinates, etc.) about a transect being created following the geometric methods described in Hickin 1974.
-    Instances of this class are modified by the `H74TransectConstructor` class
+    Stores information about a transect created using Hickin 1974 geometric methods.
+
+    Parameters
+    ----------
+    origin : shapely.geometry.Point
+        The starting point of the transect.
+    point_id : str or None, optional
+        Identifier for the transect point.
+
+    Attributes
+    ----------
+    origin : Point
+        Starting point of the transect.
+    point_id : str or None
+        Identifier for the transect point.
+    coord_list : list of Point
+        List of coordinates along the transect.
+    n1_shoot_list : list of Point
+        List of shot points for n1.
+    n1_coord_list : list of Point
+        List of n1 intersection coordinates.
+    n2_coord_list : list of Point
+        List of n2 intersection coordinates.
+    vr_shoot_list : list of Point
+        List of vertical resultant shot points.
+    p2_coord_list : list of Point
+        List of p2 intersection coordinates.
+    linestring : LineString
+        LineString representing the transect.
+    search_area_list : list of Polygon
+        List of search area polygons.
+    ridge_clip_list : list of LineString
+        List of clipped ridge lines.
+    termination_point : None
+        Point where transect terminated.
+    termination_reason : str or None
+        Reason for transect termination.
+    distance_along_cl : float or None
+        Distance along centerline at origin.
     """
 
     def __init__(self, origin: Point, point_id: str | None = None) -> None:
@@ -205,9 +363,75 @@ class H74Transect:
 
 class H74TransectConstructor:
     """
-    Takes a transect instance and builds the transect out with a given set of ridges and geometric parameters.
+    Takes an H74Transect instance and builds the transect out with a given set of ridges and geometric parameters.
 
     Each hickin function in the class will return a shapely object and avoid changing state variables within the class
+
+    Parameters
+    ----------
+    origin : Point
+        Starting point of the transect.
+    transect_id : str
+        Identifier for the transect.
+    centerline : LineString
+        Centerline geometry.
+    ridges : MultiLineString
+        Ridge geometries.
+    shoot_distance : float
+        Distance for each shot.
+    search_distance : float
+        Search buffer distance.
+    dev_from_90 : float
+        Allowed deviation from 90 degrees.
+    user_direction : int or None, optional
+        User-specified shot direction.
+    verbose : int, optional
+        Verbosity level.
+
+    Attributes
+    ----------
+    transect : H74Transect
+        Transect instance being constructed.
+    origin : Point
+        Starting point.
+    centerline : LineString
+        Centerline geometry.
+    user_direction : int or None
+        User-specified direction.
+    initial_direction : int or None
+        Initial calculated direction.
+    initial_alpha : float or None
+        Initial alpha value.
+    ridges : MultiLineString
+        Ridge geometries.
+    ridges_centroid : Point
+        Centroid of ridges.
+    p1 : Point
+        Current point.
+    p2 : Point
+        Next point.
+    r1 : LineString
+        Current ridge.
+    r2 : LineString
+        Next ridge.
+    n1 : Point
+        n1 intersection point.
+    n2 : Point
+        n2 intersection point.
+    walk_state : bool
+        Transect walking state.
+    iteration : int
+        Iteration counter.
+    verbose : int
+        Verbosity level.
+    shoot_distance : float
+        Shot distance.
+    search_distance : float
+        Search buffer distance.
+    dev_from_90 : float
+        Allowed deviation from 90 degrees.
+    max_iterations : int
+        Maximum allowed iterations.
     """
 
     def __init__(
@@ -260,7 +484,13 @@ class H74TransectConstructor:
         self.calc_dist_along_cl()
 
     def eval_user_direction(self) -> None:
-        """Overrides the calculated shot direction value if direction is specified by the user."""
+        """
+        Overrides the calculated shot direction value if direction is specified by the user.
+
+        Returns
+        -------
+        None
+        """
 
         if self.user_direction is not None:
             d_list = ("undetermined", "left", "right")
@@ -277,6 +507,20 @@ class H74TransectConstructor:
         Determines the direction of the initial shot from the centerline.
 
         This is done by evaluating which shot direction (+ or - 90°) intersects the ridges.
+
+        Parameters
+        ----------
+        origin : Point
+            Starting point.
+        alpha : float
+            Alpha value at origin.
+        ridges : MultiLineString
+            Ridge geometries.
+
+        Returns
+        -------
+        int
+            Initial shot direction (+1, -1, or 0).
         """
 
         output_values = np.array([1, -1])
@@ -302,7 +546,13 @@ class H74TransectConstructor:
         return 0
 
     def calc_dist_along_cl(self) -> None:
-        # Get distance along centerline at transect origin
+        """
+        Calculates the distance along the centerline at the transect origin.
+
+        Returns
+        -------
+        None
+        """
         dist = calc_dist_along_line(self.centerline)
         idx = find_closest_idx(self.origin, self.centerline)
         self.transect.distance_along_cl = dist[idx]
@@ -314,6 +564,18 @@ class H74TransectConstructor:
         Takes a line and ridges as input and returns a snippet of a single ridge that the line intersects.
         Depending on the size of the search radius, line may still intersect ridge snippet at more than one point
         Initial intersection can have many geometry types. This function accounts for: empty geometry, Point, MultiPoint, GeometryCollection
+
+        Parameters
+        ----------
+        line : LineString
+            The transect line to intersect with ridges.
+        ridges : MultiLineString
+            Ridge geometries.
+
+        Returns
+        -------
+        LineString
+            Snippet of the closest intersected ridge.
         """
 
         # Start will actually be self.coords[-1]
@@ -363,6 +625,20 @@ class H74TransectConstructor:
         """
         Calculates the point perpendicular to `r1` at point `p1`, `dist` away from `p1`.
         Used for the first shot from the centerline into the ridge field.
+
+        Parameters
+        ----------
+        p1 : Point
+            Starting point.
+        r1 : LineString
+            The line from which to shoot.
+        dist : float
+            Shoot distance from p1.
+
+        Returns
+        -------
+        Point
+            The point perpendicular to r1 at point p1.
         """
 
         # Determine angle for the next shot point
@@ -389,6 +665,22 @@ class H74TransectConstructor:
         Calculates the point perpendicular to `r1` at point `p1`, `dist` away from `p1`.
         Used when transect is moving from ridge to ridge.
         add_sub_90() is used to determine whether to add or subtract 90° from heading (alpha) value.
+
+        Parameters
+        ----------
+        p0 : Point
+            Previous point. Needed to calculate direction of shot (+/-90°).
+        p1 : Point
+            Current point.
+        r1 : LineString
+            The line from which to shoot.
+        dist : float
+            Shoot distance from p1.
+
+        Returns
+        -------
+        Point
+            The point perpendicular to r1 at point p1.
         """
 
         # Determine alpha value of r1 nearest p1
@@ -400,7 +692,21 @@ class H74TransectConstructor:
         return Point(shoot)
 
     def src90(self, shot: LineString, ridge: LineString) -> Point:
-        """Calculates the intersection between p1->shot_point and ridge r1 to define point p1."""
+        """
+        Calculates the intersection between p1->shot_point and ridge r1 to define point p1.
+
+        Parameters
+        ----------
+        shot : LineString
+            The line from p1 to the shot point.
+        ridge : LineString
+            The ridge line to intersect with the shot.
+
+        Returns
+        -------
+        Point
+            The intersection point between shot and ridge.
+        """
 
         itx = shot.intersection(ridge)
 
@@ -423,6 +729,20 @@ class H74TransectConstructor:
         This is done by creating an angle between 3 points: (p1, ridge point, a point along the line tangent to the ridge at the ridge point)
         These angles are collected for a series of ridge points within a certain distance to the src90 point
         The ridge point with the angle closest to 90° is returned as point `p2`
+
+        Parameters
+        ----------
+        p1 : Point
+            Current point.
+        r2 : LineString
+            The ridge line on which to find the perpendicular point.
+        dev_from_90 : float
+            Allowed deviation from 90 degrees.
+
+        Returns
+        -------
+        Point
+            The point on r2 from which a perpendicular line intersects p1.
         """
 
         # Calc alpha for every midpoint
@@ -467,7 +787,25 @@ class H74TransectConstructor:
     def result_coord(
         self, p1: Point, src90: Point, dest90: Point, r2: LineString
     ) -> Point:
-        """Function takes coordinates of two points and their shared p1 to calculate the resultant vector"""
+        """
+        Takes the coordinates of two points and their shared p1 to calculate the resultant vector.
+
+        Parameters
+        ----------
+        p1 : Point
+            Current point.
+        src90 : Point
+            The point on r2 that lies on a line perpendicular from r1 at point p1.
+        dest90 : Point
+            The point on r2 from which a perpendicular line intersects p1.
+        r2 : LineString
+            The ridge line on which src90 and dest90 lie.
+
+        Returns
+        -------
+        Point
+            The intersection point between the vertical resultant and r2.
+        """
 
         # Calc vertical resultant coord of src90 and dest90
         vr = Point(vert_res(p1, src90, dest90))
@@ -492,6 +830,15 @@ class H74TransectConstructor:
         """
         Iteratively walk the transect up the ridge field. Objects `self.r1` and `self.p1` are set in __init__ as
         the centerline and point on the centerline, respectively.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        H74Transect
+            The transect object containing all generated coordinates and geometries.
         """
         if self.verbose == 2:
             print(f"\n--- Walking Transect {self.transect.point_id} ---")
@@ -603,6 +950,56 @@ class MultiTransect:
     The `return_all_geometries` method returns the transects from `create_transects` as well as other intermediate geometries used in the creation of the transects. Useful for deubgging and plotting.
 
     This class is used in the `create_transects` convenience function in the public API.
+
+    Parameters
+    ----------
+    coord_list : list of Point
+        List of starting coordinates for each transect.
+    centerline : GeoDataFrame
+        GeoDataFrame containing the centerline geometry.
+    ridges : GeoDataFrame
+        GeoDataFrame containing the ridge geometries.
+    shoot_distance : float
+        Distance for each shot.
+    search_distance : float
+        Buffer distance for the search area on r2.
+    dev_from_90 : float
+        Allowed deviation from 90 degrees for p2 shots.
+    user_direction : int or None, optional
+        User-specified initial shot direction from centerline.
+    verbose : int, optional
+        Verbosity level for user feedback
+
+    Attributes
+    ----------
+    coord_list : list of Point
+        List of starting coordinates for each transect.
+    centerline : GeoDataFrame
+        GeoDataFrame containing the centerline geometry.
+    ridges : GeoDataFrame
+        GeoDataFrame containing the ridge geometries.
+    shoot_distance : float
+        Distance for each shot.
+    search_distance : float
+        Buffer distance for the search area on r2.
+    dev_from_90 : float
+        Allowed deviation from 90 degrees for p2 shots.
+    user_direction : int or None
+        User-specified initial shot direction from centerline.
+    verbose : int
+        Verbosity level for user feedback
+    crs : CRS
+        Coordinate reference system for all geometries. Read from centerline
+    transect_list : list of H74Transect
+        List of generated transects.
+    transect_df : GeoDataFrame
+        GeoDataFrame containing transect geometries.
+    point_df : GeoDataFrame
+        GeoDataFrame containing point geometries used in transect creation.
+    search_area_df : GeoDataFrame
+        GeoDataFrame containing search area polygons for p2 points.
+    ridge_clip_df : GeoDataFrame
+        GeoDataFrame containing ridge geometries clipped with search area polygons.
     """
 
     def __init__(
@@ -636,7 +1033,18 @@ class MultiTransect:
         self.ridge_clip_df = self.create_ridge_clip_df()
 
     def create_transect_list(self) -> list[H74Transect]:
-        """Creates a set of transects and aux geometries for a bend."""
+        """
+        Creates a set of transects and aux geometries for a bend.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        list of H74Transect
+            List of generated transects.
+        """
 
         # Reduce GeoDataFrames to their shapely representations
         centerline_ls = self.centerline.geometry[0]
@@ -674,6 +1082,18 @@ class MultiTransect:
         return transect_list
 
     def create_transect_df(self) -> gpd.GeoDataFrame:
+        """
+        Creates a GeoDataFrame of transects from all transects which successfully left the centerline.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        GeoDataFrame
+            GeoDataFrame containing all successful transects.
+        """
         # Loop through all the transects which left the centerline to create the row
         ls_list = []
         for transect in self.transect_list:
@@ -708,6 +1128,19 @@ class MultiTransect:
         return df.set_index("transect_id")
 
     def create_point_df(self) -> gpd.GeoDataFrame:
+        """
+        Creates a GeoDataFrame of all points used to create transects.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        GeoDataFrame
+            GeoDataFrame containing points from all transects.
+        """
+
         # Loop through all the transects which left the centerline to create the row
         row_list = []
 
@@ -747,6 +1180,19 @@ class MultiTransect:
         return df.set_index("transect_id")
 
     def create_search_area_df(self) -> gpd.GeoDataFrame:
+        """
+        Creates a GeoDataFrame of all search areas used to create transects.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        GeoDataFrame
+            GeoDataFrame containing search areas from all transects.
+        """
+
         row_list = []
 
         for transect in self.transect_list:
@@ -776,6 +1222,19 @@ class MultiTransect:
         return df.set_index("transect_id")
 
     def create_ridge_clip_df(self) -> gpd.GeoDataFrame:
+        """
+        Creates a GeoDataFrame of all ridge sections searched to create transects.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        GeoDataFrame
+            GeoDataFrame containing ridge sections.
+        """
+
         row_list = []
 
         for transect in self.transect_list:
@@ -807,6 +1266,17 @@ class MultiTransect:
     def return_all_geometries(
         self,
     ) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame, gpd.GeoDataFrame, gpd.GeoDataFrame]:
+        """Return all geometries created for a set of transects
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        tuple of GeoDataFrames
+            Tuple containing the transect, point, search area, and ridge clip GeoDataFrames.
+        """
         return self.transect_df, self.point_df, self.search_area_df, self.ridge_clip_df
 
 
@@ -823,6 +1293,26 @@ def create_transects(
 
     Transects are created at the `step` provided by the user (ex. every nth vertex along the centerline).
     Centerline is assumed to have a vertex spacing of ~1m.
+
+    Parameters
+    ----------
+    centerline : GeoDataFrame
+        GeoDataFrame containing the centerline geometry.
+    ridges : GeoDataFrame
+        GeoDataFrame containing the ridge geometries.
+    step : int
+        Number of centerline vertices between each transect.
+    shoot_distance : float
+        How far each point will shoot from the origin in a given direction.
+    search_distance : float
+        Buffer distance for the search area on r2.
+    dev_from_90 : float
+        Allowed deviation from 90 degrees for p2 shots.
+
+    Returns
+    -------
+    GeoDataFrame
+        GeoDataFrame containing the transects generated.
     """
 
     # Establish starting points for each transect
