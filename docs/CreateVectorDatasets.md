@@ -63,8 +63,7 @@ ridge metrics:
 > the channel centerline and ridge lines when creating the migration pathways.
 > It is recommended that you focus on capturing the overall ridge form, not
 > point density, when delineating. Then, the coarse polylines can be densified
-> and smoothed with the included
-> [line_smoother.py](scrollstats/delineation/line_smoother.py) script.
+> and smoothed with the included [LineSmoother](scrollstats.LineSmoother) class.
 
 ---
 
@@ -133,7 +132,7 @@ combination of the bend_id and packet_id columns forms the primary key for the
 packets.
 
 Example bend and packet boundaries can be found in the
-[example_data](example_data) directory. These boundaries are mapped below.
+[example_data](https://github.com/tamu-edu/scrollstats/tree/main/example_data) directory included with ScrollStats. These boundaries are mapped below.
 
 ```python
 from __future__ import annotations
@@ -184,7 +183,7 @@ After the ridge area rasters are created, manually create the ridge lines and
 channel centerlines.
 
 Example centerline and ridgelines can be found in the
-[example_data](example_data) directory. The centerline and ridgelines are mapped
+[example_data](https://github.com/tamu-edu/scrollstats/tree/main/example_data) directory included with ScrollStats. The centerline and ridgelines are mapped
 below.
 
 ```python
