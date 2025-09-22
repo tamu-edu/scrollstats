@@ -3,6 +3,8 @@ from __future__ import annotations
 import importlib.metadata
 from typing import Any
 
+import scrollstats
+
 project = "scrollstats"
 copyright = "2025, Andrew Vanderheiden"
 author = "Andrew Vanderheiden"
