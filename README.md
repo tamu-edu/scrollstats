@@ -31,17 +31,33 @@ scrollbar floodplains.
 
 ## Getting Started
 
-**Create conda environment**
+If you intend to use ScrollStats for your own analysis, follow the User
+Installation instructions.
 
-Create a conda environment from the provided `environment.yml` file with the
-following commands
+If you intend to develop or contribute to ScrollStats, follow the Developer
+Installation instructions.
+
+### User Installation
+
+Simply install ScrollStats to your python environment with `pip`
 
 ```shell
-# Navigate to the install location of scrollstats
-cd path/to/scrollstats
+python -m pip install scrollstats
+```
 
-# Create the environment
-conda env create -f environment.yml
+### Developer Installation
+
+First, clone the repo locally, create a virtual environment for the project,
+then install the `[dev]` optional dependencies listed in
+[pyproject.toml](pyproject.toml).
+
+```shell
+git clone https://github.com/tamu-edu/scrollstats
+
+python -m venv venv/
+source venv/bin/activate
+
+(venv) python -m pip install -e ".[dev]"
 ```
 
 ## The ScrollStats Workflow
