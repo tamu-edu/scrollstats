@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib.metadata
 from typing import Any
 
-import scrollstats
+import scrollstats  # noqa: F401 unused import
 
 project = "scrollstats"
 copyright = "2025, Andrew Vanderheiden"
