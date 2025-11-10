@@ -16,6 +16,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
+    "sphinx.ext.apidoc",
     "sphinx_autodoc_typehints",
     "sphinx_copybutton",
     "nbsphinx",
