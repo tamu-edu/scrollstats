@@ -158,6 +158,9 @@ Thumbs.db
 *~
 *.swp
 
+# pyenv
+.python-version
+
 
 # Additional
 config.py
