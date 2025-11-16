@@ -18,6 +18,7 @@ build:
       - uv pip install .[docs]
     build:
       html:
-        - .venv/bin/python -m sphinx-apidoc -o docs/api --module-first --no-toc --force src/scrollstats  
-        - .venv/bin/python -m sphinx -T -b html -d docs/_build/doctrees -D
+        - .venv/bin/sphinx-apidoc -o docs/api --module-first --no-toc --force
+          src/scrollstats
+        - uv run python -m sphinx -T -b html -d docs/_build/doctrees -D
           language=en docs $READTHEDOCS_OUTPUT/html
