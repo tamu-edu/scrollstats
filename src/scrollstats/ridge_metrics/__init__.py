@@ -1,18 +1,17 @@
 from __future__ import annotations
 
-__all__ = [
-    "BendDataExtractor",
-    "RidgeDataExtractor",
-    "TransectDataExtractor",
-    "calc_ridge_amps",
-    "calculate_ridge_metrics",
-    "map_amp_values",
-]
+import lazy_loader as lazy
 
-from .calc_ridge_metrics import calculate_ridge_metrics
-from .data_extractors import (
-    BendDataExtractor,
-    RidgeDataExtractor,
-    TransectDataExtractor,
+__getattr__, __dir__, __all__ = lazy.attach(
+    __name__,
+    submodules=[],
+    submod_attrs={
+        "calc_ridge_metrics": ["calculate_ridge_metrics"],
+        "data_extractors": [
+            "BendDataExtractor",
+            "RidgeDataExtractor",
+            "TransectDataExtractor",
+        ],
+        "ridge_amplitude": ["calc_ridge_amps", "map_amp_values"],
+    },
 )
-from .ridge_amplitude import calc_ridge_amps, map_amp_values
