@@ -6,34 +6,35 @@ scrollstats: An open-source python library to calculate and extract morphometric
 
 from __future__ import annotations
 
-from ._version import version as __version__
+import lazy_loader as lazy
 
-__all__ = [
-    "BendDataExtractor",
-    "LineSmoother",
-    "MultiTransect",
-    "RidgeDataExtractor",
-    "TransectDataExtractor",
-    "__version__",
-    "calc_ridge_amps",
-    "calculate_ridge_metrics",
-    "create_ridge_area_raster",
-    "create_ridge_area_raster_fs",
-    "create_transects",
-    "map_amp_values",
+from ._version import version as __version__  # noqa: F401
+
+submodules = [
+    "delineation",
+    "ridge_metrics",
+    "transecting",
 ]
 
-from .delineation import (
-    LineSmoother,
-    create_ridge_area_raster,
-    create_ridge_area_raster_fs,
+__getattr__, __dir__, __all__ = lazy.attach(
+    __name__,
+    submodules=submodules,
+    submod_attrs={
+        "delineation": [
+            "LineSmoother",
+            "create_ridge_area_raster",
+            "create_ridge_area_raster_fs",
+        ],
+        "ridge_metrics": [
+            "BendDataExtractor",
+            "RidgeDataExtractor",
+            "TransectDataExtractor",
+            "calc_ridge_amps",
+            "calculate_ridge_metrics",
+            "map_amp_values",
+        ],
+        "transecting": ["MultiTransect", "create_transects"],
+    },
 )
-from .ridge_metrics import (
-    BendDataExtractor,
-    RidgeDataExtractor,
-    TransectDataExtractor,
-    calc_ridge_amps,
-    calculate_ridge_metrics,
-    map_amp_values,
-)
-from .transecting import MultiTransect, create_transects
+
+__all__.append("__version__")

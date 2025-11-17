@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-__all__ = [
-    "MultiTransect",
-    "create_transects",
-]
+import lazy_loader as lazy
 
-from .transect import MultiTransect, create_transects
+__getattr__, __dir__, __all__ = lazy.attach(
+    __name__,
+    submodules=[],
+    submod_attrs={"transect": ["MultiTransect", "create_transects"]},
+)
