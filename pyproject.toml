@@ -36,6 +36,7 @@ dependencies = [
   "numba",
   "tqdm",
   "nptyping",
+  "lazy-loader"
   ]
 
 [project.optional-dependencies]
