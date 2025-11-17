@@ -126,6 +126,7 @@ module = [
   "matplotlib.*",
   "rasterio.*",
   "numba.*",
+  "lazy_loader"
   ]
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
