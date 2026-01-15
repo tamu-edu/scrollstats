@@ -29,6 +29,10 @@
 An open-source python library to calculate and extract morphometrics from
 scrollbar floodplains.
 
+For further reading on the rationale behind ScrollStats and practical examples
+demonstrating how to use ScrollStats, check out the documentation here:
+https://scrollstats.readthedocs.io/en/latest
+
 ## Getting Started
 
 If you intend to use ScrollStats for your own analysis, follow the User
