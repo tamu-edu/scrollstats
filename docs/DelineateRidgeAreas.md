@@ -24,6 +24,8 @@ shapely `Polygon` of the bend area and any other kwargs as input and returns two
 modified `rasterio` metadata to write the arrays to disk if needed
 
 ```python
+from pathlib import Path
+
 import rasterio
 import geopandas as gpd
 import numpy as np
