@@ -13,7 +13,7 @@ migration across a river bend based on the orientation of preserved ridges in
 the floodplain.
 
 These migration pathways are then used to sample a DEM and other derived
-topgraphic raster data to create a series of 1 dimensional signals from which
+topographic raster data to create a series of 1 dimensional signals from which
 the ridge morphometrics of amplitude, width, and spacing can be calculated for
 every intersection of a ridge and migration pathway.
 
@@ -25,7 +25,7 @@ laterally relative to the channel.
 
 _Figure 1: Measures of ridge amplitude (orange), width (purple), and spacing
 (green) are shown at the intersection, ridge, and migration pathway scales.
-Aggregate values represent the medain value of each measurement taken at a ridge
+Aggregate values represent the median value of each measurement taken at a ridge
 or migration pathway_
 
 ## The ScrollStats Workflow

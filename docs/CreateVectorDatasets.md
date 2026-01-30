@@ -24,14 +24,14 @@ ridge metrics:
     platform of ridge and swale topography between the active channel and the
     relatively smooth ancestral floodplain. Each bend boundary should have a
     corresponding bend_id that can be used to relate data together. For example,
-    the 25th bend on the Lower Brazos River was given the beind_id `LBR_025`.
+    the 25th bend on the Lower Brazos River was given the bend_id `LBR_025`.
 - **Packet Boundaries (Polygon):**
   - The packet boundaries are polygons that fit perfectly within, and cover
     entirely, the bend boundary polygons. Packet boundaries encompass groups of
     ridges with similar trajectories. Packet boundaries should have `bend_id`
     column as well as a `packet_id` column. The `bend_id` can be used as a
     foreign key to relate the packets to their bend and the simple `packet_id`
-    (ex. `p_01`) can be used to diffferentiate the packets within each bend.
+    (ex. `p_01`) can be used to differentiate the packets within each bend.
     There is no guarantee of an inherent order with packets, but in general,
     they can and should be numbered incrementally from the most ancestral to the
     most recent.
@@ -77,7 +77,7 @@ The details of use for each of these datasets are summarized below:
 
 - Bend Boundary: the bend boundary is a required input from the user and is
   required for the raster processing. The bend boundary is the manual
-  delineation of the topographically raised platform that conatians the ridge
+  delineation of the topographically raised platform that contains the ridge
   and swale topography of a bend.
 
 **Required for Migration Pathway Creation**
@@ -104,7 +104,7 @@ The details of use for each of these datasets are summarized below:
 
 - Packet Boundaries (optional): packet boundaries are the manual delineations of
   the depositional packets within a bend that contain groups of ridges with
-  similar trajectorties. Packet boundaries fit perfectly within and cover
+  similar trajectories. Packet boundaries fit perfectly within and cover
   entirely the bend boundary. Providing packet boundaries gives allows the user
   to aggregate ridge metrics to the packet scale in order to investigate changes
   in the hydrologic regime of the river.
