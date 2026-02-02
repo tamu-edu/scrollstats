@@ -47,20 +47,8 @@ else:
 dem[no_data_mask] = -99999
 
 # Calculate the transformation rasters
-#profc = quadratic_profile_curvature(dem, RASTER_WINDOW_SIZE, dx=1)
-#rt = residual_topography(dem, RASTER_WINDOW_SIZE)
-profc_cache = "profc.npy"
-rt_cache = "rt.npy"
-
-try:
-    profc = np.load(profc_cache)
-    rt = np.load(rt_cache)
-except FileNotFoundError:
-    profc = quadratic_profile_curvature(dem, RASTER_WINDOW_SIZE, dx=1)
-    np.save(profc_cache, profc)
-
-    rt = residual_topography(dem, RASTER_WINDOW_SIZE)
-    np.save(rt_cache, rt)
+profc = quadratic_profile_curvature(dem, RASTER_WINDOW_SIZE, dx=1)
+rt = residual_topography(dem, RASTER_WINDOW_SIZE)
 
 # Plot
 fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 4))
