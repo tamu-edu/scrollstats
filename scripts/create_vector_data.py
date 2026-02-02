@@ -12,18 +12,26 @@ from scrollstats import LineSmoother, create_transects
 # User defined parameters
 # LineSmoother
 SMOOTHING_WINDOW_SIZE = 5  # Measured in vertices
-VERTEX_SPACING = 1         # Distance between densified vertices; Measured in linear unit of dataset (meters for example datasets)
+VERTEX_SPACING = 1  # Distance between densified vertices; Measured in linear unit of dataset (meters for example datasets)
 
 # Migration Pathway
-SHOOT_DISTANCE = 300   # Distance that the N1 coordinate will shoot out from point P1; measured in linear unit of dataset
+SHOOT_DISTANCE = 300  # Distance that the N1 coordinate will shoot out from point P1; measured in linear unit of dataset
 SEARCH_DISTANCE = 200  # Buffer radius used to search for an N2 coordinate on R2; measured in linear unit of dataset
-DEV_FROM_90 = 5        # Max angular deviation from 90° allowed when searching for an N2 coordinate on R2; measured in degrees
+DEV_FROM_90 = 5  # Max angular deviation from 90° allowed when searching for an N2 coordinate on R2; measured in degrees
 
 # Set file paths
-bend_area_path = Path("example_data/input/LBR_025_bend.geojson")       # Polygon containing the ridge and swale topography
-packet_path = Path("example_data/input/LBR_025_packets.geojson")       # Polygons that divide the bend area into depositional packets
-ridge_path = Path("example_data/input/LBR_025_ridges_manual.geojson")  # Polylines marking the location of ridges
-centerline_path = Path("example_data/input/LBR_025_cl.geojson")        # Polyline marking the center of the channel 
+bend_area_path = Path(
+    "example_data/input/LBR_025_bend.geojson"
+)  # Polygon containing the ridge and swale topography
+packet_path = Path(
+    "example_data/input/LBR_025_packets.geojson"
+)  # Polygons that divide the bend area into depositional packets
+ridge_path = Path(
+    "example_data/input/LBR_025_ridges_manual.geojson"
+)  # Polylines marking the location of ridges
+centerline_path = Path(
+    "example_data/input/LBR_025_cl.geojson"
+)  # Polyline marking the center of the channel
 output_dir = Path("example_data/output")
 if not output_dir.is_dir():
     output_dir.mkdir()
@@ -34,7 +42,7 @@ if not output_dir.is_dir():
 bend_area = gpd.read_file(bend_area_path).set_index("bend_id")
 packets = gpd.read_file(packet_path).set_index("packet_id")
 manual_ridges = gpd.read_file(ridge_path)
-cl = gpd.read_file(centerline_path) # Centerline is already smoothed and densified
+cl = gpd.read_file(centerline_path)  # Centerline is already smoothed and densified
 
 fig, ax = plt.subplots(1, 1, figsize=(10, 6))
 
@@ -97,7 +105,7 @@ ax.set_title("Smoothed vs Manual Ridges")
 # Centerline from example data has a vertex spaceing of 1m
 step = 100
 
-# Migration Pathway Algorithm 
+# Migration Pathway Algorithm
 ## 1. Let the channel centerline be called R1
 ## 2. Select a starting point on R1, let this point be called P1
 ## 3. From P1, shoot a given distance perpendicular from R1 in the direction of the convex bank.
@@ -111,12 +119,12 @@ step = 100
 
 # This function iteratively creates a series of migration pathways using the algorithm above
 transects = create_transects(
-    centerline=cl,                      # centerline (GeoDataFrame) from which to start transects
-    ridges=smooth_ridges,               # ridge features (GeoDataFrame) that the transects will navigate through
-    step=step,                          # distance between transect start locations
-    shoot_distance=SHOOT_DISTANCE,      # distance that the migration pathway will shoot from the start ridge (R1) to intersect the next ridge (R2)
-    search_distance=SEARCH_DISTANCE,    # buffer distance used to search vertices of R2 for point N2
-    dev_from_90=DEV_FROM_90             # allowed deviance from a 90 degree angle for point N2
+    centerline=cl,  # centerline (GeoDataFrame) from which to start transects
+    ridges=smooth_ridges,  # ridge features (GeoDataFrame) that the transects will navigate through
+    step=step,  # distance between transect start locations
+    shoot_distance=SHOOT_DISTANCE,  # distance that the migration pathway will shoot from the start ridge (R1) to intersect the next ridge (R2)
+    search_distance=SEARCH_DISTANCE,  # buffer distance used to search vertices of R2 for point N2
+    dev_from_90=DEV_FROM_90,  # allowed deviance from a 90 degree angle for point N2
 )
 
 # Save transects to disk
@@ -130,7 +138,7 @@ cl.plot(color="k", lw=2, ax=ax, zorder=0, label="Centerline")
 smooth_ridges.plot(color="k", ls=":", ax=ax, zorder=1, label="Ridges")
 transects.plot(color="r", ax=ax, zorder=2, label="Migration Pathways")
 
-# Plot migration pathway start points 
+# Plot migration pathway start points
 starts = np.asarray(cl.geometry[0].xy).T[::step]
 ax.scatter(starts[:, ::2], starts[:, 1::2], color="r", zorder=3)
 

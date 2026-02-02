@@ -77,8 +77,8 @@ The details of use for each of these datasets are summarized below:
 
 - Bend Boundary: the bend boundary is a required input from the user and is
   required for the raster processing. The bend boundary is the manual
-  delineation of the topographically raised platform that contains the ridge
-  and swale topography of a bend.
+  delineation of the topographically raised platform that contains the ridge and
+  swale topography of a bend.
 
 **Required for Migration Pathway Creation**
 

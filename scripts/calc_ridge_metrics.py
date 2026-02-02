@@ -39,15 +39,15 @@ dem = rasterio.open(dem_clip_path)
 
 # Calculate ridge metrics
 ## This function calculates the ridge metrics (amplitude, width, and spacing) at the intersection of every transect and ridge.
-## Two GeoDataFrames are returned: 
+## Two GeoDataFrames are returned:
 ### `rich_transects` contains the transect geometry (LineString) as well as the elevation and binary arrays sampled along the transects plus other values calculated for the entire transect
-### `itx` contains all ridge-transect intersection Points as well as their ridge metrics plus other intermediate values 
+### `itx` contains all ridge-transect intersection Points as well as their ridge metrics plus other intermediate values
 rich_transects, itx = calculate_ridge_metrics(transects, ridges, bin_raster, dem)
 
 ## Index the bend_id to effectively remove it from the dataframe for future convenience
-itx = itx.loc["LBR_025"] 
+itx = itx.loc["LBR_025"]
 
-## Spatial join packet info (only packet_id for example data) to itx points for potential inter/intra-packet analysis 
+## Spatial join packet info (only packet_id for example data) to itx points for potential inter/intra-packet analysis
 ## packet_id, like ridge_id, is incremental and increases with distance from the channel
 itx_w_packets = itx.sjoin(packets.drop("bend_id", axis=1))
 itx_w_packets = itx_w_packets.reset_index().set_index(

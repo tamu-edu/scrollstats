@@ -34,7 +34,9 @@ from scrollstats import create_ridge_area_raster
 
 # User provided parameters
 RASTER_WINDOW_SIZE = 45  # kernel size for image processing; measured in px
-SMALL_FEATS_SIZE = 500   # all features smaller will be removed in denoising process; measured in px^2
+SMALL_FEATS_SIZE = (
+    500  # all features smaller will be removed in denoising process; measured in px^2
+)
 
 # Input Dataset Paths
 dem_path = Path("example_data/input/LBR_025_dem.tif")
@@ -68,7 +70,9 @@ from scrollstats import create_ridge_area_raster_fs
 
 # User provided parameters
 RASTER_WINDOW_SIZE = 45  # kernel size for image processing; measured in px
-SMALL_FEATS_SIZE = 500   # all features smaller will be removed in denoising process; measured in px^2
+SMALL_FEATS_SIZE = (
+    500  # all features smaller will be removed in denoising process; measured in px^2
+)
 
 # Set paths to datasets on the file system
 dem_path = Path("example_data/input/LBR_025_dem.tif")
@@ -133,7 +137,9 @@ output_dir = Path("example_data/output")
 
 # User provided parameters
 RASTER_WINDOW_SIZE = 45  # kernel size for image processing; measured in px
-SMALL_FEATS_SIZE = 500   # all features smaller will be removed in denoising process; measured in px^2
+SMALL_FEATS_SIZE = (
+    500  # all features smaller will be removed in denoising process; measured in px^2
+)
 ```
 
 ```python

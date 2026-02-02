@@ -1,4 +1,5 @@
 # Generates plots for docs
+from __future__ import annotations
 
 from functools import partial
 from pathlib import Path
@@ -31,7 +32,9 @@ dpi = 100
 
 # User provided parameters
 RASTER_WINDOW_SIZE = 45  # kernel size for image processing; measured in px
-SMALL_FEATS_SIZE = 500   # all features smaller will be removed in denoising process; measured in px^2
+SMALL_FEATS_SIZE = (
+    500  # all features smaller will be removed in denoising process; measured in px^2
+)
 
 # Open the DEM dataset
 dem_handle = rasterio.open(dem_path)
@@ -69,8 +72,7 @@ ax3.set_axis_off()
 ax3.set_title("Residual Topography")
 
 plt.tight_layout()
-plt.savefig(img_dir/"pc_v_dem_v_rt.png", dpi=dpi)
-
+plt.savefig(img_dir / "pc_v_dem_v_rt.png", dpi=dpi)
 
 
 # classify each transformed raster from step 1
@@ -105,7 +107,7 @@ cbar.ax.set_yticklabels(
 )
 
 plt.tight_layout()
-plt.savefig(img_dir/"binary_classification.png", dpi=dpi)
+plt.savefig(img_dir / "binary_classification.png", dpi=dpi)
 
 
 # Find the union of the two binary rasters
@@ -125,7 +127,7 @@ cbar.set_ticks([0.5, 1.5], minor=False)
 cbar.ax.set_yticklabels(["No ridge", "Ridge\nAgreement"])
 
 plt.tight_layout()
-plt.savefig(img_dir/"agreement_raster.png", dpi=dpi)
+plt.savefig(img_dir / "agreement_raster.png", dpi=dpi)
 
 
 bend = gpd.read_file(bend_path)
@@ -152,8 +154,7 @@ ax2.set_axis_off()
 ax2.set_title("Clipped Agreement Raster")
 
 plt.tight_layout()
-plt.savefig(img_dir/"dem_v_agreement.png", dpi=dpi)
-
+plt.savefig(img_dir / "dem_v_agreement.png", dpi=dpi)
 
 
 denoiser_funcs = [
@@ -181,4 +182,4 @@ ax2.set_axis_off()
 ax2.set_title("Denoised")
 
 plt.tight_layout()
-plt.savefig(img_dir/"agreement_v_denoised.png", dpi=dpi)
+plt.savefig(img_dir / "agreement_v_denoised.png", dpi=dpi)
