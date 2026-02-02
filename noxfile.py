@@ -69,6 +69,9 @@ def docs(session: nox.Session) -> None:
         *posargs,
     )
 
+    # Update Plots
+    session.run("python", "scripts/plots/delineate_ridge_areas.py")
+
     if serve:
         session.run("sphinx-autobuild", "--open-browser", *shared_args)
     else:
