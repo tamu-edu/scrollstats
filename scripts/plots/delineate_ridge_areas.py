@@ -17,8 +17,6 @@ from scrollstats.delineation.raster_classifiers import (
 from scrollstats.delineation.raster_denoisers import remove_small_feats_w_flip
 from scrollstats.delineation.ridge_area_raster import clip_raster
 
-
-
 # Input Paths
 dem_path = Path("example_data/input/LBR_025_dem.tif")
 bend_path = Path("example_data/input/LBR_025_bend.geojson")
@@ -33,9 +31,7 @@ dpi = 100
 
 # User provided parameters
 RASTER_WINDOW_SIZE = 45  # kernel size for image processing; measured in px
-SMALL_FEATS_SIZE = (
-    500  # all features smaller will be removed in denoising process; measured in px^2
-)
+SMALL_FEATS_SIZE = 500   # all features smaller will be removed in denoising process; measured in px^2
 
 # Open the DEM dataset
 dem_handle = rasterio.open(dem_path)
@@ -65,7 +61,6 @@ except FileNotFoundError:
 
     rt = residual_topography(dem, RASTER_WINDOW_SIZE)
     np.save(rt_cache, rt)
-
 
 # Plot
 fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 4))
