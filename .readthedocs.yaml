@@ -17,9 +17,8 @@ build:
       - uv venv
       - uv pip install .[docs]
     build:
-      plots:
-        - uv run python scripts/plots/delineate_ridge_areas.py
       html:
+        - uv run python scripts/plots/delineate_ridge_areas.py
         - .venv/bin/sphinx-apidoc -o docs/api --module-first --no-toc --force
           src/scrollstats
         - uv run python -m sphinx -T -b html -d docs/_build/doctrees -D
