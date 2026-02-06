@@ -166,7 +166,7 @@ packets = gpd.read_file("example_data/input/LBR_025_packets.geojson").set_index(
     "packet_id"
 )
 
-fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+fig, ax = plt.subplots(1, 1, figsize=(7, 4.5))
 
 packets.boundary.plot(color="grey", ax=ax, label="Packet Boundaries")
 packets.plot(color="grey", alpha=0.5, ax=ax)
@@ -174,6 +174,8 @@ bend_area.boundary.plot(color="k", lw=3, ax=ax, label="Bend Boundary")
 
 ax.legend(loc="upper left")
 ax.set_axis_off()
+
+plt.tight_layout()
 ```
 
 ![bend_geometry.png](../img/bend_geometry.png)
@@ -197,13 +199,15 @@ cl_path = Path("example_data/input/LBR_025_cl.geojson")
 cl = gpd.read_file(cl_path)
 
 # Plot
-fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+fig, ax = plt.subplots(1, 1, figsize=(7, 4.5))
 
 manual_ridges.plot(color="k", ls=":", ax=ax, label="Ridges (Manual)")
 cl.plot(color="k", lw=2, ax=ax, label="Centerline")
 
 ax.legend(loc="upper left")
 ax.set_axis_off()
+
+plt.tight_layout()
 ```
 
 ![ridges_and_centerline.png](../img/ridges_and_centerline.png)
@@ -225,7 +229,7 @@ smooth_ridge_path = output_dir / smooth_ridge_name
 smooth_ridges.to_file(smooth_ridge_path, driver="GeoJSON", index=False)
 
 # Plot manual and smoothed ridges
-fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+fig, ax = plt.subplots(1, 1, figsize=(7, 4.5))
 ax.set_aspect("equal")
 
 manual_ridges_points = manual_ridges.geometry.apply(lambda x: MultiPoint(x.coords))
@@ -249,6 +253,8 @@ ax.set_ylim(3111450, 3111490)
 ax.set_xlim(1067820, 1067880)
 ax.legend(loc="upper left")
 ax.set_axis_off()
+
+plt.tight_layout()
 ```
 
 ![smoothed_ridges.png](../img/smoothed_ridges.png)
@@ -308,15 +314,17 @@ transect_path = output_dir / "LBR_025_transects.geojson"
 transects.to_file(transect_path, driver="GeoJSON", index=True)
 
 # Plot migration pathways alongside ridges and centerlines
-fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+fig, ax = plt.subplots(1, 1, figsize=(7, 4.5))
 
-cl.plot(color="k", lw=2, ax=ax, label="Centerline")
-smooth_ridges.plot(color="k", ls=":", ax=ax, label="Ridges")
-transects.plot(color="r", ax=ax, label="Migration Pathways")
-plt.scatter(starts[:, ::2], starts[:, 1::2], color="r")
+cl.plot(color="k", lw=2, ax=ax, zorder=0, label="Centerline")
+smooth_ridges.plot(color="k", ls=":", ax=ax, zorder=1, label="Ridges")
+transects.plot(color="r", ax=ax, zorder=2, label="Migration Pathways")
+plt.scatter(starts[:, ::2], starts[:, 1::2], color="r", zorder=3)
 
 ax.legend()
 ax.set_axis_off()
+
+plt.tight_layout()
 ```
 
 ![migration_pathways.png](../img/migration_pathways.png)
