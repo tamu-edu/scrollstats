@@ -65,7 +65,6 @@ plt.savefig(img_dir / "ridges_and_centerline.png", dpi=100)
 
 ########################################
 # Smooth and densify the lines
-# Smooth and densify the lines
 ls = LineSmoother(manual_ridges, VERTEX_SPACING, SMOOTHING_WINDOW_SIZE)
 smooth_ridges = ls.execute()
 
