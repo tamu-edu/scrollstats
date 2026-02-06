@@ -32,7 +32,7 @@ bend_geom = bend.loc[0, "geometry"]
 
 # Delineate ridge areas
 ## This function applies two independent classification functions to the DEM to identify ridge areas: profile curvature and residual topography
-## Both of these functions return 2D float arrays where values greater 0 than indicate the presense of a ridge. A threshold of 0 is applied to both of these float arrays to create binary arrays.
+## Both of these functions return 2D float arrays where values greater 0 than indicate the presence of a ridge. A threshold of 0 is applied to both of these float arrays to create binary arrays.
 ## The union of these two binary arrays is then subject to a denoising process to create the ridge area raster.
 ## `create_ridge_area_raster` returns the ridge area raster and the clipped DEM as numpy arrays along with the required metadata to write them to disk as tifs with rasterio
 ridge_area_raster, dem_clip, clip_meta = create_ridge_area_raster(
