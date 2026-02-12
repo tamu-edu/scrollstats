@@ -139,7 +139,7 @@ ridge_metrics_w_packets.columns = ridge_metrics_w_packets.columns.rename("metric
 ```python
 # Plot ridge amplitudes at intersections
 # Plot itx
-fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+fig, ax = plt.subplots(1, 1, figsize=(8, 5))
 
 ridges.plot(ax=ax, color="k", ls="--", lw=0.5, zorder=0)
 transects.plot(ax=ax, color="k", lw=1, zorder=1)
@@ -154,6 +154,8 @@ itx_w_packets.plot(
 )
 
 ax.set_title("Ridge amplitude at each intersection")
+
+plt.tight_layout()
 ```
 
 ![ridge_amplitude.png](../img/ridge_amplitude.png)
