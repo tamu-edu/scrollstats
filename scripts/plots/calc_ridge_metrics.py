@@ -77,4 +77,4 @@ itx_w_packets.plot(
 ax.set_title("Ridge amplitude at each intersection")
 
 plt.tight_layout()
-plt.savefig(img_dir/"ridge_amplitude.png", dpi=dpi)
+plt.savefig(img_dir / "ridge_amplitude.png", dpi=dpi)

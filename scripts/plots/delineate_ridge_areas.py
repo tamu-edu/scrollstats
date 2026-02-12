@@ -198,4 +198,3 @@ with rasterio.open(bin_clip_path, "w", **dem_meta) as dst:
 with rasterio.open(dem_clip_path, "w", **dem_meta) as dst:
     dst.write(dem_clip, 1)
     print(f"Wrote clipped DEM to disk: {dem_clip_path}")
-
