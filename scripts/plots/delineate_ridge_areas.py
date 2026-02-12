@@ -185,3 +185,17 @@ ax2.set_title("Denoised")
 
 plt.tight_layout()
 plt.savefig(img_dir / "agreement_v_denoised.png", dpi=dpi)
+
+# Save rasters to disk
+bin_clip_path = output_dir / "LBR_025_dem_ridge_area_raster.tif"
+dem_clip_path = output_dir / "LBR_025_dem_clip.tif"
+
+
+with rasterio.open(bin_clip_path, "w", **dem_meta) as dst:
+    dst.write(ridge_area_array, 1)
+    print(f"Wrote ridge area raster to disk: {bin_clip_path}")
+
+with rasterio.open(dem_clip_path, "w", **dem_meta) as dst:
+    dst.write(dem_clip, 1)
+    print(f"Wrote clipped DEM to disk: {dem_clip_path}")
+
