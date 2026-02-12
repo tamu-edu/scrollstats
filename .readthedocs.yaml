@@ -20,6 +20,7 @@ build:
       html:
         - uv run python scripts/plots/delineate_ridge_areas.py
         - uv run python scripts/plots/create_vector_datasets.py
+        - uv run python scripts/plots/calc_ridge_metrics.py
         - .venv/bin/sphinx-apidoc -o docs/api --module-first --no-toc --force
           src/scrollstats
         - uv run python -m sphinx -T -b html -d docs/_build/doctrees -D
