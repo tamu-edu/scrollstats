@@ -24,6 +24,8 @@ bend_path = Path("example_data/input/LBR_025_bend.geojson")
 
 # Output Directory
 output_dir = Path("example_data/output")
+if not output_dir.exists():
+    output_dir.mkdir(parents=True)
 
 # Image variables
 img_dir = Path("img")

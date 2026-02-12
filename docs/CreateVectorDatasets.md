@@ -156,6 +156,10 @@ VERTEX_SPACING = 1  # Distance between densified vertices; Measured in linear un
 SHOOT_DISTANCE = 300  # Distance that the N1 coordinate will shoot out from point P1; measured in linear unit of dataset
 SEARCH_DISTANCE = 200  # Buffer radius used to search for an N2 coordinate on R2; measured in linear unit of dataset
 DEV_FROM_90 = 5  # Max angular deviation from 90° allowed when searching for an N2 coordinate on R2; measured in degrees
+
+output_dir = Path("example_data/output")
+if not output_dir.exists():
+    output_dir.mkdir(parents=True)
 ```
 
 ```python
@@ -222,7 +226,6 @@ ls = LineSmoother(manual_ridges, VERTEX_SPACING, SMOOTHING_WINDOW_SIZE)
 smooth_ridges = ls.execute()
 
 # Save smooth ridges to disk
-output_dir = Path("example_data/output")
 smooth_ridge_name = ridge_path.with_stem(ridge_path.stem + "_smoothed").name
 smooth_ridge_path = output_dir / smooth_ridge_name
 
