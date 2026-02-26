@@ -121,9 +121,9 @@ The DataExtractor classes in the `ridge_metrics` subpackage were designed to
 mirror the spatial scales at which they operate: Bend, Transect, and
 Intersection. This design communicates 1) which code is responsible for
 extracting information at the given scale and 2) what information is necessary
-as input to make these calculations. This enables future developers to
-easily identify where to focus efforts if they wish to extend the functionality
-of ScrollStats or troubleshoot unexpected results.
+as input to make these calculations. This enables future developers to easily
+identify where to focus efforts if they wish to extend the functionality of
+ScrollStats or troubleshoot unexpected results.
 
 # Research impact statement
 
