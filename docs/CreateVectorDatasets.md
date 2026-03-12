@@ -161,14 +161,14 @@ plt.tight_layout()
 
 ![bend_geometry.png](../img/bend_geometry.png)
 
-## Create Channel Centerline and Ridgelines
+## Create Channel Centerline and Ridge Lines
 
-After the ridge area rasters are created, manually create the ridge lines and
-channel centerlines.
+After the ridge area rasters are created using the bend boundary above, manually create the ridge lines and
+channel centerline.
 
-Example centerline and ridgelines can be found in the
+Example centerline and ridge lines can be found in the
 [example_data](https://github.com/tamu-edu/scrollstats/tree/main/example_data)
-directory included with ScrollStats. The centerline and ridgelines are mapped
+directory included with ScrollStats. The centerline and ridge lines are mapped
 below.
 
 ```python
