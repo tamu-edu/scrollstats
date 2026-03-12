@@ -18,45 +18,47 @@ ridge metrics:
     polygon and should extend past the bend boundary by 1-2 channel widths.
 - **Bend Boundary (Polygon):**
   - Created manually from interpretation of the DEM
-  - The bend boundary in this case defines the boundary encompasses the raised
-    platform of ridge and swale topography between the active channel and the
-    relatively smooth ancestral floodplain. Each bend boundary should have a
-    corresponding bend_id that can be used to relate data together. For example,
-    the 25th bend on the Lower Brazos River was given the bend_id `LBR_025`.
+  - The bend boundary encompasses the raised platform of ridge and swale
+    topography between the active channel and the relatively smooth ancestral
+    floodplain.
+  - Each bend boundary should have a corresponding `bend_id` that can be used to
+    relate other datasets to this bend. For example, the `bend_id` for the 25th
+    bend on the Lower Brazos River is `LBR_025`.
 - **Packet Boundaries (Polygon):**
   - Created manually from interpretation of the DEM
-  - The packet boundaries are polygons that fit perfectly within, and cover
-    entirely, the bend boundary polygons. Packet boundaries encompass groups of
-    ridges with similar trajectories. Packet boundaries should have `bend_id`
-    column as well as a `packet_id` column. The `bend_id` can be used as a
-    foreign key to relate the packets to their bend and the simple `packet_id`
-    (ex. `p_01`) can be used to differentiate the packets within each bend.
-    There is no guarantee of an inherent order with packets, but in general,
-    they can and should be numbered incrementally from the most ancestral to the
-    most recent.
+  - Packet boundaries are polygons that fit within and entirely cover the bend
+    boundary polygon. Packet boundaries encompass groups of ridges with similar
+    trajectories.
+  - Packet boundaries should have a `bend_id` column as well as a `packet_id`
+    column. `bend_id` can be used as a foreign key to relate the packets to
+    their bend and the simple `packet_id` (ex. `p_01`) can be used to
+    differentiate the packets within each bend. There is no guarantee of an
+    inherent order with packets, but in general, they can and should be numbered
+    incrementally from the most ancestral to the most recent.
 - **Ridges (LineString):**
   - Created manually from interpretation of the DEM
   - Ridges are created for each ridge on the bend. Ridge polylines can be
-    created before the raster ridge classification process, however it is
-    recommended that the binary ridge area rasters be used to help inform the
-    creation of ridge polylines. Ridge polylines should have a `bend_id` column,
-    a `ridge_id` column, and optionally a `packet_id` column if packets are
-    used. The `bend_id` and optional `packet_id` columns can be used as foreign
-    keys to relate ridges to the larger morphological features and the simple
-    `ridge_id` (ex. `r_001`) can be used to differentiate ridges within a bend.
-    To a greater degree than the packets, there is no guarantee of an inherent
-    order to the ridges on a given bend. However, as seen in the accompanying
-    manuscript, ridges often can, but are not guaranteed to, be ordered within
-    packets.
+    created before the ridge area classification process, however it is
+    recommended that the ridge area rasters be used to help inform the creation
+    of ridge polylines.
+  - Ridge polylines should have a `bend_id` column, a `ridge_id` column, and
+    optionally a `packet_id` column if packets are used. The `bend_id` and
+    optional `packet_id` columns can be used as foreign keys to relate ridges to
+    the larger morphological features and the simple `ridge_id` (ex. `r_001`)
+    can be used to differentiate ridges within a bend. To a greater degree than
+    the packets, there is no guarantee of an inherent order to the ridges on a
+    given bend. However, as seen below, ridges often can, but are not guaranteed
+    to, be ordered within packets.
 - **Migration Pathways (LineString):**
   - Generated programmatically using `create_transects()`
-  - Migration pathways are algorithmically generated from the channel centerline
-    and a set of ridges. The user specifies a set of starting points along the
-    centerline from which the migration pathways will be generated. The
-    migration pathway algorithm will "walk" up the flood plain until it fails to
-    intersect any more ridges. The resulting migration pathways represent the
-    varied paths of migration along a bend according to the depositional record
-    contained in the ridge and swale topography
+  - Migration pathways are programmatically generated from the channel
+    centerline and a set of ridges. The user specifies a set of starting points
+    along the centerline from which the migration pathways will be generated.
+    The migration pathway algorithm will then "walk" up the flood plain until it
+    fails to intersect any more ridges.
+  - The resulting migration pathways represent the varied paths of migration
+    along a bend according to the depositional record contained in the ridge and
+    swale topography.
 
 **Note on point density for channel centerline and ridgelines**
 
