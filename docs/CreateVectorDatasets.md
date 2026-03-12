@@ -65,8 +65,8 @@ ridge metrics:
 > The migration pathway algorithm requires a high vertex density and high degree
 > of "smoothness" for the input channel centerline and ridge line datasets. It
 > is recommended that you focus on capturing the overall form of these linear
-> features and not worry about point density when digitizing. The coarse polylines can be
-> densified and smoothed with the included
+> features and not worry about point density when digitizing. The coarse
+> polylines can be densified and smoothed with the included
 > [LineSmoother](scrollstats.LineSmoother) class.
 
 ---
@@ -79,7 +79,8 @@ The details of use for each of these datasets are summarized below:
 
 **Required for Raster Processing**:
 
-- **Bend Boundary:** the bend boundary is a required to clip the ridge and swale topography from the DEM 
+- **Bend Boundary:** the bend boundary is a required to clip the ridge and swale
+  topography from the DEM
 
 **Required for Migration Pathway Creation**
 
