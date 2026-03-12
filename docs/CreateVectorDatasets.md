@@ -105,8 +105,8 @@ The details of use for each of these datasets are summarized below:
 
 ## Create Bend Boundaries
 
-Use a desktop GIS software (QGIS, ArcGIS Pro, etc.) to manually delineate
-bend and packet boundaries.
+Use a desktop GIS software (QGIS, ArcGIS Pro, etc.) to manually delineate bend
+and packet boundaries.
 
 Example bend and packet boundaries can be found in the
 [example_data](https://github.com/tamu-edu/scrollstats/tree/main/example_data)
@@ -163,8 +163,8 @@ plt.tight_layout()
 
 ## Create Channel Centerline and Ridge Lines
 
-After the ridge area rasters are created using the bend boundary above, manually create the ridge lines and
-channel centerline.
+After the ridge area rasters are created using the bend boundary above, manually
+create the ridge lines and channel centerline.
 
 Example centerline and ridge lines can be found in the
 [example_data](https://github.com/tamu-edu/scrollstats/tree/main/example_data)
