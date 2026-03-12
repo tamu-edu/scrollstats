@@ -1,11 +1,11 @@
 # Create Vector Datasets
 
-This notebook contains general instructions for the creation of the vector data
-sets required by ScrollStats.
+This doc contains general instructions for the creation of the vector data sets
+required by ScrollStats.
 
 An example dataset of a bend from the Lower Brazos River, Texas, is included in
-this notebook to provide a visual aid to the user when creating datasets for
-their own bend.
+this doc to provide a visual aid to the user when creating datasets for their
+own bend.
 
 Some datasets need to be manually created while others are programmatically
 generated from the manually created datasets.
@@ -90,13 +90,13 @@ The details of use for each of these datasets are summarized below:
 - Channel Centerline: the channel centerline generally follows the path of the
   water surface and should not intersect the bend boundary at all. The channel
   centerline should also extend past the channel-ward edges of the bend
-  boundary. _See note at the end of this cell on point density for channel
-  centerline and ridge lines._
+  boundary. _See note above on point density for channel centerline and ridge
+  lines._
 
 - Ridges: ridges are manually created and should track the middle of each ridge
   area. While it is not necessary, it's strongly recommended that both the DEM
-  and ridge area raster be used to infer ridge line locations. _See note at the
-  end of this cell on point density for channel centerline and ridge lines._
+  and ridge area raster be used to infer ridge line locations. _See note above
+  on point density for channel centerline and ridge lines._
 
 **Used for ridge metric calculation**
 
@@ -341,5 +341,5 @@ plt.tight_layout()
 
 All vector datasets needed for ScrollStats are now created.
 [Calculate Ridge Metrics](CalculateRidgeMetrics.md) will contain the example
-code to calculate ridge metrics from the ridges generated in this notebook and
-the ridge area raster created in [Delineate Ridge Areas](DelineateRidgeAreas.md)
+code to calculate ridge metrics from the ridges generated here and the ridge
+area raster created in [Delineate Ridge Areas](DelineateRidgeAreas.md)
