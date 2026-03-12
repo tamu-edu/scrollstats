@@ -84,16 +84,11 @@ The details of use for each of these datasets are summarized below:
 
 **Required for Migration Pathway Creation**
 
-- **Channel Centerline:** the channel centerline generally follows the path of
-  the water surface and should not intersect the bend boundary at all. The
-  channel centerline should also extend past the channel-ward edges of the bend
-  boundary. _See note above on point density for channel centerline and ridge
-  lines._
+- **Channel Centerline:** channel centerline vertices serve as the starting
+  point for all migration pathways
 
-- **Ridges:** ridges are manually created and should track the middle of each
-  ridge area. While it is not necessary, it's strongly recommended that both the
-  DEM and ridge area raster be used to infer ridge line locations. _See note
-  above on point density for channel centerline and ridge lines._
+- **Ridges:** the migration pathway trajectories are calculated using the
+  location and curvature of digitized ridge lines
 
 **Used for ridge metric calculation**
 
