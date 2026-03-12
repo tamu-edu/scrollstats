@@ -7,9 +7,6 @@ An example dataset of a bend from the Lower Brazos River, Texas, is included in
 this doc to provide a visual aid to the user when creating datasets for their
 own bend.
 
-Some datasets need to be manually created while others are programmatically
-generated from the manually created datasets.
-
 ---
 
 ScrollStats uses the following vector datasets for a bend in order to calculate
