@@ -16,16 +16,19 @@ ScrollStats uses the following vector datasets for a bend in order to calculate
 ridge metrics:
 
 - **Channel Centerline (LineString):**
+  - Created manually from interpretation of the DEM
   - The channel centerline polyline should not intersect the bend boundary
     polygon at all and should extend past inner bank of the bend boundary by 1-2
     channel widths.
 - **Bend Boundary (Polygon):**
+  - Created manually from interpretation of the DEM
   - The bend boundary in this case defines the boundary encompasses the raised
     platform of ridge and swale topography between the active channel and the
     relatively smooth ancestral floodplain. Each bend boundary should have a
     corresponding bend_id that can be used to relate data together. For example,
     the 25th bend on the Lower Brazos River was given the bend_id `LBR_025`.
 - **Packet Boundaries (Polygon):**
+  - Created manually from interpretation of the DEM
   - The packet boundaries are polygons that fit perfectly within, and cover
     entirely, the bend boundary polygons. Packet boundaries encompass groups of
     ridges with similar trajectories. Packet boundaries should have `bend_id`
@@ -36,8 +39,9 @@ ridge metrics:
     they can and should be numbered incrementally from the most ancestral to the
     most recent.
 - **Ridges (LineString):**
-  - Ridges are manually created for each ridge on the bend. Ridge polylines can
-    be created before the raster ridge classification process, however it is
+  - Created manually from interpretation of the DEM
+  - Ridges are created for each ridge on the bend. Ridge polylines can be
+    created before the raster ridge classification process, however it is
     recommended that the binary ridge area rasters be used to help inform the
     creation of ridge polylines. Ridge polylines should have a `bend_id` column,
     a `ridge_id` column, and optionally a `packet_id` column if packets are
@@ -49,6 +53,7 @@ ridge metrics:
     manuscript, ridges often can, but are not guaranteed to, be ordered within
     packets.
 - **Migration Pathways (LineString):**
+  - Generated programmatically using `create_transects()`
   - Migration pathways are algorithmically generated from the channel centerline
     and a set of ridges. The user specifies a set of starting points along the
     centerline from which the migration pathways will be generated. The
