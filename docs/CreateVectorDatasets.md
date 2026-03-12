@@ -90,22 +90,18 @@ The details of use for each of these datasets are summarized below:
 - **Ridges:** the migration pathway trajectories are calculated using the
   location and curvature of digitized ridge lines
 
-**Used for ridge metric calculation**
+**Used for Ridge Metric Calculation**
 
-- **Migration Pathways:** migration pathways are created by ScrollStats, so the
-  user does not need to worry about creating these as an input. Migration
-  pathways are a series of transects that trace the supposed path of channel
-  migration from the channel centerline. Migration pathways are used to sample
-  both the DEM and ridge area raster to calculate ridge width, amplitude, and
-  spacing for every point intersection of the migration pathways and ridge
-  lines.
+- **Migration Pathways:** migration pathways are a series of transects that
+  trace the supposed path of channel migration from the channel centerline. They
+  are used to sample both the DEM and ridge area raster to calculate ridge
+  width, amplitude, and spacing for every intersection of the migration pathways
+  and ridge lines.
 
-- **Packet Boundaries (optional):** packet boundaries are the manual
-  delineations of the depositional packets within a bend that contain groups of
-  ridges with similar trajectories. Packet boundaries fit perfectly within and
-  cover entirely the bend boundary. Providing packet boundaries gives allows the
-  user to aggregate ridge metrics to the packet scale in order to investigate
-  changes in the hydrologic regime of the river.
+- **Packet Boundaries (optional):** depositional packet boundaries contain
+  groups of ridges with similar trajectories which allows the user to aggregate
+  ridge metrics within these packets in order to investigate the morphologic
+  changes resulting from changes in the hydrologic regime of the river.
 
 ## Create Bend Boundaries
 
