@@ -105,25 +105,8 @@ The details of use for each of these datasets are summarized below:
 
 ## Create Bend Boundaries
 
-Use a desktop GIS software (QGIS, ArcGIS Pro, etc.) to manually delineate the
-bend boundaries.
-
-If there multiple bends delineated for the same river, it is recommended to make
-1 layer for the entire river and just add each bend as a feature (row) for that
-layer. Additionally, each bend should have a short, unique ID that is shared
-with the DEMs. For example, the 25th bend along the Lower Brazos River (starting
-from Waco TX) is given the ID `LBR_025`.
-
-At this stage, it is recommended to create the optional packet boundaries as
-well. Similarly to the bend boundaries, it is recommended to make one layer for
-all the packets in the river and just add each packet as a feature (row). Add a
-"bend_id" column and a "packet_id" column. The bend id should correspond to the
-bend_id of the encompassing boundary and it is recommended to have use a simple
-incrementing packet id that corresponds to the apparent evolution of the bend.
-For example, the most ancestral packet of `LBR_025` has the packet_id of `p_01`
-and the most recent, channelward packet has a packet_id of `p_04`. The
-combination of the bend_id and packet_id columns forms the primary key for the
-packets.
+Use a desktop GIS software (QGIS, ArcGIS Pro, etc.) to manually delineate
+bend and packet boundaries.
 
 Example bend and packet boundaries can be found in the
 [example_data](https://github.com/tamu-edu/scrollstats/tree/main/example_data)
