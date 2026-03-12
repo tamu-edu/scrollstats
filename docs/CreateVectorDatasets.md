@@ -15,8 +15,7 @@ ridge metrics:
 - **Channel Centerline (LineString):**
   - Created manually from interpretation of the DEM
   - The channel centerline polyline should not intersect the bend boundary
-    polygon at all and should extend past inner bank of the bend boundary by 1-2
-    channel widths.
+    polygon and should extend past the bend boundary by 1-2 channel widths.
 - **Bend Boundary (Polygon):**
   - Created manually from interpretation of the DEM
   - The bend boundary in this case defines the boundary encompasses the raised
@@ -84,32 +83,33 @@ The details of use for each of these datasets are summarized below:
 
 **Required for Migration Pathway Creation**
 
-- **Channel Centerline:** the channel centerline generally follows the path of the
-  water surface and should not intersect the bend boundary at all. The channel
-  centerline should also extend past the channel-ward edges of the bend
+- **Channel Centerline:** the channel centerline generally follows the path of
+  the water surface and should not intersect the bend boundary at all. The
+  channel centerline should also extend past the channel-ward edges of the bend
   boundary. _See note above on point density for channel centerline and ridge
   lines._
 
-- **Ridges:** ridges are manually created and should track the middle of each ridge
-  area. While it is not necessary, it's strongly recommended that both the DEM
-  and ridge area raster be used to infer ridge line locations. _See note above
-  on point density for channel centerline and ridge lines._
+- **Ridges:** ridges are manually created and should track the middle of each
+  ridge area. While it is not necessary, it's strongly recommended that both the
+  DEM and ridge area raster be used to infer ridge line locations. _See note
+  above on point density for channel centerline and ridge lines._
 
 **Used for ridge metric calculation**
 
-- **Migration Pathways:** migration pathways are created by ScrollStats, so the user
-  does not need to worry about creating these as an input. Migration pathways
-  are a series of transects that trace the supposed path of channel migration
-  from the channel centerline. Migration pathways are used to sample both the
-  DEM and ridge area raster to calculate ridge width, amplitude, and spacing for
-  every point intersection of the migration pathways and ridge lines.
+- **Migration Pathways:** migration pathways are created by ScrollStats, so the
+  user does not need to worry about creating these as an input. Migration
+  pathways are a series of transects that trace the supposed path of channel
+  migration from the channel centerline. Migration pathways are used to sample
+  both the DEM and ridge area raster to calculate ridge width, amplitude, and
+  spacing for every point intersection of the migration pathways and ridge
+  lines.
 
-- **Packet Boundaries (optional):** packet boundaries are the manual delineations of
-  the depositional packets within a bend that contain groups of ridges with
-  similar trajectories. Packet boundaries fit perfectly within and cover
-  entirely the bend boundary. Providing packet boundaries gives allows the user
-  to aggregate ridge metrics to the packet scale in order to investigate changes
-  in the hydrologic regime of the river.
+- **Packet Boundaries (optional):** packet boundaries are the manual
+  delineations of the depositional packets within a bend that contain groups of
+  ridges with similar trajectories. Packet boundaries fit perfectly within and
+  cover entirely the bend boundary. Providing packet boundaries gives allows the
+  user to aggregate ridge metrics to the packet scale in order to investigate
+  changes in the hydrologic regime of the river.
 
 ## Create Bend Boundaries
 
