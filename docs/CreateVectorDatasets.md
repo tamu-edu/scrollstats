@@ -242,7 +242,7 @@ plt.tight_layout()
 ## Create Migration Pathways
 
 Now that the ridges and centerlines are created, we can create the migration
-pathways
+pathways.
 
 A migration pathway can be created from any point along the centerline. Below we
 will create an array of starting points each roughly a channel-width apart
