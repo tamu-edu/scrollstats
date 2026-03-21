@@ -47,6 +47,11 @@ scrollstats/
 
 ## 4. Data Stores
 
+The example dataset used in project docs and tests is included in the
+[example_data/input](example_data/input/) folder.
+
+No other external data is used.
+
 ## 5. External Integrations / APIs
 
 ## 6. Deployment and Infrastructure
