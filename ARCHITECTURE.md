@@ -42,8 +42,69 @@ scrollstats/
 ```
 
 ## 2. High-Level Diagram
+```mermaid
+flowchart TD
+
+subgraph Digitize
+    direction TD
+    BB(Bend Boundary)
+    PB(Packet Boundaries)
+    RL(Ridge Lines)
+    CL(Channel Centerline)
+    BB ~~~ PB ~~~ RL ~~~ CL
+end
+
+subgraph Delineate
+    direction TD
+	subgraph CRAR [create_ridge_area_raster]
+        direction TD
+        subgraph DELINEATION_FUNCS
+            direction TD
+            rt(residual_topography > 0)
+            pc(profile_curvature > 0)
+        end
+
+        rt & pc --> U(Union)
+	end
+
+    subgraph denoise_raster
+        DF("`**DENOISER_FUNCS:**
+            binary_opening
+            binary_closing
+            remove_small_feats`")
+	end
+
+    CRAR --> AGR(Agreement Raster)
+    AGR --> denoise_raster
+end
+
+DEM(Input DEM)
+DEM --> Digitize 
+DEM --> Delineate
+Delineate --> RAR(Ridge Area Raster)
+
+
+CT("create_transects")
+CL --> |LineSmoother|CT
+RL --> |LineSmoother|CT
+BB --> |Clip|AGR
+
+CT --> MP("Migration Pathways")
+MP & RAR --> CRM(calc_ridge_metrics)
+
+CRM --> DATA("`itx1: (amp, width, spacing)
+               itx2: (amp, width, spacing)
+               itx3: (amp, width, spacing)`")
+
+```
 
 ## 3. Core Components
+
+### 3.1. Delineation
+
+
+### 3.2. Transecting
+### 3.3. Ridge Metrics
 
 ## 4. Data Stores
 
