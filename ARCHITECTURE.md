@@ -42,6 +42,7 @@ scrollstats/
 ```
 
 ## 2. High-Level Diagram
+
 ```mermaid
 flowchart TD
 
@@ -79,7 +80,7 @@ subgraph Delineate
 end
 
 DEM(Input DEM)
-DEM --> Digitize 
+DEM --> Digitize
 DEM --> Delineate
 Delineate --> RAR(Ridge Area Raster)
 
@@ -102,8 +103,8 @@ CRM --> DATA("`itx1: (amp, width, spacing)
 
 ### 3.1. Delineation
 
-
 ### 3.2. Transecting
+
 ### 3.3. Ridge Metrics
 
 ## 4. Data Stores
@@ -115,14 +116,55 @@ No other external data is used.
 
 ## 5. External Integrations / APIs
 
+No external integrations / APIs are used.
+
 ## 6. Deployment and Infrastructure
+
+All CI/CD is ran through GitHub Actions. ScollStats is distributed to PyPI (for
+download with `pip`) and on conda-forge (for download with `conda`).
+
+Docs are built and hosted on
+[readthedocs.io](https://scrollstats.readthedocs.io/en/latest/).
 
 ## 7. Security Considerations
 
+ScrollStats is configured with
+[Trusted Publishing](https://docs.pypi.org/trusted-publishers/) to distribute
+releases to PyPI.
+
 ## 8. Development & Testing
+
+See [README](README.md) for steps to get started developing with ScrollStats.
+
+Once your development environment is set up, use
+[`nox`](https://nox.thea.codes/en/stable/) for local development and testing.
+See [noxfile.py](noxfile.py) for configuration details. Once you are happy with
+your commits, simply run the command
+
+```
+nox
+```
+
+to lint and test your edits all in their own virtual environment.
 
 ## 9. Future Considerations
 
+See the project [roadmap](https://github.com/users/a-vanderheiden/projects/5)
+for current work in progress and future considerations.
+
 ## 10. Project Identification
 
+**Project Name:** ScrollStats
+
+**Repository URL:** https://github.com/tamu-edu/scrollstats
+
+**Primary Contact/Team:** Andrew Vanderheiden | andrewloyd19@gmail.com
+
 ## 11. Glossary / Acronyms
+
+RST: Ridge and Swale Topography
+
+DEM: Digital Elevation Model
+
+H74: referencing the paper
+[The Development of Meanders in Natural River-Channels (Hickin 1974)](https://doi.org/10.2475/ajs.274.4.414)
