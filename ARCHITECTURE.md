@@ -164,6 +164,35 @@ imported and used in `create_ridge_area_raster()`.
 
 ### 3.2. Transecting
 
+This subpackage contains all of the code needed to generate transects (migration
+pathways) from a set of ridges and centerline for a bend.
+
+`scrollstats.transecting.transect.py` is the only module in this subpackage and
+it contains `create_transects()` - the main entry point for creating transects.
+This function is responsible for identifying equally spaced starting points
+(`starts`) along the centerline (distance determined by `step` arg) and
+generating a transect for each of the starting points.
+
+These `starts` are then passed to the `MultiTransect` class (along with other
+bend geometries and parameters) which creates instances of both a `H74Transect`
+and `H74TransectConstructor` for each start. `H74Transect` and
+`H74TransectConstructor` have separate responsibilities for transect creation
+which are discussed more below.
+
+> The `H74Transect` instance is responsible for storing all of the coordinate
+> geometries calculated as the transect is created while the
+> `H74TransectConstructor` instance takes the `H74Transect` instance as an input
+> and uses its methods to perform the geometric calculations to generate the
+> transect. The primary control loop for generating transects is the
+> `H74TransectConstructor.walk_transect()` which "walks" the transect up the
+> floodplain from ridge to ridge until it fails to intersect another ridge.
+
+Multiple sets of geometries are created while generating transects which can
+each be returned as a `GeoDataFrame` by calling the various `create_` methods of
+`MultiTransect`. Calling `create_all_geometries()` returns a tuple of all these
+geometries - transects, points, search_areas, ridge_clips - which is useful for
+[visualizing the geometric calculations](https://scrollstats.readthedocs.io/en/latest/_images/migration_pathway.png).
+
 ### 3.3. Ridge Metrics
 
 ## 4. Data Stores
