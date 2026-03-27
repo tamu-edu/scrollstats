@@ -103,6 +103,65 @@ CRM --> DATA("`itx1: (amp, width, spacing)
 
 ### 3.1. Delineation
 
+This subpackage contains the code that's used to delineate ridge areas from the
+DEM. It relies heavily on the `rasterio` and `numpy` libraries to accomplish
+this.
+
+`scrollstats.delineation.ridge_area_raster.create_ridge_area_raster()` is the
+main entry point for raster delineation and makes use of the functions found in
+the accompanying `raster_classifiers.py` and `raster_denoisers.py` modules.
+
+<!-- blacken-docs:off -->
+
+```python
+def create_ridge_area_raster(
+    dem_ds: rasterio.DatasetReader,
+    geometry: Polygon,
+    classifier_funcs: tuple[BinaryClassifierFn, ...] = DEFAULT_CLASSIFIERS,
+    denoiser_funcs: tuple[BinaryDenoiserFn, ...] = DEFAULT_DENOISERS,
+    no_data_value: Any | None = None,
+    **kwargs: Any,
+) -> tuple[np.ndarray, np.ndarray, dict[Any, Any]]:
+```
+
+<!-- blacken-docs:on -->
+
+Raster classifier functions take a 2D numpy array of continuous data (like a
+DEM) and return a binary 2D numpy array where values of 1 indicate the features
+of interest, 0 is background, and `np.nan` is no data. Any number of classifier
+functions are applied to the DEM in parallel then the union of all these binary
+rasters are taken to result in what's called the Agreement Raster (where all
+classifiers agree there is a ridge).
+
+By default, `create_ridge_area_raster()` uses the 2 classifier functions
+`profile_curvature_classifier()` and `residual_topography_classifier()` in the
+tuple `DEFAULT_CLASSIFIERS` defined in the `raster_classifiers.py`.
+`DEFAULT_CLASSIFIERS` is then imported into the `ridge_area_raster.py` and set
+as the default value for the `classifier_funcs` argument in
+`create_ridge_area_raster()`. The user may provide their own list of classifier
+functions here too so long as all functions in the list follow the same
+input/output pattern.
+
+Denoiser functions are then applied to the Agreement Raster after it has been
+clipped to the bend boundary Polygon. Denoiser functions take a binary 2D numpy
+array and return a binary 2D numpy array. Denoiser functions are applied in
+series on the clipped Agreement raster so that the output of the first is the
+input of the second, and so on. This means that the order of denoiser funcs can
+change the end result, unlike the classifier process from before.
+
+By default, `create_ridge_area_raster()` uses the 3 denoiser functions
+`scipy.ndimage.binary_closing()`, `scipy.ndimage.binary_opening()`, and
+`remove_small_feats_w_flip()` in the tuple `DEFAULT_DENOISERS` defined in the
+`raster_denoisers.py`. `DEFAULT_DENOISERS` is then imported into
+`ridge_area_raster.py` and set as the default value for the `denoiser_funcs`
+argument in `create_ridge_area_raster()`. The user may provide their own list of
+denoiser functions here too so long as all functions in the list follow the same
+input/output pattern.
+
+Any new classifier or denoiser functions just need to be added to the respective
+modules and follow the established input/output patterns, then they too can be
+imported and used in `create_ridge_area_raster()`.
+
 ### 3.2. Transecting
 
 ### 3.3. Ridge Metrics
