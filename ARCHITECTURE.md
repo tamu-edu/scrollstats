@@ -195,6 +195,79 @@ geometries - transects, points, search_areas, ridge_clips - which is useful for
 
 ### 3.3. Ridge Metrics
 
+This subpackage contains all of the code needed to calculate ridge metrics from
+the Ridge Area Raster and Migration Pathways created from the delineation and
+transecting processes above.
+
+`scrollstats.ridge_metrics.calc_ridge_metrics.calculate_ridge_metrics()` is the
+main entry point for ridge metric calculation and makes use of the
+`DataExtractor` classes imported from `data_extractors.py`.
+
+As their names imply, the `BendDataExtractor`, `TransectDataExtractor`, and
+`RidgeDataExtractor` classes are responsible for the calculations and other data
+processing at the bend, transect, and ridge scale, respectively.
+
+`calculate_ridge_metrics()` takes the transects, ridges, ridge area raster, DEM,
+and packets (optional) as input and returns 2 `GeoDataFrame`s as output. One is
+a `GeoDataFrame` of the intersection points of all input ridges and transects
+with the ridge metrics (amplitude, width, and spacing) as attributes, and the
+other is a `GeoDataFrame` of the transect geometries with 1D arrays of the DEM
+and Ridge Area Raster data sampled along each transect.
+
+To calculate these metrics, `calculate_ridge_metrics()` creates a
+`BendDataExtractor` instance and passes along all of the input vector and raster
+data.
+
+The `BendDataExtractor` has two methods, `calc_transect_metrics()` and
+`calc_itx_metrics()`, called in `__init__()`, to calculate metrics at their
+respective scales.
+
+`calc_transect_metrics()` takes a transect Polyline as input and samples the
+underlying Ridge Area Raster and DEM to create 1D numpy arrays representing
+ridge presence and ridge profile along the transect. These 1D arrays as well as
+other metrics are saved for each transect as a `GeoDataFrame` in
+`BendDataExtractor.rich_transects`.
+
+`calc_itx_metrics()` then iterates through `self.rich_transects`, and creates a
+`TransectDataExtractor` instance for each row.
+`TransectDataExtractor.__init__()` then executes a series of methods to process
+the 1D raster signals, assign transect IDs, and create the intersection points
+between ridges and transects. A 3-vertex transect substring is created for each
+intersection point (where possible) where the middle vertex is the given itx
+point and the first and third vertices are the itx points that proceed and
+follow the given itx point along the transect.
+
+The vertices of these transect substrings are then stored in an instance
+variable `self.itx_gdf` (type:`GeoDataFrame`) of `TransectDataExtractor` along
+with other data required for ridge metric calculation such as the 1D array
+segments that correspond to the substring.
+
+Then `TransectDataExtractor.calc_ridge_metrics()` is called to iterate through
+`self.itx_gdf` and creates a `RidgeDataExtractor` instance for each
+row.`RidgeDataExtractor.__init__()` then executes a series preprocessing methods
+for the substring geometry and binary signal as well as calculating the ridge
+metrics: amplitude, width, and spacing.
+
+> The function used to calculate ridge amplitude, `calc_ridge_amps()` is
+> imported from `ridge_amplitude.py`. `calc_ridge_amps()` finds the maximum
+> elevation value for each ridge area and the minimum elevation value for each
+> swale area in the 1D arrays. Then, depending on the relative number ridge and
+> swales found in the signal, `ridge_amplitude.detetmine_complex_strategy()` is
+> used to determine the appropriate strategy to calculate ridge amplitude for
+> the given intersection and return the corresponding function.
+
+After ridge metric calculation, `RidgeDataExtractor.dump_data()` is called to
+dump all data calculated at the intersection-scale as a dict. This dict is then
+used to fill out `TransectDataExtractor.itx_gdf` which is ultimately returned by
+`TransectDataExtractor.calc_ridge_metrics()` as the container for all itx
+metrics for a given transect. These itx metrics for each transect are then
+concatenated into one `GeoDataFrame` for the entire bend and stored in
+`BendDataExtractor.itx_metrics`
+
+`BendDataExtractor.rich_transects` and `BendDataExtractor.itx_metrics` are
+ultimately returned from `calc_ridge_metrics()` as the final ScrollStats data
+products.
+
 ## 4. Data Stores
 
 The example dataset used in project docs and tests is included in the
