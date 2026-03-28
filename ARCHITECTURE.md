@@ -283,7 +283,7 @@ No external integrations / APIs are used.
 
 ## 6. Deployment and Infrastructure
 
-All CI/CD is ran through GitHub Actions. ScollStats is distributed to PyPI (for
+All CI/CD is ran through GitHub Actions. ScrollStats is distributed to PyPI (for
 download with `pip`) and on conda-forge (for download with `conda`).
 
 Docs are built and hosted on
