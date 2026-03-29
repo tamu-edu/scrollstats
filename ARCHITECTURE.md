@@ -61,8 +61,8 @@ subgraph Delineate
         direction TD
         subgraph DELINEATION_FUNCS
             direction TD
-            rt(residual_topography > 0)
-            pc(profile_curvature > 0)
+            rt(residual_topography_classifier)
+            pc(profile_curvature_classifier)
         end
 
         rt & pc --> U(Union)
@@ -79,6 +79,22 @@ subgraph Delineate
     AGR --> denoise_raster
 end
 
+subgraph CRM[Calculate Ridge Metrics]
+    direction TD
+    subgraph calc_ridge_metrics
+        BDE("BendDatasetExtractor")
+        TDE1("TransectDatasetExtractor")
+        TDE2("TransectDatasetExtractor")
+        RDE1("RidgeDatasetExtractor")
+        RDE2("RidgeDatasetExtractor")
+        RDE3("RidgeDatasetExtractor")
+        end
+
+    BDE --> TDE1 & TDE2
+    TDE2 --> RDE1 & RDE2 & RDE3
+    
+    end
+
 DEM(Input DEM)
 DEM --> Digitize
 DEM --> Delineate
@@ -91,9 +107,10 @@ RL --> |LineSmoother|CT
 BB --> |Clip|AGR
 
 CT --> MP("Migration Pathways")
-MP & RAR --> CRM(calc_ridge_metrics)
+MP & RAR --> CRM
 
-CRM --> DATA("`itx1: (amp, width, spacing)
+CRM --> DATA("`Output Data
+               itx1: (amp, width, spacing)
                itx2: (amp, width, spacing)
                itx3: (amp, width, spacing)`")
 
