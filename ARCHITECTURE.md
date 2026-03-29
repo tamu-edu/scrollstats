@@ -234,18 +234,18 @@ points (`starts`) along the centerline (distance determined by `step` arg) and
 generating a transect for each of the starting points.
 
 These `starts` are then passed to the `MultiTransect` class (along with other
-bend geometries and parameters) which creates instances of both a `H74Transect`
-and `H74TransectConstructor` for each start. `H74Transect` and
-`H74TransectConstructor` have separate responsibilities for transect creation
-which are discussed more below.
+bend geometries and parameters) which creates an `H74TransectConstructor` for
+each start.
 
-> The `H74Transect` instance is responsible for storing all of the coordinate
-> geometries calculated as the transect is created while the
-> `H74TransectConstructor` instance takes the `H74Transect` instance as an input
-> and uses its methods to perform the geometric calculations to generate the
-> transect. The primary control loop for generating transects is the
-> `H74TransectConstructor.walk_transect()` which "walks" the transect up the
-> floodplain from ridge to ridge until it fails to intersect another ridge.
+Each `H74TransectConstructor` is responsible for performing the geometric
+calculations to generate the transect and other geometries. The primary control
+loop for generating transects is the `H74TransectConstructor.walk_transect()`
+method which "walks" the transect up the floodplain from ridge to ridge until it
+fails to intersect another ridge.
+
+Each `H74TransectConstructor` creates an`H74Transect` instance which is
+responsible for storing all of the geometries calculated as the transect is
+created.
 
 Multiple sets of geometries are created while generating transects which can
 each be returned as a `GeoDataFrame` by calling the various `create_` methods of
