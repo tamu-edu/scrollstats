@@ -323,11 +323,11 @@ segments that correspond to the substring.
 
 Then `TransectDataExtractor.calc_ridge_metrics()` is called to iterate through
 `self.itx_gdf` and creates a `RidgeDataExtractor` instance for each
-row.`RidgeDataExtractor.__init__()` then executes a series preprocessing methods
-for the substring geometry and binary signal as well as calculating the ridge
-metrics: amplitude, width, and spacing.
+row.`RidgeDataExtractor.__init__()` then executes a series of preprocessing
+methods for the substring geometry and binary signal as well as calculating the
+ridge metrics: amplitude, width, and spacing.
 
-> The function used to calculate ridge amplitude, `calc_ridge_amps()` is
+> NOTE: The function used to calculate ridge amplitude, `calc_ridge_amps()` is
 > imported from `ridge_amplitude.py`. `calc_ridge_amps()` finds the maximum
 > elevation value for each ridge area and the minimum elevation value for each
 > swale area in the 1D arrays. Then, depending on the relative number ridge and
