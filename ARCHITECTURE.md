@@ -102,17 +102,17 @@ subgraph CRM[Calculate Ridge Metrics]
     direction TD
     subgraph calc_ridge_metrics
         direction LR
-        BDE("BendDatasetExtractor")
+        BDE("BendDataExtractor")
         subgraph ForEachTE[For each transect...]
             direction LR
-            TDE1("TransectDatasetExtractor")
-            TDE2("TransectDatasetExtractor")
+            TDE1("TransectDataExtractor")
+            TDE2("TransectDataExtractor")
             end
         subgraph ForEachRE[For each ridge...]
             direction LR
-            RDE1("RidgeDatasetExtractor")
-            RDE2("RidgeDatasetExtractor")
-            RDE3("RidgeDatasetExtractor")
+            RDE1("RidgeDataExtractor")
+            RDE2("RidgeDataExtractor")
+            RDE3("RidgeDataExtractor")
             end
         end
 
