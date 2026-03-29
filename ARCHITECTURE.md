@@ -55,6 +55,25 @@ subgraph Digitize
     BB ~~~ PB ~~~ RL ~~~ CL
 end
 
+subgraph CT[Create Transects]
+    direction TD
+    subgraph CTF[create_transects]
+        direction LR
+        MT(MultiTransect)
+        subgraph ForEachT[For each transect...]
+            direction LR
+            H74_TC1(H74TransectConstructor)
+            H74_TC2(H74TransectConstructor)
+            H74_T1(H74Transect)
+            H74_T2(H74Transect)
+            end
+
+        end
+    MT --> ForEachT
+    H74_TC1 --> H74_T1
+    H74_TC2 --> H74_T2
+    end
+
 subgraph Delineate
     direction TD
 	subgraph CRAR [create_ridge_area_raster]
@@ -82,26 +101,38 @@ end
 subgraph CRM[Calculate Ridge Metrics]
     direction TD
     subgraph calc_ridge_metrics
+        direction LR
         BDE("BendDatasetExtractor")
-        TDE1("TransectDatasetExtractor")
-        TDE2("TransectDatasetExtractor")
-        RDE1("RidgeDatasetExtractor")
-        RDE2("RidgeDatasetExtractor")
-        RDE3("RidgeDatasetExtractor")
+        subgraph ForEachTE[For each transect...]
+            direction LR
+            TDE1("TransectDatasetExtractor")
+            TDE2("TransectDatasetExtractor")
+            end
+        subgraph ForEachRE[For each ridge...]
+            direction LR
+            RDE1("RidgeDatasetExtractor")
+            RDE2("RidgeDatasetExtractor")
+            RDE3("RidgeDatasetExtractor")
+            end
         end
 
-    BDE --> TDE1 & TDE2
-    TDE2 --> RDE1 & RDE2 & RDE3
-    
+    BDE --> ForEachTE
+    ForEachTE --> ForEachRE
+
     end
+
+subgraph Output
+    direction TD
+    rich_transects
+    itx_metrics
+    end
+
 
 DEM(Input DEM)
 DEM --> Digitize
 DEM --> Delineate
 Delineate --> RAR(Ridge Area Raster)
 
-
-CT("create_transects")
 CL --> |LineSmoother|CT
 RL --> |LineSmoother|CT
 BB --> |Clip|AGR
@@ -109,10 +140,7 @@ BB --> |Clip|AGR
 CT --> MP("Migration Pathways")
 MP & RAR --> CRM
 
-CRM --> DATA("`Output Data
-               itx1: (amp, width, spacing)
-               itx2: (amp, width, spacing)
-               itx3: (amp, width, spacing)`")
+CRM --> Output
 
 ```
 
