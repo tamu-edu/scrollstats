@@ -88,7 +88,7 @@ subgraph Delineate
 	end
 
     subgraph denoise_raster
-        DF("`**DENOISER_FUNCS:**
+        DF("`**CLASSIFIER_FUNCS:**
             binary_opening
             binary_closing
             remove_small_feats`")
