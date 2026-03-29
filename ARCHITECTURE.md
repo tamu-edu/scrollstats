@@ -78,7 +78,7 @@ subgraph Delineate
     direction TD
 	subgraph CRAR [create_ridge_area_raster]
         direction TD
-        subgraph DELINEATION_FUNCS
+        subgraph DEFAULT_CLASSIFIERS
             direction TD
             rt(residual_topography_classifier)
             pc(profile_curvature_classifier)
@@ -88,7 +88,7 @@ subgraph Delineate
 	end
 
     subgraph denoise_raster
-        DF("`**CLASSIFIER_FUNCS:**
+        DF("`**DEFAULT_DENOISERS:**
             binary_opening
             binary_closing
             remove_small_feats`")
@@ -180,19 +180,18 @@ classifiers agree there is a ridge).
 
 By default, `create_ridge_area_raster()` uses the 2 classifier functions
 `profile_curvature_classifier()` and `residual_topography_classifier()` in the
-tuple `DEFAULT_CLASSIFIERS` defined in the `raster_classifiers.py`.
-`DEFAULT_CLASSIFIERS` is then imported into the `ridge_area_raster.py` and set
-as the default value for the `classifier_funcs` argument in
+tuple `DEFAULT_CLASSIFIERS` defined in `raster_classifiers.py`.
+`DEFAULT_CLASSIFIERS` is then imported into `ridge_area_raster.py` and set as
+the default value for the `classifier_funcs` argument in
 `create_ridge_area_raster()`. The user may provide their own list of classifier
-functions here too so long as all functions in the list follow the same
-input/output pattern.
+functions here too so long as they follow the same input/output pattern.
 
 Denoiser functions are then applied to the Agreement Raster after it has been
-clipped to the bend boundary Polygon. Denoiser functions take a binary 2D numpy
-array and return a binary 2D numpy array. Denoiser functions are applied in
-series on the clipped Agreement raster so that the output of the first is the
-input of the second, and so on. This means that the order of denoiser funcs can
-change the end result, unlike the classifier process from before.
+clipped to the bend boundary Polygon. Denoiser functions take and return a
+binary 2D numpy array. Denoiser functions are applied in series on the clipped
+Agreement raster so that the output of the first is the input of the second, and
+so on. This means that the order of the denoiser functions can change the end
+result, unlike the classifier process from before.
 
 By default, `create_ridge_area_raster()` uses the 3 denoiser functions
 `scipy.ndimage.binary_closing()`, `scipy.ndimage.binary_opening()`, and
