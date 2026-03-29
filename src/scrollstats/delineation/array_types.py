@@ -1,20 +1,22 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any, TypeAlias
+from typing import TypeAlias
 
-from nptyping import Bool, Float, NDArray, Shape
+from numpy import ndarray
 
 # Define array types
+# nptyping module was originally used to define numpy array types, but is incompatible with numpy v2.0 so it was removed
+# Defined array types were preserved with generic `ndarray` to communicate returned array dtypes in type hints
 
 ## Array2D: 2D array of any size of any dtype
-Array2D: TypeAlias = NDArray[Shape["*, *"], Any]  # noqa: F722  pylint: disable=C0103
+Array2D: TypeAlias = ndarray  # pylint: disable=C0103
 
 ## ElevationArray2D: 2D array of any size of dtype float
-ElevationArray2D: TypeAlias = NDArray[Shape["*, *"], Float]  # noqa: F722  pylint: disable=C0103
+ElevationArray2D: TypeAlias = ndarray  # pylint: disable=C0103
 
 ## BinaryArray2D: 2D array of any size of dtype bool
-BinaryArray2D: TypeAlias = NDArray[Shape["*, *"], Bool]  # noqa: F722  pylint: disable=C0103
+BinaryArray2D: TypeAlias = ndarray  # pylint: disable=C0103
 
 # Define functions as interfaces
 ## `BinaryClassifierFn`s and `BinaryDenoiserFn`s use the following signature:
