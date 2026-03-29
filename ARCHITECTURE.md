@@ -214,8 +214,24 @@ pathways) from a set of ridges and centerline for a bend.
 
 `scrollstats.transecting.transect.py` is the only module in this subpackage and
 it contains `create_transects()` - the main entry point for creating transects.
-This function is responsible for identifying equally spaced starting points
-(`starts`) along the centerline (distance determined by `step` arg) and
+
+<!-- blacken-docs:off -->
+
+```python
+def create_transects(
+    centerline: GeoDataFrame,
+    ridges: GeoDataFrame,
+    step: int,
+    shoot_distance: float,
+    search_distance: float,
+    dev_from_90: float,
+) -> GeoDataFrame:
+```
+
+<!-- blacken-docs:on -->
+
+`create_transects()` is responsible for identifying equally spaced starting
+points (`starts`) along the centerline (distance determined by `step` arg) and
 generating a transect for each of the starting points.
 
 These `starts` are then passed to the `MultiTransect` class (along with other
@@ -249,13 +265,27 @@ main entry point for ridge metric calculation and makes use of the
 `DataExtractor` classes imported from `data_extractors.py` as well as
 `calc_ridge_amp()` from `ridge_amplitude.py`.
 
-`calculate_ridge_metrics()` takes the transects, ridges, ridge area raster, DEM,
-and packets (optional) as input and returns 2 `GeoDataFrame`s as output.
+<!-- blacken-docs:off -->
 
-1. rich_transects
+```python
+def calculate_ridge_metrics(
+    in_transects: gpd.GeoDataFrame | Path,
+    in_ridges: gpd.GeoDataFrame | Path,
+    in_bin_raster: rasterio.io.DatasetReader | Path | None = None,
+    in_dem: rasterio.io.DatasetReader | Path | None = None,
+    in_packets: gpd.GeoDataFrame | Path | None = None,
+) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]:
+```
+
+<!-- blacken-docs:on -->
+
+`calculate_ridge_metrics()` takes the transects, ridges, ridge area raster, DEM,
+and packets (optional) as input and returns 2 `GeoDataFrame`s as output:
+
+1. `rich_transects`
    - transect geometries with 1D arrays of the DEM and Ridge Area Raster data
      sampled along each transect.
-2. itx_metrics
+2. `itx_metrics`
    - intersection points of all input ridges and transects with the ridge
      metrics (amplitude, width, and spacing) as attributes
 
