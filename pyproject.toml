@@ -193,4 +193,4 @@ messages_control.disable = [
 
 [tool.codespell]
 skip = "*.ipynb" # notebook output cells have text fragments and images
-ignore-words-list = "FLUD,theses"
+ignore-words-list = "FLUD,theses,Rouge"
