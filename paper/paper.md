@@ -53,10 +53,10 @@ bars preserved in the ridge and swale topography commonly found in the
 floodplains of meandering rivers adjacent to the river channel. This
 quantification will allow researchers to investigate the relationships between
 ridge morphology and the environmental factors affecting its formation, such as
-the hydrology at the time of deposition[@nanson:1980], spatial variations in the
-river width [@van_de_lageweg:2014; @strick:2018], the channel
-curvature[@strick:2018], the position along the meander bend[@nanson:1980],
-anthropogenic modifications to the channel[@nagy:2020], and the floodplain
+the hydrology at the time of deposition [@nanson:1980], spatial variations in
+the river width [@van_de_lageweg:2014; @strick:2018], the channel curvature
+[@strick:2018], the position along the meander bend [@nanson:1980],
+anthropogenic modifications to the channel [@nagy:2020], and the floodplain
 vegetation coverage and composition [@hickin:1975; @nanson:1977; @zen:2017].
 
 `ScrollStats` generates a series of migration pathways (an adaptation of the
@@ -84,7 +84,7 @@ environmental factors affecting their formation. This allows for researchers to
 leverage the morphological information stored in the floodplains of meandering
 rivers to deduce past events such as changes in flow regimes [@bridge:1995;
 @van_de_lageweg:2014], river planform and bend dynamics [@nanson:1980;
-@lapointe:1986], sediment flux[@nanson:1980], and carbon storage and release.
+@lapointe:1986], sediment flux [@nanson:1980], and carbon storage and release.
 Such information has potential to also inform the predictions of future meander
 migration patterns and habitat suitability for riverine fauna and flora
 including riparian forests [@nanson:1977; @marks:2014].
