@@ -93,9 +93,9 @@ including riparian forests [@nanson:1977; @marks:2014].
 
 To the authors' best knowledge, there do not exist any other software packages
 purpose built to capture the variability in ridge morphometrics across scroll
-bar floodplains. The methodology and analysis of [@strick:2018] was influential
-in the creation of `ScrollStats`, but their analysis did not result in the
-creation of a software package, so contribution was not possible.
+bar floodplains. The methodology and analysis of @strick:2018 was influential in
+the creation of `ScrollStats`, but their analysis did not result in the creation
+of a software package, so contribution was not possible.
 
 `ScrollStats` is built upon the extensive scientific python ecosystem, and
 specifically relies upon popular geospatial libraries (shapely, geopandas, and
@@ -118,7 +118,7 @@ extend with functions using the following callable signature
 `denoiser_func(BinaryArray2D, **kwargs) -> BinaryArray2D`
 
 Similarly, the `transecting` subpackage generates migration pathways using the
-vertical resultant calculations as described in [@hickin:1974]. However, if the
+vertical resultant calculations as described in @hickin:1974. However, if the
 user would prefer to use a different method of calculating migration
 trajectories from ridge to ridge, these alternative transects could be used as a
 drop-in replacement to calculate ridge metrics instead - so long as their
