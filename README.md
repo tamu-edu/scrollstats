@@ -49,22 +49,13 @@ Install ScrollStats with `pip`
 python -m pip install scrollstats
 ```
 
-To install in a conda environment, you will first need to install `numba` with
-`conda` to make sure the correct binaries for `llvmlite` (a dependency of
-`numba`) are installed for your system.
+Or install with `conda`
 
 ```shell
-conda create --name myenv python=3.12
-conda activate myenv
-
-(myenv) conda install -c conda-forge numba
+conda install scrollstats
 ```
 
-Then use `pip` to install ScrollStats to your conda environment
-
-```shell
-(myenv) pip install scrollstats
-```
+> NOTE: scrollstats v0.1.3 must be installed with python <=3.12 when using conda
 
 ### Developer Installation
 
