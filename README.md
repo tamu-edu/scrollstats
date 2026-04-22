@@ -29,6 +29,29 @@
 An open-source python library to calculate and extract morphometrics from
 scrollbar floodplains.
 
+## Introduction
+Scrollbar floodplains, often characterized by a series of low-lying,
+gently sloping terraces, exhibit a distinct geomorphic signature that
+can be found in high-resolution digital elevation models (DEMs). The
+small elevation gradients and fine-scale topographic undulations
+reflect the dynamic balance between sediment deposition and erosional
+scouring associated with fluvial processes from the past. When rivers
+migrate laterally, the resulting channels appear in DEMs as discrete,
+V-shaped valleys. These channel geometries capture the history of
+river migration and mechanisms. DEM-based analyses of scrollbar
+floodplains provide critical insight into the temporal evolution of
+channel morphology and the underlying hydrologic and sedimentary
+controls that govern riverine landscape change.
+
+The figure below is a visualization of the DEM of [a bend on the Lower Brazos River,
+TX](https://www.google.com/maps/@30.614411,-96.499508,16z). We can
+clearly see the undulations in the DEM caused by the river migration
+as well as features such as cross-channels formed by water flow
+through the floodplain.
+
+![Image of a Bend in Brazos River](./img/bend-dem.png)
+
+
 ## Getting Started
 
 If you intend to use ScrollStats for your own analysis, follow the User
