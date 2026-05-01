@@ -28,6 +28,44 @@ _Figure 1: Measures of ridge amplitude (orange), width (purple), and spacing
 Aggregate values represent the median value of each measurement taken at a ridge
 or migration pathway_
 
+## Getting Started
+
+If you intend to use ScrollStats for your own analysis, follow the User
+Installation instructions.
+
+If you intend to develop or contribute to ScrollStats, follow the Developer
+Installation instructions.
+
+### User Installation
+
+Install ScrollStats with `pip`
+
+```shell
+python -m pip install scrollstats
+```
+
+Or install with `conda`
+
+```shell
+conda install scrollstats
+```
+
+> NOTE: scrollstats v0.1.3 must be installed with python <=3.12 when using conda
+
+### Developer Installation
+
+First, clone the repo locally, create a virtual environment for the project,
+then install the `[dev]` optional dependencies listed in pyproject.toml.
+
+```shell
+git clone https://github.com/tamu-edu/scrollstats
+
+python -m venv venv/
+source venv/bin/activate
+
+(venv) python -m pip install -e ".[dev]"
+```
+
 ## The ScrollStats Workflow
 
 The ScrollStats Workflow can be broken up into the 3 major steps listed below.
