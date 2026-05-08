@@ -24,6 +24,8 @@ shapely `Polygon` of the bend area and any other kwargs as input and returns two
 modified `rasterio` metadata to write the arrays to disk if needed
 
 ```python
+from pathlib import Path
+
 import rasterio
 import geopandas as gpd
 import numpy as np
@@ -107,6 +109,8 @@ the union of these two binary rasters represent the true ridge locations within
 the DEM.
 
 ```python
+# Generates plots for docs
+
 from functools import partial
 from pathlib import Path
 
@@ -117,10 +121,6 @@ import rasterio
 from matplotlib.colors import BoundaryNorm, ListedColormap
 from scipy import ndimage
 
-from scrollstats.delineation import (
-    create_ridge_area_raster,
-    create_ridge_area_raster_fs,
-)
 from scrollstats.delineation.raster_classifiers import (
     quadratic_profile_curvature,
     residual_topography,
@@ -161,7 +161,7 @@ profc = quadratic_profile_curvature(dem, RASTER_WINDOW_SIZE, dx=1)
 rt = residual_topography(dem, RASTER_WINDOW_SIZE)
 
 # Plot
-fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(20, 5))
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 4))
 
 mapper = ax1.imshow(profc, vmin=-0.05, vmax=0.05, cmap="seismic")
 fig.colorbar(mapper, ax=ax1)
@@ -177,6 +177,8 @@ mapper = ax3.imshow(rt, vmin=-2, vmax=2, cmap="seismic")
 fig.colorbar(mapper, ax=ax3)
 ax3.set_axis_off()
 ax3.set_title("Residual Topography")
+
+plt.tight_layout()
 ```
 
 ![pc_v_dem_v_rt.png](../img/pc_v_dem_v_rt.png)
@@ -205,7 +207,7 @@ rt_vis[rt_bc] = 10
 
 comp_vis = profc_vis + rt_vis
 
-fig, ax = plt.subplots(1, 1, figsize=(7, 5))
+fig, ax = plt.subplots(1, 1, figsize=(6, 4))
 cmap = ListedColormap(["k", "dodgerblue", "yellow", "limegreen"])
 bounds = np.array([0, 1, 10, 11, 12])
 norm = BoundaryNorm(bounds, cmap.N)
@@ -218,6 +220,8 @@ cbar.set_ticks([0.5, 5.5, 10.5, 11.5], minor=False)
 cbar.ax.set_yticklabels(
     ["No ridge", "Profile\nCurvature", "Residual\nTopography", "Agreement"]
 )
+
+plt.tight_layout()
 ```
 
 ![binary_classification.png](../img/binary_classification.png)
@@ -231,17 +235,19 @@ Create the agreement raster as the union of the two binary rasters.
 agr = profc_bc & rt_bc
 
 # Plot
-fig, ax = plt.subplots(1, 1, figsize=(7, 5))
+fig, ax = plt.subplots(1, 1, figsize=(6, 4))
 cmap = ListedColormap(["k", "limegreen"])
 bounds = np.array([0, 1, 2])
 norm = BoundaryNorm(bounds, cmap.N)
 img = ax.imshow(agr, cmap=cmap, norm=norm)
 ax.set_axis_off()
-ax.set_title("Agreement Between Binary Classification Methods")
+ax.set_title("Binary Classification Agreement")
 
 cbar = plt.colorbar(img)
 cbar.set_ticks([0.5, 1.5], minor=False)
 cbar.ax.set_yticklabels(["No ridge", "Ridge\nAgreement"])
+
+plt.tight_layout()
 ```
 
 ![agreement_raster.png](../img/agreement_raster.png)
@@ -260,7 +266,7 @@ agr_clip, agr_mask, agr_meta = clip_raster(
 )
 
 # Plot
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 6))
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 2.5))
 
 mapper = ax1.imshow(dem_clip)
 ax1.set_axis_off()
@@ -272,6 +278,8 @@ agr_clip_vis[agr_mask] = np.nan
 mapper = ax2.imshow(agr_clip_vis)
 ax2.set_axis_off()
 ax2.set_title("Clipped Agreement Raster")
+
+plt.tight_layout()
 ```
 
 ![dem_v_agreement.png](../img/dem_v_agreement.png)
@@ -295,7 +303,7 @@ for func in denoiser_funcs:
     ridge_area_array = func(ridge_area_array)
 
 # Plot
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 6))
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 2.5))
 
 mapper = ax1.imshow(agr_clip_vis)
 ax1.set_axis_off()
@@ -306,6 +314,8 @@ ridge_area_array_vis[agr_mask] = np.nan
 mapper = ax2.imshow(ridge_area_array_vis)
 ax2.set_axis_off()
 ax2.set_title("Denoised")
+
+plt.tight_layout()
 ```
 
 ![agreement_v_denoised.png](../img/agreement_v_denoised.png)

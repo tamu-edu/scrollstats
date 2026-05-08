@@ -15,6 +15,7 @@ from scrollstats import (
     LineSmoother,
     RidgeDataExtractor,
     TransectDataExtractor,
+    calculate_ridge_metrics,
     create_transects,
 )
 from scrollstats.delineation import (
@@ -416,3 +417,41 @@ def test_bend_data_extractor() -> None:
     assert all(bde.itx_metrics["ridge_amp"] == data.amp * 2)
     assert all(bde.itx_metrics["ridge_width"] == data.wavelength / 2)
     assert all(bde.itx_metrics["pre_mig_dist"] == data.wavelength)
+
+
+def test_calc_ridge_metrics() -> None:
+    """
+    Test that `calculate_ridge_metrics` returns rich_transects and itx_metrics as expected
+    """
+
+    # Generate mock data
+    data = MockRidgeData()
+    dem = data.generate_waves()
+    transects = data.generate_transects()
+    ridges = data.generate_ridges()
+
+    bin_arr = (dem > data.vert_adj).astype(int)
+
+    # Create rasterio.DatasetReader objects from arrays
+    dem_ras = data.generate_raster(dem, no_data=np.nan)
+    bin_ras = data.generate_raster(bin_arr)
+
+    rich_transects, itx_metrics = calculate_ridge_metrics(
+        transects, ridges, bin_ras, dem_ras
+    )
+
+    # rich_transects tests
+    assert all(rich_transects["ridge_count_raster"] == data.reps)
+    assert all(
+        rich_transects["dem_signal"].apply(lambda x: x.max())
+        == data.amp + data.vert_adj
+    )
+    assert all(
+        rich_transects["bin_signal"].apply(lambda x: x.sum())
+        == (data.wavelength / 2) * (data.reps - 1)
+    )
+
+    # itx_metrics tests
+    assert all(itx_metrics["ridge_amp"] == data.amp * 2)
+    assert all(itx_metrics["ridge_width"] == data.wavelength / 2)
+    assert all(itx_metrics["pre_mig_dist"] == data.wavelength)
