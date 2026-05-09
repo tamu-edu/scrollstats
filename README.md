@@ -29,6 +29,30 @@
 An open-source python library to calculate and extract morphometrics from
 scrollbar floodplains.
 
+For further reading on the rationale behind ScrollStats and practical examples
+demonstrating how to use ScrollStats, check out the documentation here:
+https://scrollstats.readthedocs.io/en/latest
+
+## Introduction
+
+Scroll bar floodplains, often characterized by a series undulating ridges and
+swales, exhibit a distinct geomorphic signature that can be seen in
+high-resolution digital elevation models (DEMs). These fine-scale topographic
+undulations reflect the dynamic balance between sediment deposition and
+erosional scouring associated with the fluvial processes along the inner bank at
+the time of their formation. DEM-based analyses of scroll bar floodplains
+provide critical insight into the temporal evolution of channel morphology and
+the underlying hydrologic and sedimentary controls that govern riverine
+landscape change.
+
+The figure below is a visualization of the DEM of
+[a bend on the Lower Brazos River, TX](https://www.google.com/maps/@30.614411,-96.499508,16z).
+We can clearly see the undulations in the DEM caused by the river migration as
+well as features such as cross-channels formed by water flow through the
+floodplain.
+
+![Image of a Bend in Brazos River](./img/bend-dem.png)
+
 ## Getting Started
 
 If you intend to use ScrollStats for your own analysis, follow the User
@@ -39,11 +63,19 @@ Installation instructions.
 
 ### User Installation
 
-Simply install ScrollStats to your python environment with `pip`
+Install ScrollStats with `pip`
 
 ```shell
 python -m pip install scrollstats
 ```
+
+Or install with `conda`
+
+```shell
+conda install scrollstats
+```
+
+> NOTE: scrollstats v0.1.3 must be installed with python <=3.12 when using conda
 
 ### Developer Installation
 

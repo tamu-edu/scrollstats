@@ -53,9 +53,11 @@ bars preserved in the ridge and swale topography commonly found in the
 floodplains of meandering rivers adjacent to the river channel. This
 quantification will allow researchers to investigate the relationships between
 ridge morphology and the environmental factors affecting its formation, such as
-the hydrology at the time of deposition, spatial variations in the river width,
-the channel curvature, the position along the meander bend, and the floodplain
-vegetation coverage and composition.
+the hydrology at the time of deposition [@nanson:1980], spatial variations in
+the river width [@van_de_lageweg:2014; @strick:2018], the channel curvature
+[@strick:2018], the position along the meander bend [@nanson:1980],
+anthropogenic modifications to the channel [@nagy:2020], and the floodplain
+vegetation coverage and composition [@hickin:1975; @nanson:1977; @zen:2017].
 
 `ScrollStats` generates a series of migration pathways (an adaptation of the
 "erosion pathlines" from @hickin:1974) that trace the paths of migration across
@@ -66,6 +68,10 @@ one-dimensional (1-D) signals of ridge elevation and ridge presence
 (\autoref{fig:figure2}). Then, from each 1-D signal, the ridge's amplitude,
 width, and spacing (distance from the previous ridge) can be calculated at every
 intersection of the migration pathway and a ridge (\autoref{fig:figure3}).
+Calculating these metrics for multiple migration pathways may improve upon
+results from previous studies that calculated similar metrics for a single
+transect per bend [@strick:2018; @nagy:2020] by capturing the spatial
+variability in these metrics across the bend.
 
 The intersections of migration pathways and ridge lines form a migrationally
 relevant grid, which allows for the measurements at each intersection to be
@@ -76,11 +82,65 @@ ridge) and along the channel (from migration pathway to migration pathway) and
 examine the associations between these changes in ridge morphology and the
 environmental factors affecting their formation. This allows for researchers to
 leverage the morphological information stored in the floodplains of meandering
-rivers to deduce past events such as changes in flow regimes, river planform and
-bend dynamics, sediment flux, and carbon storage and release. Such information
-has potential to also inform the predictions of future meander migration
-patterns and habitat suitability for riverine fauna and flora including riparian
-forests.
+rivers to deduce past events such as changes in flow regimes [@bridge:1995;
+@van_de_lageweg:2014], river planform and bend dynamics [@nanson:1980;
+@lapointe:1986], sediment flux [@nanson:1980], and carbon storage and release.
+Such information has potential to also inform the predictions of future meander
+migration patterns and habitat suitability for riverine fauna and flora
+including riparian forests [@nanson:1977; @marks:2014].
+
+# State of the field
+
+To the authors' best knowledge, there do not exist any other software packages
+purpose built to capture the variability in ridge morphometrics across scroll
+bar floodplains. The methodology and analysis of @strick:2018 was influential in
+the creation of `ScrollStats`, but their analysis did not result in the creation
+of a software package, so contribution was not possible.
+
+`ScrollStats` is built upon the extensive scientific python ecosystem, and
+specifically relies upon popular geospatial libraries (shapely, geopandas, and
+rasterio) for spatial analysis and data manipulation. Users familiar with these
+python libraries should find working with and extending `ScrollStats` to be an
+intuitive experience.
+
+# Software design
+
+`ScrollStats` was built with interoperability and extensibility for the end-user
+in mind. For example, the `delineation` subpackage, which is responsible for
+delineating ridge areas from the input DEM, by default uses two classifier
+functions to delineate ridge areas within the DEM: profile curvature and
+residual topography. However, end users can extend ScrollStats by supplying
+their own list of classier functions that have the same callable signature as
+the default classifier functions:
+`classifier_func(ElevationArray2D, **kwargs) -> BinaryArray2D`. Likewise, the
+denoising process uses a default list of denoising functions that the user can
+extend with functions using the following callable signature
+`denoiser_func(BinaryArray2D, **kwargs) -> BinaryArray2D`
+
+Similarly, the `transecting` subpackage generates migration pathways using the
+vertical resultant calculations as described in @hickin:1974. However, if the
+user would prefer to use a different method of calculating migration
+trajectories from ridge to ridge, these alternative transects could be used as a
+drop-in replacement to calculate ridge metrics instead - so long as their
+vertices were coincident with the ridge lines they intersect.
+
+The DataExtractor classes in the `ridge_metrics` subpackage were designed to
+mirror the spatial scales at which they operate: Bend, Transect, and
+Intersection. This design communicates 1) which code is responsible for
+extracting information at the given scale and 2) what information is necessary
+as input to make these calculations. This enables future developers to easily
+identify where to focus efforts if they wish to extend the functionality of
+ScrollStats or troubleshoot unexpected results.
+
+# Research impact statement
+
+`ScrollStats` has had limited impact on research community at the time of
+publishing as it was not openly distributed beforehand. However, the core
+methodological framework of `ScrollStats` as well as initial findings from its
+use on meander bends from the Lower Brazos River, TX have been presented at the
+Association of American Geographers Annual Meeting in 2021 and 2023 during its
+development. Additionally, `ScrollStats` has been used in the completion of two
+Masters theses in the FLUD Lab at Texas A&M University.
 
 # Figures
 
@@ -91,6 +151,13 @@ forests.
 ![Graphic representation of ridge metric calculations for the example intersection (purple dot). Amplitude (a; shown in yellow) is calculated by averaging the differences between the maximum elevation found within the corresponding ridge area (grey patch) and the minimum elevation values found in the preceding (a1) and following (a2) swale areas. Width (w; shown in purple) is the distance between the edges of the corresponding ridge area. Spacing (s; shown in green) is the distance between the intersection point and the adjacent intersection point closer to the channel.\label{fig:figure3}](figs/example_metric.png)
 
 ![Measures of ridge amplitude (orange), width (purple), and spacing (green) are shown at the intersection, ridge, and migration pathway scales. Aggregate values represent the medain value of each measurement taken at a ridge or migration pathway.\label{fig:figure4}](figs/example_output.png)
+
+# AI usage disclosure
+
+Generative AI was used to create a limited number of docstrings and provide
+implementation examples of common packaging, distribution, and documentation
+tools used in open source software. Generative AI was not used in the writing of
+this manuscript or any other supporting materials.
 
 # Acknowledgements
 
