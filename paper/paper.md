@@ -41,7 +41,7 @@ ridge may serve as a proxy for the hydrological, geomorphological, and
 sedimentological conditions under which each individual scroll bar is formed.
 The ridge crests, with their higher elevation relative to the swales, also
 encourage the growth of colonizing vegetation, which in turn stabilizes the
-ridges and mitigate future erosion [@zen:2017]. While there has long been an
+ridges and mitigates future erosion [@zen:2017]. While there has long been an
 interest in the formation and preservation of scroll bars, research into the
 specific drivers of ridge morphology and what information it may contain is new
 [@strick:2018; @nagy:2020].
@@ -110,7 +110,7 @@ in mind. For example, the `delineation` subpackage, which is responsible for
 delineating ridge areas from the input DEM, by default uses two classifier
 functions to delineate ridge areas within the DEM: profile curvature and
 residual topography. However, end users can extend ScrollStats by supplying
-their own list of classier functions that have the same callable signature as
+their own list of classifier functions that have the same callable signature as
 the default classifier functions:
 `classifier_func(ElevationArray2D, **kwargs) -> BinaryArray2D`. Likewise, the
 denoising process uses a default list of denoising functions that the user can
@@ -150,7 +150,7 @@ Masters theses in the FLUD Lab at Texas A&M University.
 
 ![Graphic representation of ridge metric calculations for the example intersection (purple dot). Amplitude (a; shown in yellow) is calculated by averaging the differences between the maximum elevation found within the corresponding ridge area (grey patch) and the minimum elevation values found in the preceding (a1) and following (a2) swale areas. Width (w; shown in purple) is the distance between the edges of the corresponding ridge area. Spacing (s; shown in green) is the distance between the intersection point and the adjacent intersection point closer to the channel.\label{fig:figure3}](figs/example_metric.png)
 
-![Measures of ridge amplitude (orange), width (purple), and spacing (green) are shown at the intersection, ridge, and migration pathway scales. Aggregate values represent the medain value of each measurement taken at a ridge or migration pathway.\label{fig:figure4}](figs/example_output.png)
+![Measures of ridge amplitude (orange), width (purple), and spacing (green) are shown at the intersection, ridge, and migration pathway scales. Aggregate values represent the median value of each measurement taken at a ridge or migration pathway.\label{fig:figure4}](figs/example_output.png)
 
 # AI usage disclosure
 
