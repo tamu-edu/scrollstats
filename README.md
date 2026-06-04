@@ -8,6 +8,7 @@
 [![PyPI platforms][pypi-platforms]][pypi-link]
 
 [![GitHub Discussion][github-discussions-badge]][github-discussions-link]
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.09736/status.svg)](https://doi.org/10.21105/joss.09736)
 
 <!-- SPHINX-START -->
 
