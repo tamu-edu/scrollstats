@@ -1,0 +1,50 @@
+cff-version: "1.2.0"
+authors:
+- family-names: Vanderheiden
+  given-names: Andrew
+  orcid: "https://orcid.org/0009-0003-2466-8144"
+- family-names: Hales
+  given-names: Billy
+  orcid: "https://orcid.org/0000-0002-6591-9363"
+- family-names: Moodie
+  given-names: Andrew J.
+  orcid: "https://orcid.org/0000-0002-6745-036X"
+- family-names: Güneralp
+  given-names: İnci
+  orcid: "https://orcid.org/0000-0002-7268-2974"
+contact:
+- family-names: Vanderheiden
+  given-names: Andrew
+  orcid: "https://orcid.org/0009-0003-2466-8144"
+doi: 10.5281/zenodo.20131721
+message: If you use this software, please cite our article in the
+  Journal of Open Source Software.
+preferred-citation:
+  authors:
+  - family-names: Vanderheiden
+    given-names: Andrew
+    orcid: "https://orcid.org/0009-0003-2466-8144"
+  - family-names: Hales
+    given-names: Billy
+    orcid: "https://orcid.org/0000-0002-6591-9363"
+  - family-names: Moodie
+    given-names: Andrew J.
+    orcid: "https://orcid.org/0000-0002-6745-036X"
+  - family-names: Güneralp
+    given-names: İnci
+    orcid: "https://orcid.org/0000-0002-7268-2974"
+  date-published: 2026-06-02
+  doi: 10.21105/joss.09736
+  issn: 2475-9066
+  issue: 122
+  journal: Journal of Open Source Software
+  publisher:
+    name: Open Journals
+  start: 9736
+  title: "ScrollStats: a Python tool for quantifying scroll bar
+    morphology on meandering rivers"
+  type: article
+  url: "https://joss.theoj.org/papers/10.21105/joss.09736"
+  volume: 11
+title: "ScrollStats: a Python tool for quantifying scroll bar morphology
+  on meandering rivers"
